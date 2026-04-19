@@ -134,21 +134,15 @@ func reviewCmd(args []string) error {
 		newNotes := make([]Note, len(notes))
 		copy(newNotes, notes)
 		for i, n := range notes {
-			best, exact := bestMatch(n, lines)
-			if best.start == 0 {
+			curr, found, changed := relocateNote(n, f, lines)
+			if !found {
 				reviewItems = append(reviewItems, EditItem{Orig: n, Curr: n, Action: "accept"})
 				continue
 			}
-			blames, _ := blameRange(f, best.start, best.count)
-			curr := n
-			curr.Subject.LineRef = normalizeLineRef(best.start, best.count)
-			curr.Subject.Text = strings.Join(lines[best.start-1:best.start-1+best.count], "\n")
-			curr.Subject.Blames = blames
-			if exact && blameEq(n.Subject.Blames, blames) {
-				newNotes[i] = curr
-				continue
+			newNotes[i] = curr
+			if changed {
+				reviewItems = append(reviewItems, EditItem{Orig: n, Curr: curr, Action: "update"})
 			}
-			reviewItems = append(reviewItems, EditItem{Orig: n, Curr: curr, Action: "update"})
 		}
 		original[f] = orig
 		updated[f] = newNotes
@@ -384,16 +378,15 @@ func blameRange(file string, start, count int) ([]string, error) {
 
 type candidate struct{ start, count, dist, lineDelta int }
 
-func bestMatch(n Note, lines []string) (candidate, bool) {
+func bestMatch(n Note, lines []string) candidate {
 	start, count, err := parseLineRef(n.Subject.LineRef)
 	if err != nil {
-		return candidate{}, false
+		return candidate{}
 	}
 	if count < 1 || len(lines) < count {
-		return candidate{}, false
+		return candidate{}
 	}
 	best := candidate{dist: 1 << 30, lineDelta: 1 << 30}
-	exact := false
 	target := n.Subject.Text
 	for i := 0; i+count <= len(lines); i++ {
 		seg := strings.Join(lines[i:i+count], "\n")
@@ -402,26 +395,21 @@ func bestMatch(n Note, lines []string) (candidate, bool) {
 		if d < best.dist || (d == best.dist && ld < best.lineDelta) {
 			best = candidate{start: i + 1, count: count, dist: d, lineDelta: ld}
 		}
-		if d == 0 {
-			exact = true
-		}
 	}
-	if best.dist == 1<<30 {
-		return candidate{}, false
-	}
-	return best, exact
+	return best
 }
 
-func blameEq(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
+func relocateNote(n Note, file string, lines []string) (Note, bool, bool) {
+	best := bestMatch(n, lines)
+	if best.start == 0 {
+		return n, false, false
 	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+	updated := n
+	updated.Subject.LineRef = normalizeLineRef(best.start, best.count)
+	updated.Subject.Text = strings.Join(lines[best.start-1:best.start-1+best.count], "\n")
+	blames, _ := blameRange(file, best.start, best.count)
+	updated.Subject.Blames = blames
+	return updated, true, updated.Subject.Text != n.Subject.Text
 }
 
 func editDistance(a, b string) int {
@@ -480,10 +468,10 @@ func openEditor(items []EditItem) (string, error) {
 	buf.WriteString("# Please review the following notes as their underlying code has been changed.\n")
 	buf.WriteString("# Lines starting with '#' will be ignored, and an empty message aborts the commit.\n\n")
 	for _, it := range items {
-		buf.WriteString(fmt.Sprintf("file: %s\n", it.Orig.File))
-		buf.WriteString(fmt.Sprintf("line: %s\n", it.Orig.Subject.LineRef))
+		buf.WriteString(fmt.Sprintf("file: %s\n", it.Curr.File))
+		buf.WriteString(fmt.Sprintf("line: %s\n", it.Curr.Subject.LineRef))
 		buf.WriteString("metadata:\n")
-		buf.WriteString(fmt.Sprintf("    author: %s\n", it.Orig.Metadata.Author))
+		buf.WriteString(fmt.Sprintf("    author: %s\n", it.Curr.Metadata.Author))
 		buf.WriteString("note:\n")
 		for _, ln := range strings.Split(it.Orig.NoteText, "\n") {
 			buf.WriteString("    " + ln + "\n")
@@ -533,7 +521,7 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 		if err != nil {
 			return err
 		}
-		if file != it.Orig.File || line != it.Orig.Subject.LineRef {
+		if file != it.Curr.File || line != it.Curr.Subject.LineRef {
 			return errors.New("file/line fields are immutable")
 		}
 		if action == "accept" && note != it.Orig.NoteText {
@@ -554,7 +542,9 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 		case "drop":
 			arr = append(arr[:idx], arr[idx+1:]...)
 		case "accept":
-			arr[idx] = it.Orig
+			n := it.Curr
+			n.NoteText = it.Orig.NoteText
+			arr[idx] = n
 		case "update":
 			n := it.Curr
 			n.NoteText = note
