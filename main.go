@@ -524,8 +524,11 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 		if err != nil {
 			return err
 		}
-		if file != it.Curr.File || line != it.Curr.Subject.LineRef {
-			return errors.New("file/line fields are immutable")
+		if file != it.Curr.File {
+			return errors.New("file field is immutable")
+		}
+		if _, _, err := parseLineRef(line); err != nil {
+			return errors.New("invalid line reference")
 		}
 		if action == "accept" && note != it.Orig.NoteText {
 			return errors.New("accept requires unchanged note text")
@@ -546,10 +549,12 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 			arr = append(arr[:idx], arr[idx+1:]...)
 		case "accept":
 			n := it.Curr
+			n.Subject.LineRef = line
 			n.NoteText = it.Orig.NoteText
 			arr[idx] = n
 		case "update":
 			n := it.Curr
+			n.Subject.LineRef = line
 			n.NoteText = note
 			arr[idx] = n
 		default:
