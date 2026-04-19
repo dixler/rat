@@ -514,6 +514,7 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 		return errors.New("missing note blocks")
 	}
 	byFile := map[string][]Note{}
+	fileLines := map[string][]string{}
 	for _, arr := range updated {
 		for _, n := range arr {
 			byFile[n.File] = append(byFile[n.File], n)
@@ -533,6 +534,20 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 		if action == "accept" && note != it.Orig.NoteText {
 			return errors.New("accept requires unchanged note text")
 		}
+		lines, ok := fileLines[file]
+		if !ok {
+			var err error
+			lines, err = readLines(file)
+			if err != nil {
+				return err
+			}
+			fileLines[file] = lines
+		}
+		start, count, _ := parseLineRef(line)
+		segment, err := sliceRange(lines, start, count)
+		if err != nil {
+			return err
+		}
 		arr := byFile[file]
 		idx := -1
 		for j := range arr {
@@ -550,11 +565,13 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 		case "accept":
 			n := it.Curr
 			n.Subject.LineRef = line
+			n.Subject.Text = strings.Join(segment, "\n")
 			n.NoteText = it.Orig.NoteText
 			arr[idx] = n
 		case "update":
 			n := it.Curr
 			n.Subject.LineRef = line
+			n.Subject.Text = strings.Join(segment, "\n")
 			n.NoteText = note
 			arr[idx] = n
 		default:
