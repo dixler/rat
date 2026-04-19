@@ -470,8 +470,6 @@ func openEditor(items []EditItem) (string, error) {
 	for _, it := range items {
 		buf.WriteString(fmt.Sprintf("file: %s\n", it.Curr.File))
 		buf.WriteString(fmt.Sprintf("line: %s\n", it.Curr.Subject.LineRef))
-		buf.WriteString("metadata:\n")
-		buf.WriteString(fmt.Sprintf("    author: %s\n", it.Curr.Metadata.Author))
 		buf.WriteString("note:\n")
 		for _, ln := range strings.Split(it.Orig.NoteText, "\n") {
 			buf.WriteString("    " + ln + "\n")
@@ -493,7 +491,12 @@ func openEditor(items []EditItem) (string, error) {
 		ed = "vi"
 	}
 	cmd := exec.Command(ed, f.Name())
-	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+	if tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0); err == nil {
+		defer tty.Close()
+		cmd.Stdin, cmd.Stdout, cmd.Stderr = tty, tty, tty
+	} else {
+		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+	}
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
@@ -511,6 +514,7 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 		return errors.New("missing note blocks")
 	}
 	byFile := map[string][]Note{}
+	fileLines := map[string][]string{}
 	for _, arr := range updated {
 		for _, n := range arr {
 			byFile[n.File] = append(byFile[n.File], n)
@@ -521,11 +525,28 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 		if err != nil {
 			return err
 		}
-		if file != it.Curr.File || line != it.Curr.Subject.LineRef {
-			return errors.New("file/line fields are immutable")
+		if file != it.Curr.File {
+			return errors.New("file field is immutable")
+		}
+		if _, _, err := parseLineRef(line); err != nil {
+			return errors.New("invalid line reference")
 		}
 		if action == "accept" && note != it.Orig.NoteText {
 			return errors.New("accept requires unchanged note text")
+		}
+		lines, ok := fileLines[file]
+		if !ok {
+			var err error
+			lines, err = readLines(file)
+			if err != nil {
+				return err
+			}
+			fileLines[file] = lines
+		}
+		start, count, _ := parseLineRef(line)
+		segment, err := sliceRange(lines, start, count)
+		if err != nil {
+			return err
 		}
 		arr := byFile[file]
 		idx := -1
@@ -543,10 +564,14 @@ func applyEdits(text string, items []EditItem, updated map[string][]Note) error 
 			arr = append(arr[:idx], arr[idx+1:]...)
 		case "accept":
 			n := it.Curr
+			n.Subject.LineRef = line
+			n.Subject.Text = strings.Join(segment, "\n")
 			n.NoteText = it.Orig.NoteText
 			arr[idx] = n
 		case "update":
 			n := it.Curr
+			n.Subject.LineRef = line
+			n.Subject.Text = strings.Join(segment, "\n")
 			n.NoteText = note
 			arr[idx] = n
 		default:
@@ -610,7 +635,12 @@ func promptAction() (string, error) {
 	fmt.Println("edit")
 	fmt.Println("reset")
 	fmt.Print("> ")
-	r := bufio.NewReader(os.Stdin)
+	in := io.Reader(os.Stdin)
+	if tty, err := os.Open("/dev/tty"); err == nil {
+		defer tty.Close()
+		in = tty
+	}
+	r := bufio.NewReader(in)
 	v, err := r.ReadString('\n')
 	if err != nil && !errors.Is(err, io.EOF) {
 		return "", err
@@ -623,33 +653,55 @@ func promptAction() (string, error) {
 }
 
 func notesDiff(before, after map[string][]Note) (string, error) {
-	bf, _ := os.CreateTemp("", "notes-before-*.jsonl")
-	af, _ := os.CreateTemp("", "notes-after-*.jsonl")
-	defer os.Remove(bf.Name())
-	defer os.Remove(af.Name())
-	_ = writeMapNotes(bf, before)
-	_ = writeMapNotes(af, after)
-	cmd := exec.Command("git", "--no-pager", "diff", "--no-index", bf.Name(), af.Name())
-	out, _ := cmd.CombinedOutput()
-	return string(out), nil
-}
-
-func writeMapNotes(w *os.File, m map[string][]Note) error {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	enc := json.NewEncoder(w)
-	for _, k := range keys {
-		for _, n := range m[k] {
-			if err := enc.Encode(n); err != nil {
-				return err
+	type info struct{ file, line, note string }
+	index := func(m map[string][]Note) map[string]info {
+		out := map[string]info{}
+		for _, notes := range m {
+			for _, n := range notes {
+				k := n.File + "\x00" + n.Subject.LineRef
+				out[k] = info{file: n.File, line: n.Subject.LineRef, note: n.NoteText}
 			}
 		}
+		return out
 	}
-	return w.Close()
+	b, a := index(before), index(after)
+	keys := map[string]bool{}
+	for k := range b {
+		keys[k] = true
+	}
+	for k := range a {
+		keys[k] = true
+	}
+	var sorted []string
+	for k := range keys {
+		sorted = append(sorted, k)
+	}
+	sort.Strings(sorted)
+	var out strings.Builder
+	for _, k := range sorted {
+		oldv, oldok := b[k]
+		newv, newok := a[k]
+		if oldok && newok && oldv.note == newv.note {
+			continue
+		}
+		ref := oldv.file
+		line := oldv.line
+		if ref == "" {
+			ref, line = newv.file, newv.line
+		}
+		out.WriteString(fmt.Sprintf("%s:%s\n", ref, strings.TrimPrefix(line, "L")))
+		if oldok {
+			out.WriteString(colorRed("-   " + oldv.note + "\n"))
+		}
+		if newok {
+			out.WriteString(colorGreen("+   " + newv.note + "\n"))
+		}
+	}
+	return out.String(), nil
 }
+
+func colorRed(s string) string   { return "\x1b[31m" + s + "\x1b[0m" }
+func colorGreen(s string) string { return "\x1b[32m" + s + "\x1b[0m" }
 
 func cloneNotes(a []Note) []Note {
 	b := make([]Note, len(a))
