@@ -452,6 +452,9 @@ func editReviewLoop(items []EditItem, original map[string][]Note, updated map[st
 		if err != nil {
 			return "", err
 		}
+		if strings.TrimSpace(stripCommentLines(edited)) == "" {
+			return "abort", nil
+		}
 		if err := applyEdits(edited, items, updated); err != nil {
 			fmt.Fprintln(os.Stderr, "edit parse error:", err)
 			continue
@@ -474,6 +477,8 @@ func editReviewLoop(items []EditItem, original map[string][]Note, updated map[st
 
 func openEditor(items []EditItem) (string, error) {
 	var buf bytes.Buffer
+	buf.WriteString("# Please review the following notes as their underlying code has been changed.\n")
+	buf.WriteString("# Lines starting with '#' will be ignored, and an empty message aborts the commit.\n\n")
 	for _, it := range items {
 		buf.WriteString(fmt.Sprintf("file: %s\n", it.Orig.File))
 		buf.WriteString(fmt.Sprintf("line: %s\n", it.Orig.Subject.LineRef))
@@ -509,7 +514,11 @@ func openEditor(items []EditItem) (string, error) {
 }
 
 func applyEdits(text string, items []EditItem, updated map[string][]Note) error {
-	blocks := strings.Split(text, "\n---\n")
+	clean := strings.TrimSpace(stripCommentLines(text))
+	if clean == "" {
+		return errors.New("empty review message")
+	}
+	blocks := strings.Split(clean, "\n---\n")
 	if len(blocks) < len(items) {
 		return errors.New("missing note blocks")
 	}
@@ -567,6 +576,9 @@ func parseBlock(b string) (file, line, note, action string, err error) {
 	var noteLines []string
 	for s.Scan() {
 		ln := s.Text()
+		if strings.HasPrefix(strings.TrimSpace(ln), "#") {
+			continue
+		}
 		switch {
 		case strings.HasPrefix(ln, "file: "):
 			file = strings.TrimSpace(strings.TrimPrefix(ln, "file: "))
@@ -588,6 +600,17 @@ func parseBlock(b string) (file, line, note, action string, err error) {
 		return "", "", "", "", errors.New("invalid review block")
 	}
 	return
+}
+
+func stripCommentLines(s string) string {
+	var out []string
+	for _, ln := range strings.Split(strings.ReplaceAll(s, "\r\n", "\n"), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(ln), "#") {
+			continue
+		}
+		out = append(out, ln)
+	}
+	return strings.Join(out, "\n")
 }
 
 func promptAction() (string, error) {
