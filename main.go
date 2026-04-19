@@ -62,16 +62,15 @@ func usage() {
 }
 
 func addCmd(args []string) error {
-	if len(args) < 3 {
-		return errors.New("usage: notectl add <file> <Lstart[+n]> <note text>")
+	if len(args) < 2 {
+		return errors.New("usage: notectl add <file:start[:end]> <note text>")
 	}
-	file := filepath.Clean(args[0])
-	ref := args[1]
-	noteText := strings.Join(args[2:], " ")
-	start, cnt, err := parseLineRef(ref)
+	file, start, end, err := parseAddTarget(args[0])
 	if err != nil {
 		return err
 	}
+	noteText := strings.Join(args[1:], " ")
+	cnt := end - start + 1
 	lines, err := readLines(file)
 	if err != nil {
 		return err
@@ -311,31 +310,58 @@ func gitAdd(path string) error { return exec.Command("git", "add", path).Run() }
 func gitRM(path string) error  { return exec.Command("git", "rm", "-f", "--cached", path).Run() }
 
 func parseLineRef(ref string) (start, count int, err error) {
-	if !strings.HasPrefix(ref, "L") {
-		return 0, 0, errors.New("line ref must start with L")
+	if ref == "" {
+		return 0, 0, errors.New("invalid line reference")
 	}
-	r := strings.TrimPrefix(ref, "L")
-	parts := strings.Split(r, "+")
+	parts := strings.Split(ref, ":")
+	if len(parts) > 2 {
+		return 0, 0, errors.New("invalid line reference")
+	}
 	start, err = strconv.Atoi(parts[0])
 	if err != nil || start < 1 {
-		return 0, 0, errors.New("invalid start line")
+		return 0, 0, errors.New("invalid line reference")
 	}
-	count = 1
+	end := start
 	if len(parts) == 2 {
-		n, e := strconv.Atoi(parts[1])
-		if e != nil || n < 0 {
-			return 0, 0, errors.New("invalid range suffix")
+		end, err = strconv.Atoi(parts[1])
+		if err != nil || end < start {
+			return 0, 0, errors.New("invalid line reference")
 		}
-		count = n + 1
 	}
+	count = end - start + 1
 	return
 }
 
 func normalizeLineRef(start, count int) string {
 	if count <= 1 {
-		return fmt.Sprintf("L%d", start)
+		return fmt.Sprintf("%d", start)
 	}
-	return fmt.Sprintf("L%d+%d", start, count-1)
+	return fmt.Sprintf("%d:%d", start, start+count-1)
+}
+
+func parseAddTarget(s string) (file string, start, end int, err error) {
+	last := strings.LastIndex(s, ":")
+	if last <= 0 || last == len(s)-1 {
+		return "", 0, 0, errors.New("invalid target, expected <file:start[:end]>")
+	}
+	filePart := s[:last]
+	endPart := s[last+1:]
+	second := strings.LastIndex(filePart, ":")
+	startPart := endPart
+	if second > 0 {
+		startPart = filePart[second+1:]
+		filePart = filePart[:second]
+	}
+	start, err = strconv.Atoi(startPart)
+	if err != nil || start < 1 {
+		return "", 0, 0, errors.New("invalid target, expected <file:start[:end]>")
+	}
+	end, err = strconv.Atoi(endPart)
+	if err != nil || end < start {
+		return "", 0, 0, errors.New("invalid target, expected <file:start[:end]>")
+	}
+	file = filepath.Clean(filePart)
+	return
 }
 
 func readLines(path string) ([]string, error) {
@@ -645,11 +671,22 @@ func promptAction() (string, error) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		return "", err
 	}
-	v = strings.TrimSpace(v)
-	if v == "" {
-		v = "accept"
+	for {
+		v = strings.TrimSpace(v)
+		if v == "" {
+			return "accept", nil
+		}
+		switch v {
+		case "accept", "abort", "edit", "reset":
+			return v, nil
+		}
+		fmt.Println("invalid option, enter one of: accept, abort, edit, reset")
+		fmt.Print("> ")
+		v, err = r.ReadString('\n')
+		if err != nil && !errors.Is(err, io.EOF) {
+			return "", err
+		}
 	}
-	return v, nil
 }
 
 func notesDiff(before, after map[string][]Note) (string, error) {
@@ -689,7 +726,7 @@ func notesDiff(before, after map[string][]Note) (string, error) {
 		if ref == "" {
 			ref, line = newv.file, newv.line
 		}
-		out.WriteString(fmt.Sprintf("%s:%s\n", ref, strings.TrimPrefix(line, "L")))
+		out.WriteString(fmt.Sprintf("%s:%s\n", ref, line))
 		if oldok {
 			out.WriteString(colorRed("-   " + oldv.note + "\n"))
 		}
