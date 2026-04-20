@@ -414,7 +414,11 @@ func printLocIndented(indent, label string, loc location, focus, color, focusCol
 	if h == "" {
 		h = clrRef
 	}
-	fmt.Printf("%s%s%s%s: %s:%d:%d%s\n", indent, c, label, clrReset, file, line, col, clrReset)
+	if label == "" {
+		fmt.Printf("%s%s%s%s: %d:%d%s\n", indent, c, clrReset, file, line, col, clrReset)
+	} else {
+		fmt.Printf("%s%s%s%s: %s:%d:%d%s\n", indent, c, label, clrReset, file, line, col, clrReset)
+	}
 	fmt.Printf("%s  %s%s%s\n", indent, clrWhite, colorizeIdentifier(lineText(file, line), focus, h), clrReset)
 }
 
@@ -535,15 +539,15 @@ func printCapturedHierarchy(c *lsp, repoRoot string, ref location) {
 		}
 		sortLocs(r.Reassign)
 		sortLocs(r.Refs)
-		printLocIndented("  ", "Def "+r.Name, *r.Def, r.Name, clrYellow, clrYellow)
+		printLocIndented("  ", r.Name, *r.Def, r.Name, clrYellow, clrYellow)
 		base, byAssign := groupRefsByReassign(r.Refs, r.Reassign)
 		for _, rl := range uniqLocs(base) {
-			printLocIndented("    ", "Ref", rl, r.Name, "", clrYellow)
+			printLocIndented("    ", "", rl, r.Name, "", clrYellow)
 		}
 		for i, rs := range r.Reassign {
 			printLocIndented("    ", fmt.Sprintf("Reassign %d", i+1), rs, r.Name, clrOrange, clrYellow)
 			for _, rl := range uniqLocs(byAssign[i]) {
-				printLocIndented("      ", "Ref", rl, r.Name, "", clrYellow)
+				printLocIndented("      ", "", rl, r.Name, "", clrYellow)
 			}
 		}
 		printChildRefs(r, 3)
@@ -561,7 +565,7 @@ func printChildRefs(n *funcRef, depth int) {
 		c := n.Children[name]
 		fmt.Printf("%s%s%s%s\n", indent, clrWhite, name, clrReset)
 		for _, rl := range uniqLocs(c.Refs) {
-			printLocIndented(indent+"  ", "Ref", rl, c.Name, "", clrYellow)
+			printLocIndented(indent+"  ", "", rl, c.Name, "", clrYellow)
 		}
 		for _, rl := range uniqLocs(c.Reassign) {
 			printLocIndented(indent+"  ", "Reassign", rl, c.Name, clrOrange, clrYellow)
