@@ -13,7 +13,7 @@ import (
 	"notectl/internal/getrefs/view"
 )
 
-func Cat(path string) error {
+func Cat(path, name string) error {
 	root, err := repoRoot()
 	if err != nil {
 		return err
@@ -37,6 +37,9 @@ func Cat(path string) error {
 	out := make([]view.ColorMark, 0, len(marks))
 	mod := modulePath(root)
 	for _, m := range marks {
+		if name != "" && m.Name != name {
+			continue
+		}
 		def := refs.Location{}
 		if !m.PackageRef {
 			def = c.DefinitionAt(m.Loc)
