@@ -1,17 +1,35 @@
 package getrefs
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
-
-	"notectl/internal/getrefs/lsp"
-	"notectl/internal/getrefs/refs"
-	"notectl/internal/getrefs/view"
 )
+
+type Location struct {
+	URI   string `json:"uri"`
+	Range struct {
+		Start Pos `json:"start"`
+		End   Pos `json:"end"`
+	} `json:"range"`
+}
+
+type Pos struct {
+	Line      int `json:"line"`
+	Character int `json:"character"`
+}
+
+type Match struct {
+	Def  Location
+	Refs []Location
+}
 
 type query struct {
 	name    string
@@ -27,19 +45,19 @@ func Run(arg string) error {
 	if err != nil {
 		return err
 	}
-	c, err := lsp.New(root)
+	lsp, err := newLSPClient(root)
 	if err != nil {
 		return err
 	}
-	defer c.Close()
-	if err := c.Init(root); err != nil {
+	defer lsp.Close()
+	if err := lsp.Init(root); err != nil {
 		return err
 	}
-	matches, err := c.Find(lsp.Query{Name: q.name, InScope: q.inScope})
+	matches, err := lsp.Find(q)
 	if err != nil {
 		return err
 	}
-	return view.Render(c, analyzer{}, root, q.name, matches)
+	return Render(lsp, root, q.name, matches)
 }
 
 func repoRoot() (string, error) {
@@ -78,6 +96,56 @@ func parseQuery(root, arg string) (query, error) {
 	return query{name: name, inScope: func(file string) bool { return filepath.Clean(file) == scopePath }}, nil
 }
 
-type Location = refs.Location
-type Pos = refs.Pos
-type Match = refs.Match
+func locToFileLine(loc Location) (string, int, int) {
+	u, _ := url.Parse(loc.URI)
+	p := filepath.FromSlash(u.Path)
+	return p, loc.Range.Start.Line + 1, loc.Range.Start.Character + 1
+}
+
+func locFile(loc Location) string { f, _, _ := locToFileLine(loc); return f }
+func locLine(loc Location) int    { _, l, _ := locToFileLine(loc); return l }
+
+func locKey(loc Location) string {
+	f, l, c := locToFileLine(loc)
+	return f + ":" + strconv.Itoa(l) + ":" + strconv.Itoa(c)
+}
+
+func lineText(file string, line int) string {
+	b, err := os.ReadFile(file)
+	if err != nil {
+		return ""
+	}
+	ls := bytes.Split(b, []byte("\n"))
+	if line < 1 || line > len(ls) {
+		return ""
+	}
+	return strings.TrimSpace(string(ls[line-1]))
+}
+
+func uniqLocs(in []Location) []Location {
+	seen := map[string]bool{}
+	out := in[:0]
+	for _, l := range in {
+		k := locKey(l)
+		if seen[k] {
+			continue
+		}
+		seen[k] = true
+		out = append(out, l)
+	}
+	return out
+}
+
+func sortLocs(locs []Location) {
+	sort.Slice(locs, func(i, j int) bool {
+		fi, li, ci := locToFileLine(locs[i])
+		fj, lj, cj := locToFileLine(locs[j])
+		if fi != fj {
+			return fi < fj
+		}
+		if li != lj {
+			return li < lj
+		}
+		return ci < cj
+	})
+}
