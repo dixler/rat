@@ -1,4 +1,4 @@
-package getrefs
+package lsp
 
 import (
 	"bufio"
@@ -8,12 +8,18 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
+
+	"notectl/internal/getrefs/refs"
 )
+
+type Query struct {
+	Name    string
+	InScope func(string) bool
+}
 
 type req struct {
 	JSONRPC string      `json:"jsonrpc"`
@@ -33,11 +39,11 @@ type rpcErr struct {
 }
 
 type symbolInfo struct {
-	Name     string   `json:"name"`
-	Location Location `json:"location"`
+	Name     string        `json:"name"`
+	Location refs.Location `json:"location"`
 }
 
-type lspClient struct {
+type Client struct {
 	cmd    *exec.Cmd
 	in     io.WriteCloser
 	out    *bufio.Reader
@@ -45,7 +51,7 @@ type lspClient struct {
 	mu     sync.Mutex
 }
 
-func newLSPClient(root string) (*lspClient, error) {
+func New(root string) (*Client, error) {
 	cmd := exec.Command("gopls", "serve")
 	cmd.Dir = root
 	in, err := cmd.StdinPipe()
@@ -60,10 +66,10 @@ func newLSPClient(root string) (*lspClient, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, errors.New("failed to start gopls; install it with `go install golang.org/x/tools/gopls@latest`")
 	}
-	return &lspClient{cmd: cmd, in: in, out: bufio.NewReader(out), nextID: 1}, nil
+	return &Client{cmd: cmd, in: in, out: bufio.NewReader(out), nextID: 1}, nil
 }
 
-func (c *lspClient) Close() {
+func (c *Client) Close() {
 	_, _ = c.call("shutdown", map[string]any{})
 	_ = c.notify("exit", map[string]any{})
 	_ = c.in.Close()
@@ -71,19 +77,16 @@ func (c *lspClient) Close() {
 	_, _ = c.cmd.Process.Wait()
 }
 
-func (c *lspClient) Init(root string) error {
-	_, err := c.call("initialize", map[string]any{
-		"processId": os.Getpid(), "rootUri": pathToURI(root),
-		"capabilities": map[string]any{"textDocument": map[string]any{}, "workspace": map[string]any{}},
-	})
+func (c *Client) Init(root string) error {
+	_, err := c.call("initialize", map[string]any{"processId": os.Getpid(), "rootUri": refs.PathToURI(root), "capabilities": map[string]any{"textDocument": map[string]any{}, "workspace": map[string]any{}}})
 	if err != nil {
 		return err
 	}
 	return c.notify("initialized", map[string]any{})
 }
 
-func (c *lspClient) Find(q query) ([]Match, error) {
-	res, err := c.call("workspace/symbol", map[string]any{"query": q.name})
+func (c *Client) Find(q Query) ([]refs.Match, error) {
+	res, err := c.call("workspace/symbol", map[string]any{"query": q.Name})
 	if err != nil {
 		return nil, err
 	}
@@ -93,21 +96,21 @@ func (c *lspClient) Find(q query) ([]Match, error) {
 	}
 	var syms []symbolInfo
 	for _, s := range all {
-		if s.Name == q.name && q.inScope(locFile(s.Location)) {
+		if s.Name == q.Name && q.InScope(refs.File(s.Location)) {
 			syms = append(syms, s)
 		}
 	}
-	out := map[string]Match{}
+	out := map[string]refs.Match{}
 	for _, s := range syms {
-		def, refs, err := c.defAndRefs(s.Location)
-		if err != nil || !q.inScope(locFile(def)) {
+		def, rs, err := c.DefAndRefs(s.Location)
+		if err != nil || !q.InScope(refs.File(def)) {
 			continue
 		}
-		for _, g := range c.groupByDefinition(def, filterLocs(refs, q.inScope)) {
-			if !q.inScope(locFile(g.Def)) {
+		for _, g := range c.groupByDefinition(def, filterLocs(rs, q.InScope)) {
+			if !q.InScope(refs.File(g.Def)) {
 				continue
 			}
-			k := locKey(g.Def)
+			k := refs.Key(g.Def)
 			m := out[k]
 			if m.Def.URI == "" {
 				m.Def = g.Def
@@ -116,72 +119,69 @@ func (c *lspClient) Find(q query) ([]Match, error) {
 			out[k] = m
 		}
 	}
-	matches := make([]Match, 0, len(out))
+	matches := make([]refs.Match, 0, len(out))
 	for _, m := range out {
-		m.Refs = uniqLocs(m.Refs)
-		sort.Slice(m.Refs, func(i, j int) bool { return locKey(m.Refs[i]) < locKey(m.Refs[j]) })
+		m.Refs = refs.UniqLocs(m.Refs)
+		sort.Slice(m.Refs, func(i, j int) bool { return refs.Key(m.Refs[i]) < refs.Key(m.Refs[j]) })
 		matches = append(matches, m)
 	}
-	sort.Slice(matches, func(i, j int) bool { return locKey(matches[i].Def) < locKey(matches[j].Def) })
+	sort.Slice(matches, func(i, j int) bool { return refs.Key(matches[i].Def) < refs.Key(matches[j].Def) })
 	return matches, nil
 }
 
-func (c *lspClient) definitionAt(loc Location) Location {
+func (c *Client) DefinitionAt(loc refs.Location) refs.Location {
 	p := map[string]any{"textDocument": map[string]any{"uri": loc.URI}, "position": loc.Range.Start}
 	defRaw, err := c.call("textDocument/definition", p)
 	if err != nil || len(defRaw) == 0 || string(defRaw) == "null" {
 		return loc
 	}
 	if defRaw[0] == '{' {
-		var one Location
+		var one refs.Location
 		if json.Unmarshal(defRaw, &one) == nil {
 			return one
 		}
 		return loc
 	}
-	var defs []Location
+	var defs []refs.Location
 	if json.Unmarshal(defRaw, &defs) == nil && len(defs) > 0 {
 		return defs[0]
 	}
 	return loc
 }
 
-func (c *lspClient) defAndRefs(loc Location) (Location, []Location, error) {
-	def := c.definitionAt(loc)
-	refsRaw, err := c.call("textDocument/references", map[string]any{
-		"textDocument": map[string]any{"uri": def.URI}, "position": def.Range.Start,
-		"context": map[string]any{"includeDeclaration": false},
-	})
+func (c *Client) DefAndRefs(loc refs.Location) (refs.Location, []refs.Location, error) {
+	def := c.DefinitionAt(loc)
+	raw, err := c.call("textDocument/references", map[string]any{"textDocument": map[string]any{"uri": def.URI}, "position": def.Range.Start, "context": map[string]any{"includeDeclaration": false}})
 	if err != nil {
-		return Location{}, nil, err
+		return refs.Location{}, nil, err
 	}
-	var refs []Location
-	if len(refsRaw) > 0 && string(refsRaw) != "null" {
-		if err := json.Unmarshal(refsRaw, &refs); err != nil {
-			return Location{}, nil, err
+	var rs []refs.Location
+	if len(raw) > 0 && string(raw) != "null" {
+		if err := json.Unmarshal(raw, &rs); err != nil {
+			return refs.Location{}, nil, err
 		}
 	}
-	uniq := map[string]Location{}
-	for _, r := range refs {
-		if k := locKey(r); k != locKey(def) {
+	uniq := map[string]refs.Location{}
+	for _, r := range rs {
+		if k := refs.Key(r); k != refs.Key(def) {
 			uniq[k] = r
 		}
 	}
-	refs = refs[:0]
+	rs = rs[:0]
 	for _, r := range uniq {
-		refs = append(refs, r)
+		rs = append(rs, r)
 	}
-	return def, refs, nil
+	return def, rs, nil
 }
 
-func (c *lspClient) groupByDefinition(def Location, refs []Location) []Match {
-	groups := map[string]Match{}
-	if len(refs) == 0 {
-		groups[locKey(def)] = Match{Def: def}
+func (c *Client) groupByDefinition(def refs.Location, rs []refs.Location) []refs.Match {
+	groups := map[string]refs.Match{}
+	if len(rs) == 0 {
+		groups[refs.Key(def)] = refs.Match{Def: def}
 	}
-	for _, r := range refs {
-		d := c.definitionAt(r)
-		k := locKey(d)
+	for _, r := range rs {
+		d := c.DefinitionAt(r)
+		k := refs.Key(d)
 		m := groups[k]
 		if m.Def.URI == "" {
 			m.Def = d
@@ -191,35 +191,35 @@ func (c *lspClient) groupByDefinition(def Location, refs []Location) []Match {
 		}
 		groups[k] = m
 	}
-	out := make([]Match, 0, len(groups))
+	out := make([]refs.Match, 0, len(groups))
 	for _, g := range groups {
 		out = append(out, g)
 	}
-	sort.Slice(out, func(i, j int) bool { return locKey(out[i].Def) < locKey(out[j].Def) })
+	sort.Slice(out, func(i, j int) bool { return refs.Key(out[i].Def) < refs.Key(out[j].Def) })
 	return out
 }
 
-func filterLocs(in []Location, keep func(string) bool) []Location {
+func filterLocs(in []refs.Location, keep func(string) bool) []refs.Location {
 	out := in[:0]
 	for _, l := range in {
-		if keep(locFile(l)) {
+		if keep(refs.File(l)) {
 			out = append(out, l)
 		}
 	}
 	return out
 }
 
-func containsLoc(locs []Location, target Location) bool {
-	k := locKey(target)
+func containsLoc(locs []refs.Location, t refs.Location) bool {
+	k := refs.Key(t)
 	for _, l := range locs {
-		if locKey(l) == k {
+		if refs.Key(l) == k {
 			return true
 		}
 	}
 	return false
 }
 
-func (c *lspClient) notify(method string, params interface{}) error {
+func (c *Client) notify(method string, params interface{}) error {
 	b, err := json.Marshal(req{JSONRPC: "2.0", Method: method, Params: params})
 	if err != nil {
 		return err
@@ -228,7 +228,7 @@ func (c *lspClient) notify(method string, params interface{}) error {
 	return err
 }
 
-func (c *lspClient) call(method string, params interface{}) (json.RawMessage, error) {
+func (c *Client) call(method string, params interface{}) (json.RawMessage, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	id := c.nextID
@@ -241,7 +241,7 @@ func (c *lspClient) call(method string, params interface{}) (json.RawMessage, er
 		return nil, err
 	}
 	for {
-		msg, err := readMsg(c.out)
+		msg, err := ReadMsg(c.out)
 		if err != nil {
 			return nil, err
 		}
@@ -256,7 +256,7 @@ func (c *lspClient) call(method string, params interface{}) (json.RawMessage, er
 	}
 }
 
-func readMsg(r *bufio.Reader) ([]byte, error) {
+func ReadMsg(r *bufio.Reader) ([]byte, error) {
 	headers := map[string]string{}
 	for {
 		ln, err := r.ReadString('\n')
@@ -279,12 +279,4 @@ func readMsg(r *bufio.Reader) ([]byte, error) {
 	buf := make([]byte, n)
 	_, err = io.ReadFull(r, buf)
 	return buf, err
-}
-
-func pathToURI(path string) string {
-	p := filepath.ToSlash(path)
-	if !strings.HasPrefix(p, "/") {
-		p = "/" + p
-	}
-	return "file://" + p
 }
