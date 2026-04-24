@@ -41,6 +41,17 @@ func Run(arg string) error {
 	if err != nil {
 		return err
 	}
+	if file, ok := resolveGoFileArg(root, arg); ok {
+		lsp, err := newLSPClient(root)
+		if err != nil {
+			return RenderFileCat(newLocalResolver(file), root, file)
+		}
+		defer lsp.Close()
+		if err := lsp.Init(root); err != nil {
+			return RenderFileCat(newLocalResolver(file), root, file)
+		}
+		return RenderFileCat(lsp, root, file)
+	}
 	q, err := parseQuery(root, arg)
 	if err != nil {
 		return err
@@ -58,6 +69,22 @@ func Run(arg string) error {
 		return err
 	}
 	return Render(lsp, root, q.name, matches)
+}
+
+func resolveGoFileArg(root, arg string) (string, bool) {
+	if strings.Contains(arg, ":") || !strings.HasSuffix(arg, ".go") {
+		return "", false
+	}
+	p := arg
+	if !filepath.IsAbs(p) {
+		p = filepath.Join(root, p)
+	}
+	p = filepath.Clean(p)
+	info, err := os.Stat(p)
+	if err != nil || info.IsDir() {
+		return "", false
+	}
+	return p, true
 }
 
 func repoRoot() (string, error) {

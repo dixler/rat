@@ -71,6 +71,31 @@ func TestRenderNoMatches(t *testing.T) {
 	assert.Contains(t, out, `no identifier matches for "x"`)
 }
 
+func TestRunFileCatFallsBackWithoutGopls(t *testing.T) {
+	repo := t.TempDir()
+	file := filepath.Join(repo, "main.go")
+	src := "package main\n\nfunc f() {\n\ttarget := 1\n\t_ = target\n}\n"
+	require.NoError(t, os.WriteFile(file, []byte(src), 0o644))
+	cmd := exec.Command("git", "init")
+	cmd.Dir = repo
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(out))
+
+	gitPath, err := exec.LookPath("git")
+	require.NoError(t, err)
+	pathDir := t.TempDir()
+	require.NoError(t, os.Symlink(gitPath, filepath.Join(pathDir, "git")))
+	t.Setenv("PATH", pathDir)
+	oldWD, _ := os.Getwd()
+	require.NoError(t, os.Chdir(repo))
+	defer os.Chdir(oldWD)
+
+	runOut := captureStdout(func() { require.NoError(t, Run("main.go")) })
+	clean := stripANSI(runOut)
+	assert.Contains(t, clean, "Legend")
+	assert.Contains(t, clean, "target := 1")
+}
+
 type fakeResolver struct{}
 
 func (fakeResolver) definitionAt(l Location) Location { return l }

@@ -9,7 +9,7 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		die("usage: getrefs [<file|dir>:]<identifierName>")
+		die("usage: getrefs <file.go | [<file|dir>:]<identifierName>>")
 	}
 	if err := getrefs.Run(os.Args[1]); err != nil {
 		die(err.Error())
