@@ -61,6 +61,9 @@ func printTree(root string, d file.Declaration, depth int) {
 		}
 	}
 	for _, child := range d.Declarations() {
+		if d.Kind() == file.KindFunction && child.Kind() == file.KindVariable {
+			continue
+		}
 		printTree(root, child, depth+1)
 	}
 }
