@@ -4,16 +4,22 @@ import (
 	"fmt"
 	"os"
 
-	"notectl/internal/getrefs"
+	"notectl/internal/display"
+	"notectl/internal/file"
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		die("usage: getrefs <file.go | [<file|dir>:]<identifierName>>")
+		die("usage: getrefs <file.go>")
 	}
-	if err := getrefs.Run(os.Args[1]); err != nil {
+	f, err := file.New(os.Args[1])
+	if err != nil {
 		die(err.Error())
 	}
+	if f == nil {
+		die("failed to open file")
+	}
+	display.RenderFile(f)
 }
 
 func die(msg string) {
