@@ -127,6 +127,8 @@ func mapKind(kind string) Kind {
 		return KindType
 	case "variable":
 		return KindVariable
+	case "parameter":
+		return KindParameter
 	case "function":
 		return KindFunction
 	case "package":

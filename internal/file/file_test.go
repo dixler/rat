@@ -21,8 +21,9 @@ type item struct{}
 
 var count = 1
 
-func run() {
+func run(input string) {
 	value := count
+	println(input)
 	fmt.Println(value)
 }
 `
@@ -38,7 +39,10 @@ func run() {
 
 	fn := f.Declarations()[2]
 	require.Equal(t, file.KindFunction, fn.Kind())
-	require.Len(t, fn.Declarations(), 1)
+	require.Len(t, fn.Declarations(), 2)
 	require.True(t, len(fn.References()) > 0)
-	require.Equal(t, "value", fn.Declarations()[0].Name())
+	require.Equal(t, file.KindParameter, fn.Declarations()[0].Kind())
+	require.Equal(t, "input", fn.Declarations()[0].Name())
+	require.Equal(t, file.KindVariable, fn.Declarations()[1].Kind())
+	require.Equal(t, "value", fn.Declarations()[1].Name())
 }

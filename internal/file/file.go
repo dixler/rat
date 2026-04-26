@@ -11,11 +11,12 @@ import (
 type Kind string
 
 const (
-	KindPackage  Kind = "package"
-	KindType     Kind = "type"
-	KindVariable Kind = "variable"
-	KindFunction Kind = "function"
-	KindFile     Kind = "file"
+	KindPackage   Kind = "package"
+	KindType      Kind = "type"
+	KindVariable  Kind = "variable"
+	KindParameter Kind = "parameter"
+	KindFunction  Kind = "function"
+	KindFile      Kind = "file"
 )
 
 type Location interface {

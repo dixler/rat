@@ -147,7 +147,7 @@ func addSpan(out map[int][]span, loc file.Location, text, color string, isDef bo
 
 func colorLine(line string, spans []span) string {
 	if len(spans) == 0 {
-		return line
+		return gray + line + reset
 	}
 	var b strings.Builder
 	idx := 0
@@ -161,20 +161,24 @@ func colorLine(line string, spans []span) string {
 		if s.end <= s.start {
 			continue
 		}
+		b.WriteString(gray)
 		b.WriteString(line[idx:s.start])
+		b.WriteString(reset)
 		if s.isDef {
 			b.WriteString(s.color)
 			b.WriteString(line[s.start:s.end])
 			b.WriteString(reset)
 		} else {
-			b.WriteString(white)
+			b.WriteString(fgForRef(s.color))
 			b.WriteString(bgFor(s.color))
 			b.WriteString(line[s.start:s.end])
 			b.WriteString(reset)
 		}
 		idx = s.end
 	}
+	b.WriteString(gray)
 	b.WriteString(line[idx:])
+	b.WriteString(reset)
 	return b.String()
 }
 
@@ -190,15 +194,26 @@ func bgFor(color string) string {
 		return "\x1b[44m"
 	case purple:
 		return "\x1b[45m"
+	case white:
+		return ""
 	default:
 		return "\x1b[100m"
 	}
+}
+
+func fgForRef(color string) string {
+	if color == white {
+		return white
+	}
+	return white
 }
 
 func colorFor(kind string) string {
 	switch kind {
 	case "type":
 		return cyan
+	case "parameter":
+		return orange
 	case "function":
 		return green
 	case "package":
@@ -242,6 +257,9 @@ func relationshipColor(root string, parent, target file.Declaration, kind file.K
 	if kind == file.KindPackage {
 		return purple, true
 	}
+	if kind == file.KindParameter {
+		return orange, true
+	}
 	if target == nil || target.Location() == nil {
 		return "", false
 	}
@@ -250,7 +268,7 @@ func relationshipColor(root string, parent, target file.Declaration, kind file.K
 		return "", false
 	}
 	if sameFunction(parent, target) {
-		return orange, true
+		return white, true
 	}
 	if sameFile(parent, target) {
 		return green, true

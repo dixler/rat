@@ -87,7 +87,7 @@ func Build(file string) (*Result, error) {
 	info := &types.Info{Defs: map[*ast.Ident]types.Object{}, Uses: map[*ast.Ident]types.Object{}}
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
-	b := builder{file: file, fset: fset, info: info, declByObj: map[types.Object]string{}, pkgByPath: map[string]string{}, goplsByPos: map[string]definitionLocation{}}
+	b := builder{file: file, fset: fset, info: info, declByObj: map[types.Object]string{}, kindByObj: map[types.Object]string{}, pkgByPath: map[string]string{}, goplsByPos: map[string]definitionLocation{}}
 	res := &Result{File: file}
 	for _, decl := range parsed.Decls {
 		switch d := decl.(type) {
@@ -120,6 +120,7 @@ type builder struct {
 	fset       *token.FileSet
 	info       *types.Info
 	declByObj  map[types.Object]string
+	kindByObj  map[types.Object]string
 	pkgByPath  map[string]string
 	goplsByPos map[string]definitionLocation
 	seq        int
@@ -159,6 +160,16 @@ func (b *builder) buildSpec(spec ast.Spec, parentID string) Declaration {
 
 func (b *builder) buildFunc(fn *ast.FuncDecl, parentID string) Declaration {
 	decl := b.newDeclaration(fn.Name, "function")
+	if fn.Type != nil && fn.Type.Params != nil {
+		for _, field := range fn.Type.Params.List {
+			for _, name := range field.Names {
+				if name == nil || name.Name == "_" {
+					continue
+				}
+				decl.Declarations = append(decl.Declarations, b.newDeclaration(name, "parameter"))
+			}
+		}
+	}
 	if fn.Type != nil {
 		b.collectReferences(fn.Type, &decl)
 	}
@@ -200,6 +211,7 @@ func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
 	decl := Declaration{ID: b.nextID(kind), Name: id.Name, Kind: kind, File: b.file, Line: pos.Line, Column: pos.Column}
 	if obj := b.info.Defs[id]; obj != nil {
 		b.declByObj[obj] = decl.ID
+		b.kindByObj[obj] = kind
 	}
 	return decl
 }
@@ -214,7 +226,7 @@ func (b *builder) collectReferences(node ast.Node, decl *Declaration) {
 			return true
 		}
 		pos := b.fset.Position(id.Pos())
-		ref := Reference{Text: id.Name, File: b.file, Line: pos.Line, Column: pos.Column, Kind: classifyObject(b.info.Uses[id])}
+		ref := Reference{Text: id.Name, File: b.file, Line: pos.Line, Column: pos.Column, Kind: b.classifyObject(b.info.Uses[id])}
 		if obj := b.info.Uses[id]; obj != nil {
 			ref.DeclarationID = b.declByObj[obj]
 		}
@@ -311,7 +323,10 @@ func loadPackageFiles(importPath string) []PackageFile {
 	return files
 }
 
-func classifyObject(obj types.Object) string {
+func (b *builder) classifyObject(obj types.Object) string {
+	if kind := b.kindByObj[obj]; kind != "" {
+		return kind
+	}
 	switch obj.(type) {
 	case *types.PkgName:
 		return "package"
