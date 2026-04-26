@@ -49,7 +49,7 @@ func printHeader(f file.File) {
 
 func printTree(root string, d file.Declaration, depth int) {
 	indent := strings.Repeat("  ", depth)
-	fmt.Printf("%s%s%s%s %s%s:%d:%d%s\n", indent, colorFor(string(d.Kind())), d.Kind(), reset, gray, d.Location().File(), d.Location().Line(), d.Location().Column(), reset)
+	fmt.Printf("%s%s%s%s %s%s:%d:%d%s\n", indent, colorFor(string(d.Kind())), treeLabel(d), reset, gray, d.Location().File(), d.Location().Line(), d.Location().Column(), reset)
 	for _, group := range groupReferences(root, d) {
 		fmt.Printf("%s  %s%s%s %s%s:%d:%d%s\n", indent, group.color, group.decl.Name(), reset, gray, group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column(), reset)
 		for _, ref := range group.refs {
@@ -66,6 +66,16 @@ func printTree(root string, d file.Declaration, depth int) {
 		}
 		printTree(root, child, depth+1)
 	}
+}
+
+func treeLabel(d file.Declaration) string {
+	if d == nil {
+		return ""
+	}
+	if d.Kind() == file.KindFile {
+		return string(d.Kind())
+	}
+	return d.Name()
 }
 
 func printImports(refs []file.PackageReference) {
