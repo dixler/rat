@@ -18,20 +18,54 @@ const (
 	green  = "\x1b[32m"
 	cyan   = "\x1b[36m"
 	blue   = "\x1b[34m"
+	black  = "\x1b[30m"
 	purple = "\x1b[35m"
 	white  = "\x1b[97m"
 )
 
+type style struct {
+	fg      string
+	bg      string
+	refText string
+}
+
+type relation string
+
+const (
+	relSameFunction relation = "same-function"
+	relSameFile     relation = "same-file"
+	relSamePackage  relation = "same-package"
+	relSameProject  relation = "same-project"
+	relExternal     relation = "external"
+)
+
+var kindStyles = map[file.Kind]style{
+	file.KindType:      {fg: cyan, bg: "\x1b[46m", refText: black},
+	file.KindVariable:  {fg: orange, bg: "\x1b[48;5;208m", refText: black},
+	file.KindParameter: {fg: orange, bg: "\x1b[48;5;208m", refText: black},
+	file.KindFunction:  {fg: green, bg: "\x1b[42m", refText: black},
+	file.KindPackage:   {fg: purple, bg: "\x1b[45m", refText: white},
+	file.KindFile:      {fg: orange, bg: "\x1b[48;5;208m", refText: black},
+}
+
+var relationStyles = map[relation]style{
+	relSameFunction: {fg: black, bg: "\x1b[47m", refText: black},
+	relSameFile:     {fg: green, bg: "\x1b[42m", refText: black},
+	relSamePackage:  {fg: cyan, bg: "\x1b[46m", refText: black},
+	relSameProject:  {fg: blue, bg: "\x1b[44m", refText: white},
+	relExternal:     {fg: purple, bg: "\x1b[45m", refText: white},
+}
+
 type span struct {
 	start int
 	end   int
-	color string
+	style style
 	isDef bool
 }
 
 type refGroup struct {
 	decl  file.Declaration
-	color string
+	style style
 	refs  []file.Reference
 }
 
@@ -49,15 +83,15 @@ func printHeader(f file.File) {
 
 func printTree(root string, d file.Declaration, depth int) {
 	indent := strings.Repeat("  ", depth)
-	fmt.Printf("%s%s%s%s %s%s:%d:%d%s\n", indent, colorFor(string(d.Kind())), treeLabel(d), reset, gray, d.Location().File(), d.Location().Line(), d.Location().Column(), reset)
+	fmt.Printf("%s%s%s%s %s%s:%d:%d%s\n", indent, declarationStyle(d).fg, treeLabel(d), reset, gray, d.Location().File(), d.Location().Line(), d.Location().Column(), reset)
 	for _, group := range groupReferences(root, d) {
-		fmt.Printf("%s  %s%s%s %s%s:%d:%d%s\n", indent, group.color, group.decl.Name(), reset, gray, group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column(), reset)
+		fmt.Printf("%s  %s%s%s %s%s:%d:%d%s\n", indent, group.style.fg, group.decl.Name(), reset, gray, group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column(), reset)
 		for _, ref := range group.refs {
-			color, ok := relationshipColor(root, ref.Parent(), ref.Declaration(), ref.Kind())
+			sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
 			if !ok {
 				continue
 			}
-			fmt.Printf("%s    %s%s:%d:%d%s\n", indent, color, ref.Location().File(), ref.Location().Line(), ref.Location().Column(), reset)
+			fmt.Printf("%s    %s%s:%d:%d%s\n", indent, sty.fg, ref.Location().File(), ref.Location().Line(), ref.Location().Column(), reset)
 		}
 	}
 	for _, child := range d.Declarations() {
@@ -76,6 +110,13 @@ func treeLabel(d file.Declaration) string {
 		return string(d.Kind())
 	}
 	return d.Name()
+}
+
+func declarationStyle(d file.Declaration) style {
+	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
+		return style{fg: white}
+	}
+	return kindStyle(d.Kind())
 }
 
 func printImports(refs []file.PackageReference) {
@@ -120,20 +161,20 @@ func collectSpans(root string, decls []file.Declaration) map[int][]span {
 }
 
 func collectDeclarationSpans(root string, out map[int][]span, decl file.Declaration) {
-	addSpan(out, decl.Location(), decl.Name(), colorFor(string(decl.Kind())), true)
+	addSpan(out, decl.Location(), decl.Name(), declarationStyle(decl), true)
 	for _, ref := range decl.References() {
-		color, ok := relationshipColor(root, ref.Parent(), ref.Declaration(), ref.Kind())
+		sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
 		if !ok {
 			continue
 		}
-		addSpan(out, ref.Location(), ref.Text(), color, false)
+		addSpan(out, ref.Location(), ref.Text(), sty, false)
 	}
 	for _, child := range decl.Declarations() {
 		collectDeclarationSpans(root, out, child)
 	}
 }
 
-func addSpan(out map[int][]span, loc file.Location, text, color string, isDef bool) {
+func addSpan(out map[int][]span, loc file.Location, text string, style style, isDef bool) {
 	if loc == nil || text == "" {
 		return
 	}
@@ -142,7 +183,7 @@ func addSpan(out map[int][]span, loc file.Location, text, color string, isDef bo
 	if line < 1 || col < 1 {
 		return
 	}
-	out[line] = append(out[line], span{start: col - 1, end: col - 1 + len(text), color: color, isDef: isDef})
+	out[line] = append(out[line], span{start: col - 1, end: col - 1 + len(text), style: style, isDef: isDef})
 }
 
 func colorLine(line string, spans []span) string {
@@ -165,12 +206,12 @@ func colorLine(line string, spans []span) string {
 		b.WriteString(line[idx:s.start])
 		b.WriteString(reset)
 		if s.isDef {
-			b.WriteString(s.color)
+			b.WriteString(s.style.fg)
 			b.WriteString(line[s.start:s.end])
 			b.WriteString(reset)
 		} else {
-			b.WriteString(white)
-			b.WriteString(bgFor(s.color))
+			b.WriteString(s.style.refText)
+			b.WriteString(s.style.bg)
 			b.WriteString(line[s.start:s.end])
 			b.WriteString(reset)
 		}
@@ -182,51 +223,24 @@ func colorLine(line string, spans []span) string {
 	return b.String()
 }
 
-func bgFor(color string) string {
-	switch color {
-	case orange:
-		return "\x1b[48;5;208m"
-	case green:
-		return "\x1b[42m"
-	case cyan:
-		return "\x1b[46m"
-	case blue:
-		return "\x1b[44m"
-	case purple:
-		return "\x1b[45m"
-	case white:
-		return ""
-	default:
-		return "\x1b[100m"
+func kindStyle(kind file.Kind) style {
+	if sty, ok := kindStyles[kind]; ok {
+		return sty
 	}
-}
-
-func colorFor(kind string) string {
-	switch kind {
-	case "type":
-		return cyan
-	case "parameter":
-		return orange
-	case "function":
-		return green
-	case "package":
-		return purple
-	default:
-		return orange
-	}
+	return kindStyles[file.KindVariable]
 }
 
 func groupReferences(root string, decl file.Declaration) []refGroup {
 	byKey := map[string]*refGroup{}
 	for _, ref := range decl.References() {
-		color, ok := relationshipColor(root, ref.Parent(), ref.Declaration(), ref.Kind())
+		sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
 		if !ok || ref.Declaration() == nil {
 			continue
 		}
 		target := ref.Declaration()
 		key := locationKey(target.Location())
 		if byKey[key] == nil {
-			byKey[key] = &refGroup{decl: target, color: color}
+			byKey[key] = &refGroup{decl: target, style: sty}
 		}
 		byKey[key].refs = append(byKey[key].refs, ref)
 	}
@@ -246,33 +260,33 @@ func groupReferences(root string, decl file.Declaration) []refGroup {
 	return out
 }
 
-func relationshipColor(root string, parent, target file.Declaration, kind file.Kind) (string, bool) {
+func relationshipStyle(root string, parent, target file.Declaration, kind file.Kind) (style, bool) {
 	if kind == file.KindPackage {
-		return purple, true
+		return kindStyle(kind), true
 	}
 	if kind == file.KindParameter {
-		return orange, true
+		return kindStyle(kind), true
 	}
 	if target == nil || target.Location() == nil {
-		return "", false
+		return style{}, false
 	}
 	path := filepath.Clean(target.Location().File())
 	if path == "" || strings.Contains(path, "/src/builtin") {
-		return "", false
+		return style{}, false
 	}
 	if sameFunction(parent, target) {
-		return white, true
+		return relationStyles[relSameFunction], true
 	}
 	if sameFile(parent, target) {
-		return green, true
+		return relationStyles[relSameFile], true
 	}
 	if samePackage(parent, target) {
-		return cyan, true
+		return relationStyles[relSamePackage], true
 	}
 	if sameProject(root, parent, target) {
-		return blue, true
+		return relationStyles[relSameProject], true
 	}
-	return purple, true
+	return relationStyles[relExternal], true
 }
 
 func sameFunction(left, right file.Declaration) bool {
