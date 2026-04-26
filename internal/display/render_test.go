@@ -33,11 +33,11 @@ func TestRenderFilePrintsSections(t *testing.T) {
 	require.Contains(t, out, "\x1b[97m\x1b[48;5;208mvalue\x1b[0m")
 	require.Contains(t, out, "\x1b[97m\x1b[42mcount\x1b[0m")
 	require.Contains(t, out, "- \x1b[35mfmt\x1b[0m -> fmt")
-	require.False(t, strings.Contains(out, "print.go"))
+	require.Contains(t, out, "fmt/print.go:314:6")
 	require.True(t, regexp.MustCompile(`count\x1b\[0m \x1b\[90m.*sample.go:5:5`).MatchString(out))
 	require.True(t, regexp.MustCompile(`\x1b\[32m.*sample.go:7:`).MatchString(out))
 	require.True(t, regexp.MustCompile(`\x1b\[38;5;208m.*sample.go:8:`).MatchString(out))
-	require.False(t, regexp.MustCompile(`variable\x1b\[0m \x1b\[90m.*sample.go:8:2`).MatchString(out))
+	require.True(t, regexp.MustCompile(`value\x1b\[0m \x1b\[90m.*sample.go:8:2`).MatchString(out))
 	require.False(t, strings.Contains(out, "println.go"))
 }
 

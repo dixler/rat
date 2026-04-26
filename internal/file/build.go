@@ -74,12 +74,28 @@ func attachDeclarationReferences(raw scan.Declaration, declsByID map[string]*dec
 		}
 		if rr.DeclarationID != "" {
 			ref.declaration = declsByID[rr.DeclarationID]
+		} else if rr.DeclarationFile != "" && rr.DeclarationLine > 0 && rr.DeclarationColumn > 0 {
+			ref.declaration = externalDeclaration(rr, declsByID)
 		}
 		decl.references = append(decl.references, ref)
 	}
 	for _, child := range raw.Declarations {
 		attachDeclarationReferences(child, declsByID)
 	}
+}
+
+func externalDeclaration(raw scan.Reference, declsByID map[string]*declaration) *declaration {
+	key := fmt.Sprintf("external:%s:%d:%d:%s", raw.DeclarationFile, raw.DeclarationLine, raw.DeclarationColumn, raw.Kind)
+	if decl := declsByID[key]; decl != nil {
+		return decl
+	}
+	decl := &declaration{
+		name:     raw.Text,
+		kind:     mapKind(raw.Kind),
+		location: newLocation(raw.DeclarationFile, raw.DeclarationLine, raw.DeclarationColumn),
+	}
+	declsByID[key] = decl
+	return decl
 }
 
 func collectChildren(parent Declaration, raws []scan.Declaration, declsByID map[string]*declaration) []Declaration {

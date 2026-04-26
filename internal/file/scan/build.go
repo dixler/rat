@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"notectl/internal/goplsclient"
 )
 
 type Result struct {
@@ -32,12 +34,15 @@ type Declaration struct {
 }
 
 type Reference struct {
-	DeclarationID string
-	Text          string
-	Kind          string
-	File          string
-	Line          int
-	Column        int
+	DeclarationID     string
+	DeclarationFile   string
+	DeclarationLine   int
+	DeclarationColumn int
+	Text              string
+	Kind              string
+	File              string
+	Line              int
+	Column            int
 }
 
 type PackageReference struct {
@@ -82,7 +87,7 @@ func Build(file string) (*Result, error) {
 	info := &types.Info{Defs: map[*ast.Ident]types.Object{}, Uses: map[*ast.Ident]types.Object{}}
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
-	b := builder{file: file, fset: fset, info: info, declByObj: map[types.Object]string{}, pkgByPath: map[string]string{}}
+	b := builder{file: file, fset: fset, info: info, declByObj: map[types.Object]string{}, pkgByPath: map[string]string{}, goplsByPos: map[string]definitionLocation{}}
 	res := &Result{File: file}
 	for _, decl := range parsed.Decls {
 		switch d := decl.(type) {
@@ -111,12 +116,20 @@ func Build(file string) (*Result, error) {
 }
 
 type builder struct {
-	file      string
-	fset      *token.FileSet
-	info      *types.Info
-	declByObj map[types.Object]string
-	pkgByPath map[string]string
-	seq       int
+	file       string
+	fset       *token.FileSet
+	info       *types.Info
+	declByObj  map[types.Object]string
+	pkgByPath  map[string]string
+	goplsByPos map[string]definitionLocation
+	seq        int
+}
+
+type definitionLocation struct {
+	file   string
+	line   int
+	column int
+	ok     bool
 }
 
 func (b *builder) nextID(prefix string) string {
@@ -205,10 +218,36 @@ func (b *builder) collectReferences(node ast.Node, decl *Declaration) {
 		if obj := b.info.Uses[id]; obj != nil {
 			ref.DeclarationID = b.declByObj[obj]
 		}
+		if target, ok := b.definitionFor(id.Pos()); ok {
+			ref.DeclarationFile = target.file
+			ref.DeclarationLine = target.line
+			ref.DeclarationColumn = target.column
+		}
 		decl.References = append(decl.References, ref)
 		return true
 	})
 	sortReferences(decl.References)
+}
+
+func (b *builder) definitionFor(pos token.Pos) (definitionLocation, bool) {
+	position := b.fset.Position(pos)
+	key := fmt.Sprintf("%s:%d:%d", position.Filename, position.Line, position.Column)
+	if cached, ok := b.goplsByPos[key]; ok {
+		return cached, cached.ok
+	}
+	client, err := goplsclient.Default()
+	if err != nil {
+		b.goplsByPos[key] = definitionLocation{}
+		return definitionLocation{}, false
+	}
+	target, ok, err := client.Definition(position.Filename, position.Line, position.Column)
+	if err != nil || !ok {
+		b.goplsByPos[key] = definitionLocation{}
+		return definitionLocation{}, false
+	}
+	loc := definitionLocation{file: target.File, line: target.Line, column: target.Column, ok: target.File != "" && target.Line > 0 && target.Column > 0}
+	b.goplsByPos[key] = loc
+	return loc, loc.ok
 }
 
 func (b *builder) buildImport(imp *ast.ImportSpec) (PackageReference, Package) {
