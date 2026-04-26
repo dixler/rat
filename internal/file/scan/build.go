@@ -87,19 +87,27 @@ func Build(file string) (*Result, error) {
 	info := &types.Info{Defs: map[*ast.Ident]types.Object{}, Uses: map[*ast.Ident]types.Object{}}
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
-	b := builder{file: file, fset: fset, info: info, declByObj: map[types.Object]string{}, kindByObj: map[types.Object]string{}, pkgByPath: map[string]string{}, goplsByPos: map[string]definitionLocation{}}
+	b := builder{
+		file:       file,
+		fset:       fset,
+		info:       info,
+		declByObj:  map[types.Object]string{},
+		kindByObj:  map[types.Object]string{},
+		pkgByPath:  map[string]string{},
+		goplsByPos: map[string]definitionLocation{},
+	}
 	res := &Result{File: file}
 	for _, decl := range parsed.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
 			for _, spec := range d.Specs {
-				built := b.buildSpec(spec, "file")
+				built := b.buildSpec(spec)
 				if built.ID != "" {
 					res.Declarations = append(res.Declarations, built)
 				}
 			}
 		case *ast.FuncDecl:
-			res.Declarations = append(res.Declarations, b.buildFunc(d, "file"))
+			res.Declarations = append(res.Declarations, b.buildFunc(d))
 		}
 	}
 	for _, imp := range parsed.Imports {
@@ -138,7 +146,7 @@ func (b *builder) nextID(prefix string) string {
 	return fmt.Sprintf("%s-%d", prefix, b.seq)
 }
 
-func (b *builder) buildSpec(spec ast.Spec, parentID string) Declaration {
+func (b *builder) buildSpec(spec ast.Spec) Declaration {
 	switch s := spec.(type) {
 	case *ast.TypeSpec:
 		decl := b.newDeclaration(s.Name, "type")
@@ -158,7 +166,7 @@ func (b *builder) buildSpec(spec ast.Spec, parentID string) Declaration {
 	}
 }
 
-func (b *builder) buildFunc(fn *ast.FuncDecl, parentID string) Declaration {
+func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	decl := b.newDeclaration(fn.Name, "function")
 	if fn.Type != nil && fn.Type.Params != nil {
 		for _, field := range fn.Type.Params.List {

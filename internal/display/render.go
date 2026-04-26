@@ -169,7 +169,7 @@ func colorLine(line string, spans []span) string {
 			b.WriteString(line[s.start:s.end])
 			b.WriteString(reset)
 		} else {
-			b.WriteString(fgForRef(s.color))
+			b.WriteString(white)
 			b.WriteString(bgFor(s.color))
 			b.WriteString(line[s.start:s.end])
 			b.WriteString(reset)
@@ -199,13 +199,6 @@ func bgFor(color string) string {
 	default:
 		return "\x1b[100m"
 	}
-}
-
-func fgForRef(color string) string {
-	if color == white {
-		return white
-	}
-	return white
 }
 
 func colorFor(kind string) string {
@@ -296,13 +289,10 @@ func sameFile(left, right file.Declaration) bool {
 }
 
 func samePackage(left, right file.Declaration) bool {
-	if !sameFile(left, right) {
-		if left == nil || right == nil || left.Location() == nil || right.Location() == nil {
-			return false
-		}
-		return filepath.Dir(filepath.Clean(left.Location().File())) == filepath.Dir(filepath.Clean(right.Location().File()))
+	if sameFile(left, right) || left == nil || right == nil || left.Location() == nil || right.Location() == nil {
+		return false
 	}
-	return false
+	return filepath.Dir(filepath.Clean(left.Location().File())) == filepath.Dir(filepath.Clean(right.Location().File()))
 }
 
 func sameProject(root string, left, right file.Declaration) bool {

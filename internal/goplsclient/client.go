@@ -22,7 +22,6 @@ type Location struct {
 }
 
 type Client struct {
-	cmd    *exec.Cmd
 	stdin  io.WriteCloser
 	stdout *bufio.Reader
 
@@ -58,7 +57,7 @@ func start() (*Client, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	c := &Client{cmd: cmd, stdin: stdin, stdout: bufio.NewReader(stdout), opened: map[string]bool{}}
+	c := &Client{stdin: stdin, stdout: bufio.NewReader(stdout), opened: map[string]bool{}}
 	if err := c.initialize(); err != nil {
 		_ = cmd.Process.Kill()
 		_ = cmd.Wait()

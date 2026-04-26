@@ -11,9 +11,11 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 	root := &declaration{name: filepath.Base(raw.File), kind: KindFile, location: newLocation(raw.File, 1, 1)}
 	declsByID := map[string]*declaration{"file": root}
 	for _, d := range raw.Declarations {
-		if _, err := buildDeclaration(d, root, declsByID); err != nil {
+		decl, err := buildDeclaration(d, root, declsByID)
+		if err != nil {
 			return nil, nil, nil, err
 		}
+		root.declarations = append(root.declarations, decl)
 	}
 	pkgDecls := map[string]*packageDeclaration{}
 	for _, p := range raw.Packages {
@@ -34,7 +36,6 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 		pkgRefs = append(pkgRefs, pkgRef)
 	}
 	attachReferences(raw.Declarations, declsByID)
-	root.declarations = append(root.declarations, collectChildren(root, raw.Declarations, declsByID)...)
 	decls := append([]Declaration(nil), root.declarations...)
 	return root, pkgRefs, decls, nil
 }
@@ -96,17 +97,6 @@ func externalDeclaration(raw scan.Reference, declsByID map[string]*declaration) 
 	}
 	declsByID[key] = decl
 	return decl
-}
-
-func collectChildren(parent Declaration, raws []scan.Declaration, declsByID map[string]*declaration) []Declaration {
-	var out []Declaration
-	for _, raw := range raws {
-		decl := declsByID[raw.ID]
-		if decl.parent == parent {
-			out = append(out, decl)
-		}
-	}
-	return out
 }
 
 func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
