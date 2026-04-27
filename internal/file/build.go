@@ -46,6 +46,7 @@ func buildDeclaration(raw scan.Declaration, parent Declaration, declsByID map[st
 		kind:     mapKind(raw.Kind),
 		location: newLocation(raw.File, raw.Line, raw.Column),
 		parent:   parent,
+		escapes:  raw.Escapes,
 	}
 	declsByID[raw.ID] = d
 	for _, child := range raw.Declarations {
@@ -72,6 +73,7 @@ func attachDeclarationReferences(raw scan.Declaration, declsByID map[string]*dec
 			location: newLocation(rr.File, rr.Line, rr.Column),
 			text:     rr.Text,
 			kind:     mapKind(rr.Kind),
+			escapes:  rr.Escapes,
 		}
 		if rr.DeclarationID != "" {
 			ref.declaration = declsByID[rr.DeclarationID]

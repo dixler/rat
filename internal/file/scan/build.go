@@ -29,6 +29,7 @@ type Declaration struct {
 	File         string
 	Line         int
 	Column       int
+	Escapes      bool
 	References   []Reference
 	Declarations []Declaration
 }
@@ -43,6 +44,7 @@ type Reference struct {
 	File              string
 	Line              int
 	Column            int
+	Escapes           bool
 }
 
 type PackageReference struct {
@@ -95,6 +97,7 @@ func Build(file string) (*Result, error) {
 		kindByObj:  map[types.Object]string{},
 		pkgByPath:  map[string]string{},
 		goplsByPos: map[string]definitionLocation{},
+		escapes:    getEscapeAnalysis(file),
 	}
 	res := &Result{File: file}
 	for _, decl := range parsed.Decls {
@@ -132,7 +135,41 @@ type builder struct {
 	kindByObj  map[types.Object]string
 	pkgByPath  map[string]string
 	goplsByPos map[string]definitionLocation
+	escapes    map[string]bool
 	seq        int
+}
+
+func getEscapeAnalysis(file string) map[string]bool {
+	dir := filepath.Dir(file)
+	cmd := exec.Command("go", "build", "-gcflags=all=-m=1", "./...")
+	cmd.Dir = dir
+	out, _ := cmd.CombinedOutput()
+	lines := strings.Split(string(out), "\n")
+
+	escapes := make(map[string]bool)
+	for _, l := range lines {
+		if !strings.Contains(l, "escapes to heap") && !strings.Contains(l, "moved to heap") && !strings.Contains(l, "leaking param") {
+			continue
+		}
+		parts := strings.SplitN(l, ":", 4)
+		if len(parts) >= 4 {
+			filePart := parts[0]
+			line := parts[1]
+			col := parts[2]
+
+			if strings.HasPrefix(filePart, "./") {
+				filePart = filePart[2:]
+			}
+			absPath, err := filepath.Abs(filepath.Join(dir, filePart))
+			if err == nil {
+				filePart = absPath
+			}
+
+			key := fmt.Sprintf("%s:%s:%s", filepath.Clean(filePart), line, col)
+			escapes[key] = true
+		}
+	}
+	return escapes
 }
 
 type definitionLocation struct {
@@ -236,7 +273,16 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 
 func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
 	pos := b.fset.Position(id.Pos())
-	decl := Declaration{ID: b.nextID(kind), Name: id.Name, Kind: kind, File: b.file, Line: pos.Line, Column: pos.Column}
+	key := fmt.Sprintf("%s:%d:%d", filepath.Clean(b.file), pos.Line, pos.Column)
+	decl := Declaration{
+		ID:      b.nextID(kind),
+		Name:    id.Name,
+		Kind:    kind,
+		File:    b.file,
+		Line:    pos.Line,
+		Column:  pos.Column,
+		Escapes: b.escapes[key],
+	}
 	if obj := b.info.Defs[id]; obj != nil {
 		b.declByObj[obj] = decl.ID
 		b.kindByObj[obj] = kind
@@ -254,7 +300,15 @@ func (b *builder) collectReferences(node ast.Node, decl *Declaration) {
 			return true
 		}
 		pos := b.fset.Position(id.Pos())
-		ref := Reference{Text: id.Name, File: b.file, Line: pos.Line, Column: pos.Column, Kind: b.classifyObject(b.info.Uses[id])}
+		key := fmt.Sprintf("%s:%d:%d", filepath.Clean(b.file), pos.Line, pos.Column)
+		ref := Reference{
+			Text:    id.Name,
+			File:    b.file,
+			Line:    pos.Line,
+			Column:  pos.Column,
+			Kind:    b.classifyObject(b.info.Uses[id]),
+			Escapes: b.escapes[key],
+		}
 		if obj := b.info.Uses[id]; obj != nil {
 			ref.DeclarationID = b.declByObj[obj]
 		}

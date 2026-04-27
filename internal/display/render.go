@@ -9,6 +9,7 @@ const (
 	Reset  = "\x1b[0m"
 	Bold   = "\x1b[1m"
 	Gray   = "\x1b[90m"
+	Red    = "\x1b[31m"
 	Orange = "\x1b[38;5;208m"
 	Green  = "\x1b[32m"
 	Cyan   = "\x1b[36m"

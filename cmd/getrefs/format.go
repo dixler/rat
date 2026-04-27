@@ -52,13 +52,53 @@ func (r *Renderer) printHeader(f file.File) {
 	fmt.Fprintf(&r.b, "%s%s%s\n", display.Bold, f.Name(), display.Reset)
 }
 
-func (r *Renderer) printTree(root string, d file.Declaration, depth int) {
+type StyleProvider interface {
+	Style(d file.Declaration) display.Style
+	ReferenceStyle(root string, ref file.Reference) (display.Style, bool)
+}
+
+type DefaultStyleProvider struct{}
+
+func (DefaultStyleProvider) Style(d file.Declaration) display.Style {
+	return declarationStyle(d)
+}
+
+func (DefaultStyleProvider) ReferenceStyle(root string, ref file.Reference) (display.Style, bool) {
+	return relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
+}
+
+type EscapeStyleProvider struct{}
+
+func (EscapeStyleProvider) Style(d file.Declaration) display.Style {
+	if d.Escapes() {
+		return display.Style{Fg: display.Red}
+	}
+	if d.Kind() == file.KindParameter {
+		return display.Style{Fg: display.Orange}
+	}
+	if d.Kind() == file.KindFunction {
+		return display.Style{Fg: display.Green}
+	}
+	return display.Style{}
+}
+
+func (EscapeStyleProvider) ReferenceStyle(root string, ref file.Reference) (display.Style, bool) {
+	if ref.Escapes() || (ref.Declaration() != nil && ref.Declaration().Escapes()) {
+		return display.Style{Fg: display.White, Bg: "\x1b[41m", RefText: display.White}, true
+	}
+	if ref.Kind() == file.KindParameter {
+		return kindStyles[file.KindParameter], true
+	}
+	return display.Style{}, false
+}
+
+func (r *Renderer) printTree(root string, d file.Declaration, depth int, provider StyleProvider) {
 	indent := strings.Repeat("  ", depth)
-	fmt.Fprintf(&r.b, "%s%s%s%s %s%s:%d:%d%s\n", indent, declarationStyle(d).Fg, treeLabel(d), display.Reset, display.Gray, d.Location().File(), d.Location().Line(), d.Location().Column(), display.Reset)
-	for _, group := range groupReferences(root, d) {
+	fmt.Fprintf(&r.b, "%s%s%s%s %s%s:%d:%d%s\n", indent, provider.Style(d).Fg, treeLabel(d), display.Reset, display.Gray, d.Location().File(), d.Location().Line(), d.Location().Column(), display.Reset)
+	for _, group := range groupReferences(root, d, provider) {
 		fmt.Fprintf(&r.b, "%s  %s%s%s %s%s:%d:%d%s\n", indent, group.Style.Fg, group.decl.Name(), display.Reset, display.Gray, group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column(), display.Reset)
 		for _, ref := range group.refs {
-			sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
+			sty, ok := provider.ReferenceStyle(root, ref)
 			if !ok {
 				continue
 			}
@@ -69,7 +109,7 @@ func (r *Renderer) printTree(root string, d file.Declaration, depth int) {
 		if d.Kind() == file.KindFunction && child.Kind() == file.KindVariable {
 			continue
 		}
-		r.printTree(root, child, depth+1)
+		r.printTree(root, child, depth+1, provider)
 	}
 }
 
@@ -100,10 +140,10 @@ func (r *Renderer) printImports(refs []file.PackageReference) {
 	}
 }
 
-func collectSpans(root string, decls []file.Declaration) map[int][]display.Span {
+func collectSpans(root string, decls []file.Declaration, provider StyleProvider) map[int][]display.Span {
 	out := map[int][]display.Span{}
 	for _, decl := range decls {
-		collectDeclarationSpans(root, out, decl)
+		collectDeclarationSpans(root, out, decl, provider)
 	}
 	for line := range out {
 		sort.Slice(out[line], func(i, j int) bool {
@@ -119,17 +159,15 @@ func collectSpans(root string, decls []file.Declaration) map[int][]display.Span 
 	return out
 }
 
-func collectDeclarationSpans(root string, out map[int][]display.Span, decl file.Declaration) {
-	addSpan(out, decl.Location(), decl.Name(), declarationStyle(decl), true)
+func collectDeclarationSpans(root string, out map[int][]display.Span, decl file.Declaration, provider StyleProvider) {
+	addSpan(out, decl.Location(), decl.Name(), provider.Style(decl), true)
 	for _, ref := range decl.References() {
-		sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
-		if !ok {
-			continue
+		if sty, ok := provider.ReferenceStyle(root, ref); ok {
+			addSpan(out, ref.Location(), ref.Text(), sty, false)
 		}
-		addSpan(out, ref.Location(), ref.Text(), sty, false)
 	}
 	for _, child := range decl.Declarations() {
-		collectDeclarationSpans(root, out, child)
+		collectDeclarationSpans(root, out, child, provider)
 	}
 }
 
@@ -152,10 +190,10 @@ func kindStyle(kind file.Kind) display.Style {
 	return kindStyles[file.KindVariable]
 }
 
-func groupReferences(root string, decl file.Declaration) []refGroup {
+func groupReferences(root string, decl file.Declaration, provider StyleProvider) []refGroup {
 	byKey := map[string]*refGroup{}
 	for _, ref := range decl.References() {
-		sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
+		sty, ok := provider.ReferenceStyle(root, ref)
 		if !ok || ref.Declaration() == nil {
 			continue
 		}
@@ -287,7 +325,7 @@ func exists(path string) bool {
 	return err == nil
 }
 
-func ParseFormats(f file.File) map[int][]display.Span {
+func ParseFormats(f file.File, provider StyleProvider) map[int][]display.Span {
 	root := projectRoot(f.Name())
-	return collectSpans(root, f.Declarations())
+	return collectSpans(root, f.Declarations(), provider)
 }

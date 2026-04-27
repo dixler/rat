@@ -31,6 +31,7 @@ type Reference interface {
 	Location() Location
 	Text() string
 	Kind() Kind
+	Escapes() bool
 }
 
 type Declaration interface {
@@ -40,6 +41,7 @@ type Declaration interface {
 	References() []Reference
 	Declarations() []Declaration
 	Parent() Declaration
+	Escapes() bool
 }
 
 type PackageReference interface {
@@ -82,6 +84,7 @@ type declaration struct {
 	references   []Reference
 	declarations []Declaration
 	parent       Declaration
+	escapes      bool
 }
 
 type reference struct {
@@ -90,6 +93,7 @@ type reference struct {
 	location    location
 	text        string
 	kind        Kind
+	escapes     bool
 }
 
 type packageReference struct {
@@ -151,12 +155,14 @@ func (d *declaration) Declarations() []Declaration {
 	return append([]Declaration(nil), d.declarations...)
 }
 func (d *declaration) Parent() Declaration { return d.parent }
+func (d *declaration) Escapes() bool       { return d.escapes }
 
 func (r *reference) Parent() Declaration      { return r.parent }
 func (r *reference) Declaration() Declaration { return r.declaration }
 func (r *reference) Location() Location       { return r.location }
 func (r *reference) Text() string             { return r.text }
 func (r *reference) Kind() Kind               { return r.kind }
+func (r *reference) Escapes() bool            { return r.escapes }
 
 func (r *packageReference) Package() PackageDeclaration { return r.pkg }
 
