@@ -8,18 +8,33 @@ import (
 	"notectl/internal/file"
 )
 
+func ProcessPipeline(filepath string) (string, error) {
+	f, err := file.Analyze(filepath)
+	if err != nil {
+		return "", err
+	}
+	spans := ParseFormats(f)
+
+	r := &Renderer{}
+	r.printHeader(f)
+	r.printTree(projectRoot(f.Name()), f.Tree(), 0)
+	r.printImports(f.PackageReferences())
+
+	srcRender := display.RenderSource(f.Source(), spans)
+	r.b.WriteString(srcRender)
+
+	return r.b.String(), nil
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		die("usage: getrefs <file.go>")
 	}
-	f, err := file.New(os.Args[1])
+	out, err := ProcessPipeline(os.Args[1])
 	if err != nil {
 		die(err.Error())
 	}
-	if f == nil {
-		die("failed to open file")
-	}
-	display.RenderFile(f)
+	fmt.Print(out)
 }
 
 func die(msg string) {

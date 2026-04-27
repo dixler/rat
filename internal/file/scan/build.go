@@ -101,9 +101,10 @@ func Build(file string) (*Result, error) {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
 			for _, spec := range d.Specs {
-				built := b.buildSpec(spec)
-				if built.ID != "" {
-					res.Declarations = append(res.Declarations, built)
+				for _, built := range b.buildSpecs(spec) {
+					if built.ID != "" {
+						res.Declarations = append(res.Declarations, built)
+					}
 				}
 			}
 		case *ast.FuncDecl:
@@ -146,23 +147,32 @@ func (b *builder) nextID(prefix string) string {
 	return fmt.Sprintf("%s-%d", prefix, b.seq)
 }
 
-func (b *builder) buildSpec(spec ast.Spec) Declaration {
+func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 	switch s := spec.(type) {
 	case *ast.TypeSpec:
 		decl := b.newDeclaration(s.Name, "type")
 		b.collectReferences(s.Type, &decl)
-		return decl
+		return []Declaration{decl}
 	case *ast.ValueSpec:
 		if len(s.Names) == 0 {
-			return Declaration{}
+			return nil
 		}
-		decl := b.newDeclaration(s.Names[0], "variable")
-		for _, value := range s.Values {
-			b.collectReferences(value, &decl)
+		var decls []Declaration
+		for i, name := range s.Names {
+			decl := b.newDeclaration(name, "variable")
+			if i == 0 {
+				if s.Type != nil {
+					b.collectReferences(s.Type, &decl)
+				}
+				for _, value := range s.Values {
+					b.collectReferences(value, &decl)
+				}
+			}
+			decls = append(decls, decl)
 		}
-		return decl
+		return decls
 	default:
-		return Declaration{}
+		return nil
 	}
 }
 
@@ -186,6 +196,16 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	}
 	ast.Inspect(fn.Body, func(n ast.Node) bool {
 		switch x := n.(type) {
+		case *ast.DeclStmt:
+			if gd, ok := x.Decl.(*ast.GenDecl); ok {
+				for _, spec := range gd.Specs {
+					for _, child := range b.buildSpecs(spec) {
+						if child.ID != "" {
+							decl.Declarations = append(decl.Declarations, child)
+						}
+					}
+				}
+			}
 		case *ast.AssignStmt:
 			if x.Tok == token.DEFINE {
 				for _, lhs := range x.Lhs {

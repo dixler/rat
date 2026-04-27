@@ -103,6 +103,10 @@ type packageDeclaration struct {
 	files    []Declaration
 }
 
+func Analyze(name string) (File, error) {
+	return New(name)
+}
+
 func New(name string) (File, error) {
 	abs, err := filepath.Abs(name)
 	if err != nil {

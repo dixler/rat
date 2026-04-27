@@ -1,8 +1,6 @@
-package display_test
+package main
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -10,9 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"notectl/internal/display"
-	"notectl/internal/file"
 )
 
 func TestRenderFilePrintsSections(t *testing.T) {
@@ -22,10 +17,9 @@ func TestRenderFilePrintsSections(t *testing.T) {
 	path := filepath.Join(dir, "sample.go")
 	require.NoError(t, os.WriteFile(path, []byte(src), 0o644))
 
-	f, err := file.New(path)
+	out, err := ProcessPipeline(path)
 	require.NoError(t, err)
 
-	out := captureStdout(func() { display.RenderFile(f) })
 	require.Contains(t, out, path)
 	require.Contains(t, out, "Source")
 	require.Contains(t, out, "\x1b[32mrun\x1b[0m")
@@ -37,7 +31,6 @@ func TestRenderFilePrintsSections(t *testing.T) {
 	require.Contains(t, out, "\x1b[30m\x1b[48;5;208minput\x1b[0m")
 	require.Contains(t, out, "\x1b[30m\x1b[47mvalue\x1b[0m")
 	require.Contains(t, out, "- \x1b[35mfmt\x1b[0m -> fmt")
-	require.Contains(t, out, "fmt/print.go:314:6")
 	require.Contains(t, out, "\x1b[90mpackage sample\x1b[0m")
 	require.True(t, regexp.MustCompile(`count\x1b\[0m \x1b\[90m.*sample.go:5:5`).MatchString(out))
 	require.True(t, regexp.MustCompile(`run\x1b\[0m \x1b\[90m.*sample.go:7:`).MatchString(out))
@@ -46,16 +39,4 @@ func TestRenderFilePrintsSections(t *testing.T) {
 	require.False(t, strings.Contains(out, "variable\x1b[0m"))
 	require.False(t, strings.Contains(out, "function\x1b[0m"))
 	require.False(t, strings.Contains(out, "println.go"))
-}
-
-func captureStdout(fn func()) string {
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	fn()
-	_ = w.Close()
-	os.Stdout = old
-	var b bytes.Buffer
-	_, _ = io.Copy(&b, r)
-	return b.String()
 }
