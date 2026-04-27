@@ -327,5 +327,26 @@ func exists(path string) bool {
 
 func ParseFormats(f file.File, provider StyleProvider) map[int][]display.Span {
 	root := projectRoot(f.Name())
-	return collectSpans(root, f.Declarations(), provider)
+	spans := collectSpans(root, f.Declarations(), provider)
+
+	if _, isEscape := provider.(EscapeStyleProvider); isEscape {
+		retStyle := display.Style{Fg: display.Bold + display.Purple}
+		for _, loc := range f.Returns() {
+			addSpan(spans, loc, "return", retStyle, true)
+		}
+
+		for line := range spans {
+			sort.Slice(spans[line], func(i, j int) bool {
+				if spans[line][i].Start != spans[line][j].Start {
+					return spans[line][i].Start < spans[line][j].Start
+				}
+				if spans[line][i].IsDef != spans[line][j].IsDef {
+					return spans[line][i].IsDef
+				}
+				return spans[line][i].End < spans[line][j].End
+			})
+		}
+	}
+
+	return spans
 }

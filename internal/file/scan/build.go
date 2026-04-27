@@ -20,6 +20,13 @@ type Result struct {
 	Declarations      []Declaration
 	PackageReferences []PackageReference
 	Packages          []Package
+	Returns           []Return
+}
+
+type Return struct {
+	File   string
+	Line   int
+	Column int
 }
 
 type Declaration struct {
@@ -100,6 +107,17 @@ func Build(file string) (*Result, error) {
 		escapes:    getEscapeAnalysis(file),
 	}
 	res := &Result{File: file}
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		if ret, ok := n.(*ast.ReturnStmt); ok {
+			pos := fset.Position(ret.Return)
+			res.Returns = append(res.Returns, Return{
+				File:   file,
+				Line:   pos.Line,
+				Column: pos.Column,
+			})
+		}
+		return true
+	})
 	for _, decl := range parsed.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:

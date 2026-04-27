@@ -7,13 +7,13 @@ import (
 	"notectl/internal/file/scan"
 )
 
-func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaration, error) {
+func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaration, []Location, error) {
 	root := &declaration{name: filepath.Base(raw.File), kind: KindFile, location: newLocation(raw.File, 1, 1)}
 	declsByID := map[string]*declaration{"file": root}
 	for _, d := range raw.Declarations {
 		decl, err := buildDeclaration(d, root, declsByID)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, nil, err
 		}
 		root.declarations = append(root.declarations, decl)
 	}
@@ -25,7 +25,7 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 	for _, p := range raw.PackageReferences {
 		parent, ok := declsByID[p.ParentID]
 		if !ok {
-			return nil, nil, nil, fmt.Errorf("missing package parent %q", p.ParentID)
+			return nil, nil, nil, nil, fmt.Errorf("missing package parent %q", p.ParentID)
 		}
 		pkgRef := &packageReference{reference: &reference{
 			parent:   parent,
@@ -37,7 +37,13 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 	}
 	attachReferences(raw.Declarations, declsByID)
 	decls := append([]Declaration(nil), root.declarations...)
-	return root, pkgRefs, decls, nil
+
+	var returns []Location
+	for _, r := range raw.Returns {
+		returns = append(returns, newLocation(r.File, r.Line, r.Column))
+	}
+
+	return root, pkgRefs, decls, returns, nil
 }
 
 func buildDeclaration(raw scan.Declaration, parent Declaration, declsByID map[string]*declaration) (*declaration, error) {

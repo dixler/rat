@@ -61,6 +61,7 @@ type File interface {
 	Tree() Declaration
 	PackageReferences() []PackageReference
 	Declarations() []Declaration
+	Returns() []Location
 }
 
 type file struct {
@@ -69,6 +70,7 @@ type file struct {
 	root        *declaration
 	packageRefs []PackageReference
 	decls       []Declaration
+	returns     []Location
 }
 
 type location struct {
@@ -125,13 +127,14 @@ func New(name string) (File, error) {
 		return nil, err
 	}
 	f := &file{name: abs, source: string(src)}
-	root, pkgRefs, decls, err := buildTree(raw)
+	root, pkgRefs, decls, returns, err := buildTree(raw)
 	if err != nil {
 		return nil, fmt.Errorf("build file tree: %w", err)
 	}
 	f.root = root
 	f.packageRefs = pkgRefs
 	f.decls = decls
+	f.returns = returns
 	return f, nil
 }
 
@@ -142,6 +145,7 @@ func (f *file) PackageReferences() []PackageReference {
 	return append([]PackageReference(nil), f.packageRefs...)
 }
 func (f *file) Declarations() []Declaration { return append([]Declaration(nil), f.decls...) }
+func (f *file) Returns() []Location { return append([]Location(nil), f.returns...) }
 
 func (l location) File() string { return l.file }
 func (l location) Line() int    { return l.line }
