@@ -140,23 +140,40 @@ func (r *Renderer) printImports(refs []file.PackageReference) {
 	}
 }
 
-func collectSpans(root string, decls []file.Declaration, provider StyleProvider) map[int][]display.Span {
-	out := map[int][]display.Span{}
-	for _, decl := range decls {
-		collectDeclarationSpans(root, out, decl, provider)
+func sortSpans(spans []display.Span) {
+	sort.Slice(spans, func(i, j int) bool {
+		if spans[i].Start != spans[j].Start {
+			return spans[i].Start < spans[j].Start
+		}
+		if spans[i].IsDef != spans[j].IsDef {
+			return spans[i].IsDef
+		}
+		return spans[i].End < spans[j].End
+	})
+}
+
+func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall) {
+	text := call.Text()
+	loc := call.Location()
+	if loc == nil || text == "" {
+		return
 	}
-	for line := range out {
-		sort.Slice(out[line], func(i, j int) bool {
-			if out[line][i].Start != out[line][j].Start {
-				return out[line][i].Start < out[line][j].Start
-			}
-			if out[line][i].IsDef != out[line][j].IsDef {
-				return out[line][i].IsDef
-			}
-			return out[line][i].End < out[line][j].End
+
+	line := loc.Line()
+	col := loc.Column()
+	if line < 1 || col < 1 {
+		return
+	}
+
+	for i := 0; i < len(text); i++ {
+		charStyle := display.Style{Fg: "\x1b[97;41m"}
+		out[line] = append(out[line], display.Span{
+			Start: col - 1 + i,
+			End:   col - 1 + i + 1,
+			Style: charStyle,
+			IsDef: true, // we highlight it as def to apply fg color directly
 		})
 	}
-	return out
 }
 
 func collectDeclarationSpans(root string, out map[int][]display.Span, decl file.Declaration, provider StyleProvider) {
@@ -326,27 +343,23 @@ func exists(path string) bool {
 }
 
 func ParseFormats(f file.File, provider StyleProvider) map[int][]display.Span {
-	root := projectRoot(f.Name())
-	spans := collectSpans(root, f.Declarations(), provider)
+	out := map[int][]display.Span{}
 
-	if _, isEscape := provider.(EscapeStyleProvider); isEscape {
-		retStyle := display.Style{Fg: display.Bold + display.Purple}
-		for _, loc := range f.Returns() {
-			addSpan(spans, loc, "return", retStyle, true)
-		}
-
-		for line := range spans {
-			sort.Slice(spans[line], func(i, j int) bool {
-				if spans[line][i].Start != spans[line][j].Start {
-					return spans[line][i].Start < spans[line][j].Start
-				}
-				if spans[line][i].IsDef != spans[line][j].IsDef {
-					return spans[line][i].IsDef
-				}
-				return spans[line][i].End < spans[line][j].End
-			})
-		}
+	for _, call := range f.IndirectCalls() {
+		collectIndirectCallSpans(out, call)
 	}
 
-	return spans
+	root := projectRoot(f.Name())
+	for _, decl := range f.Declarations() {
+		collectDeclarationSpans(root, out, decl, provider)
+	}
+
+	for _, loc := range f.Returns() {
+		addSpan(out, loc, "return", display.Style{Fg: display.Bold + display.Purple}, true)
+	}
+
+	for line := range out {
+		sortSpans(out[line])
+	}
+	return out
 }

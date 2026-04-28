@@ -25,6 +25,11 @@ type Location interface {
 	Column() int
 }
 
+type IndirectCall interface {
+	Location() Location
+	Text() string
+}
+
 type Reference interface {
 	Parent() Declaration
 	Declaration() Declaration
@@ -62,15 +67,17 @@ type File interface {
 	PackageReferences() []PackageReference
 	Declarations() []Declaration
 	Returns() []Location
+	IndirectCalls() []IndirectCall
 }
 
 type file struct {
-	name        string
-	source      string
-	root        *declaration
-	packageRefs []PackageReference
-	decls       []Declaration
-	returns     []Location
+	name          string
+	source        string
+	root          *declaration
+	packageRefs   []PackageReference
+	decls         []Declaration
+	returns       []Location
+	indirectCalls []IndirectCall
 }
 
 type location struct {
@@ -127,7 +134,7 @@ func New(name string) (File, error) {
 		return nil, err
 	}
 	f := &file{name: abs, source: string(src)}
-	root, pkgRefs, decls, returns, err := buildTree(raw)
+	root, pkgRefs, decls, returns, indirectCalls, err := buildTree(raw)
 	if err != nil {
 		return nil, fmt.Errorf("build file tree: %w", err)
 	}
@@ -135,6 +142,7 @@ func New(name string) (File, error) {
 	f.packageRefs = pkgRefs
 	f.decls = decls
 	f.returns = returns
+	f.indirectCalls = indirectCalls
 	return f, nil
 }
 
@@ -144,8 +152,9 @@ func (f *file) Tree() Declaration { return f.root }
 func (f *file) PackageReferences() []PackageReference {
 	return append([]PackageReference(nil), f.packageRefs...)
 }
-func (f *file) Declarations() []Declaration { return append([]Declaration(nil), f.decls...) }
-func (f *file) Returns() []Location { return append([]Location(nil), f.returns...) }
+func (f *file) Declarations() []Declaration   { return append([]Declaration(nil), f.decls...) }
+func (f *file) Returns() []Location           { return append([]Location(nil), f.returns...) }
+func (f *file) IndirectCalls() []IndirectCall { return append([]IndirectCall(nil), f.indirectCalls...) }
 
 func (l location) File() string { return l.file }
 func (l location) Line() int    { return l.line }
@@ -173,3 +182,11 @@ func (r *packageReference) Package() PackageDeclaration { return r.pkg }
 func (p *packageDeclaration) Name() string         { return p.name }
 func (p *packageDeclaration) Location() Location   { return p.location }
 func (p *packageDeclaration) Files() []Declaration { return append([]Declaration(nil), p.files...) }
+
+type indirectCall struct {
+	location location
+	text     string
+}
+
+func (c *indirectCall) Location() Location { return c.location }
+func (c *indirectCall) Text() string       { return c.text }

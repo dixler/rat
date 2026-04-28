@@ -78,6 +78,21 @@ func (c *Client) initialize() error {
 	return c.notify("initialized", map[string]any{})
 }
 
+func (c *Client) Hover(file string, line, column int) (string, error) {
+	if err := c.didOpen(file); err != nil {
+		return "", err
+	}
+	uri := fileURI(file)
+	result, err := c.request("textDocument/hover", map[string]any{
+		"textDocument": map[string]any{"uri": uri},
+		"position":     map[string]any{"line": line - 1, "character": column - 1},
+	})
+	if err != nil {
+		return "", err
+	}
+	return string(result), nil
+}
+
 func (c *Client) Definition(file string, line, column int) (Location, bool, error) {
 	if err := c.didOpen(file); err != nil {
 		return Location{}, false, err

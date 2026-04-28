@@ -11,6 +11,7 @@ const (
 	Gray   = "\x1b[90m"
 	Red    = "\x1b[31m"
 	Orange = "\x1b[38;5;208m"
+	Yellow = "\x1b[33m"
 	Green  = "\x1b[32m"
 	Cyan   = "\x1b[36m"
 	Blue   = "\x1b[34m"

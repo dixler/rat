@@ -1,12 +1,14 @@
 package scan
 
 import (
+	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/importer"
 	"go/parser"
 	"go/token"
 	"go/types"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
@@ -21,6 +23,14 @@ type Result struct {
 	PackageReferences []PackageReference
 	Packages          []Package
 	Returns           []Return
+	IndirectCalls     []IndirectCall
+}
+
+type IndirectCall struct {
+	File   string
+	Line   int
+	Column int
+	Text   string
 }
 
 type Return struct {
@@ -93,7 +103,14 @@ func Build(file string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	info := &types.Info{Defs: map[*ast.Ident]types.Object{}, Uses: map[*ast.Ident]types.Object{}}
+	client, err := goplsclient.Default()
+	if err != nil {
+		return nil, err
+	}
+	info := &types.Info{
+		Defs: map[*ast.Ident]types.Object{},
+		Uses: map[*ast.Ident]types.Object{},
+	}
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
 	b := builder{
@@ -108,13 +125,76 @@ func Build(file string) (*Result, error) {
 	}
 	res := &Result{File: file}
 	ast.Inspect(parsed, func(n ast.Node) bool {
-		if ret, ok := n.(*ast.ReturnStmt); ok {
-			pos := fset.Position(ret.Return)
+		switch node := n.(type) {
+		case *ast.ReturnStmt:
+			pos := fset.Position(node.Return)
 			res.Returns = append(res.Returns, Return{
 				File:   file,
 				Line:   pos.Line,
 				Column: pos.Column,
 			})
+		case *ast.CallExpr:
+			var name string
+			var startPos token.Pos
+			if id, ok := node.Fun.(*ast.Ident); ok {
+				name = id.Name
+				startPos = id.Pos()
+			} else if sel, ok := node.Fun.(*ast.SelectorExpr); ok {
+				name = sel.Sel.Name
+				startPos = sel.Sel.Pos()
+			} else {
+				startPos = node.Fun.Pos()
+				endPos := node.Fun.End()
+				posStart := fset.Position(startPos)
+				posEnd := fset.Position(endPos)
+				if posStart.Line == posEnd.Line {
+					name = strings.Repeat("x", posEnd.Column-posStart.Column)
+				} else {
+					name = "call"
+				}
+			}
+
+			pos := fset.Position(startPos)
+			hoverRaw, err := client.Hover(pos.Filename, pos.Line, pos.Column)
+			if err != nil || hoverRaw == "" {
+				break
+			}
+
+			var h struct {
+				Contents struct {
+					Value string `json:"value"`
+				} `json:"contents"`
+			}
+			json.Unmarshal([]byte(hoverRaw), &h)
+			val := h.Contents.Value
+
+			isIndirect := false
+			if strings.Contains(val, "```go\nvar ") || strings.Contains(val, "```go\nfield ") || (strings.HasPrefix(val, "```go\ntype ") && strings.Contains(val, "interface")) {
+				isIndirect = true
+			} else if strings.Contains(val, "```go\nfunc (") {
+				loc, ok, err := client.Definition(pos.Filename, pos.Line, pos.Column)
+				if err == nil && ok && loc.File != "" && loc.Line > 0 {
+					targetSrc, err := os.ReadFile(loc.File)
+					if err == nil {
+						lines := strings.Split(string(targetSrc), "\n")
+						if len(lines) >= loc.Line {
+							line := strings.TrimSpace(lines[loc.Line-1])
+							if !strings.HasPrefix(line, "func ") {
+								isIndirect = true
+							}
+						}
+					}
+				}
+			}
+
+			if isIndirect && name != "" {
+				res.IndirectCalls = append(res.IndirectCalls, IndirectCall{
+					File:   file,
+					Line:   pos.Line,
+					Column: pos.Column,
+					Text:   name,
+				})
+			}
 		}
 		return true
 	})

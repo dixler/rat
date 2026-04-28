@@ -40,3 +40,18 @@ func TestRenderFilePrintsSections(t *testing.T) {
 	require.False(t, strings.Contains(out, "function\x1b[0m"))
 	require.False(t, strings.Contains(out, "println.go"))
 }
+
+func TestIndirectCalls(t *testing.T) {
+	dir := t.TempDir()
+	src := "package p\ntype I interface{ M() }\nfunc test(i I) {\n\ti.M()\n}\n"
+	path := filepath.Join(dir, "sample_indirect.go")
+	require.NoError(t, os.WriteFile(path, []byte(src), 0o644))
+
+	escapeMode = true
+	defer func() { escapeMode = false }()
+	out, err := ProcessPipeline(path)
+	require.NoError(t, err)
+
+	// "M" should have a red span since it is a single-letter indirect call
+	require.Contains(t, out, "\x1b[31mM\x1b[0m")
+}
