@@ -1,0 +1,19 @@
+[1mtestdata/rat/default/reassign_local.go[0m
+[38;5;208mfile[0m [90mtestdata/rat/default/reassign_local.go:1:1[0m
+  [32mreassignLocal[0m [90mtestdata/rat/default/reassign_local.go:3:6[0m
+    [38;5;208mseed[0m [90mtestdata/rat/default/reassign_local.go:3:20[0m
+      [38;5;208mtestdata/rat/default/reassign_local.go:4:7[0m
+    [38;5;120mv[0m [90mtestdata/rat/default/reassign_local.go:4:2[0m
+      [38;5;120mtestdata/rat/default/reassign_local.go:5:2[0m
+      [38;5;120mtestdata/rat/default/reassign_local.go:5:6[0m
+      [38;5;120mtestdata/rat/default/reassign_local.go:6:9[0m
+    [38;5;208mseed[0m [90mtestdata/rat/default/reassign_local.go:3:20[0m
+[1mSource[0m
+   1  [97mpackage sample[0m
+   2  [97m[0m
+   3  [97mfunc [0m[32mreassignLocal[0m[97m([0m[38;5;208mseed[0m[97m int) int {[0m
+   4  [97m	[0m[38;5;120mv[0m[97m := [0m[30m[48;5;208mseed[0m[97m[0m
+   5  [97m	[0m[30m[48;5;120mv[0m[97m = [0m[30m[48;5;120mv[0m[97m + 1[0m
+   6  [97m	[0m[1m[35mreturn[0m[97m [0m[30m[48;5;120mv[0m[97m[0m
+   7  [97m}[0m
+   8  [97m[0m

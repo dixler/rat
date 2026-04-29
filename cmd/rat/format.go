@@ -38,7 +38,7 @@ var kindStyles = map[file.Kind]display.Style{
 }
 
 var relationStyles = map[relation]display.Style{
-	relSameFunction: {Fg: display.Black, Bg: "\x1b[47m", RefText: display.Black},
+	relSameFunction: {Fg: display.LightGreen, Bg: display.LightGreenBg, RefText: display.Black},
 	relSameFile:     {Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black},
 	relSamePackage:  {Fg: display.Cyan, Bg: "\x1b[46m", RefText: display.Black},
 	relSameProject:  {Fg: display.Blue, Bg: "\x1b[44m", RefText: display.White},
@@ -134,7 +134,7 @@ func declarationStyle(d file.Declaration) display.Style {
 		return display.Style{Fg: display.Green}
 	}
 	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
-		return display.Style{Fg: display.White}
+		return display.Style{Fg: display.LightGreen}
 	}
 	return kindStyle(d.Kind())
 }

@@ -24,21 +24,21 @@
 [1mImports[0m
 - [35mfmt[0m -> fmt
 [1mSource[0m
-   1  [90mpackage sample[0m
-   2  [90m[0m
-   3  [90mimport "fmt"[0m
-   4  [90m[0m
-   5  [90mtype [0m[32mWorker[0m[90m interface {[0m
-   6  [90m	Work(task string) string[0m
-   7  [90m}[0m
-   8  [90m[0m
-   9  [90mtype [0m[32mprinter[0m[90m struct{}[0m
-  10  [90m[0m
-  11  [90mfunc (printer) [0m[32mWork[0m[90m([0m[38;5;208mtask[0m[90m string) string {[0m
-  12  [90m	[0m[1m[35mreturn[0m[90m [0m[97m[45mfmt[0m[90m.[0m[97m[45mSprint[0m[90m("work:", [0m[30m[48;5;208mtask[0m[90m)[0m
-  13  [90m}[0m
-  14  [90m[0m
-  15  [90mfunc [0m[32mrunWorker[0m[90m([0m[38;5;208mw[0m[90m [0m[30m[42mWorker[0m[90m, [0m[38;5;208mtask[0m[90m string) string {[0m
-  16  [90m	[0m[1m[35mreturn[0m[90m [0m[30m[48;5;208mw[0m[90m.[0m[97;41mW[0m[90m[0m[97;41mo[0m[90m[0m[97;41mr[0m[90m[0m[97;41mk[0m[90m([0m[30m[48;5;208mtask[0m[90m)[0m
-  17  [90m}[0m
-  18  [90m[0m
+   1  [97mpackage sample[0m
+   2  [97m[0m
+   3  [97mimport "fmt"[0m
+   4  [97m[0m
+   5  [97mtype [0m[32mWorker[0m[97m interface {[0m
+   6  [97m	Work(task string) string[0m
+   7  [97m}[0m
+   8  [97m[0m
+   9  [97mtype [0m[32mprinter[0m[97m struct{}[0m
+  10  [97m[0m
+  11  [97mfunc (printer) [0m[32mWork[0m[97m([0m[38;5;208mtask[0m[97m string) string {[0m
+  12  [97m	[0m[1m[35mreturn[0m[97m [0m[97m[45mfmt[0m[97m.[0m[97m[45mSprint[0m[97m("work:", [0m[30m[48;5;208mtask[0m[97m)[0m
+  13  [97m}[0m
+  14  [97m[0m
+  15  [97mfunc [0m[32mrunWorker[0m[97m([0m[38;5;208mw[0m[97m [0m[30m[42mWorker[0m[97m, [0m[38;5;208mtask[0m[97m string) string {[0m
+  16  [97m	[0m[1m[35mreturn[0m[97m [0m[30m[48;5;208mw[0m[97m.[0m[97;41mW[0m[97m[0m[97;41mo[0m[97m[0m[97;41mr[0m[97m[0m[97;41mk[0m[97m([0m[30m[48;5;208mtask[0m[97m)[0m
+  17  [97m}[0m
+  18  [97m[0m
