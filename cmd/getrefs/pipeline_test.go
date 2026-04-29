@@ -53,7 +53,7 @@ func fixtureRoot(t *testing.T) string {
 	t.Helper()
 	wd, err := os.Getwd()
 	require.NoError(t, err)
-	return filepath.Join(wd, "testdata")
+	return filepath.Join(wd, "..", "..", "testdata", "getrefs")
 }
 
 func fixtureSources(t *testing.T, root string) []string {
@@ -83,7 +83,7 @@ func fixtureSources(t *testing.T, root string) []string {
 }
 
 func normalizeOutput(output, sourcePath, rel string) string {
-	relPath := filepath.ToSlash(filepath.Join("testdata", "sources", rel))
+	relPath := filepath.ToSlash(filepath.Join("testdata", "getrefs", "sources", rel))
 	absPath := filepath.ToSlash(sourcePath)
 	normalized := filepath.ToSlash(output)
 	normalized = replaceAll(normalized, absPath, relPath)

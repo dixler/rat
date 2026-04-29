@@ -1,0 +1,55 @@
+[1mtestdata/getrefs/sources/default/type_switch_narrowing.go[0m
+[38;5;208mfile[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:1:1[0m
+  [36mNamer[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:5:6[0m
+  [36mperson[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:9:6[0m
+  [32mName[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:13:17[0m
+    [32mname[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:10:2[0m
+      [32mtestdata/getrefs/sources/default/type_switch_narrowing.go:13:42[0m
+    [32mp[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:13:7[0m
+      [32mtestdata/getrefs/sources/default/type_switch_narrowing.go:13:40[0m
+  [32mnarrowByTypeSwitch[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:15:6[0m
+    [38;5;208mv[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:15:25[0m
+      [38;5;208mtestdata/getrefs/sources/default/type_switch_narrowing.go:16:14[0m
+    [32mx[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:16:9[0m
+      [32mtestdata/getrefs/sources/default/type_switch_narrowing.go:16:9[0m
+      [32mtestdata/getrefs/sources/default/type_switch_narrowing.go:18:10[0m
+      [32mtestdata/getrefs/sources/default/type_switch_narrowing.go:20:10[0m
+    [35mfmt[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:3:8[0m
+      [35mtestdata/getrefs/sources/default/type_switch_narrowing.go:19:7[0m
+    [32mNamer[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:5:6[0m
+      [32mtestdata/getrefs/sources/default/type_switch_narrowing.go:17:7[0m
+    [32mName[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:6:2[0m
+      [32mtestdata/getrefs/sources/default/type_switch_narrowing.go:18:12[0m
+    [35mStringer[0m [90m/usr/lib/go/src/fmt/print.go:63:6[0m
+      [35mtestdata/getrefs/sources/default/type_switch_narrowing.go:19:11[0m
+    [35mString[0m [90m/usr/lib/go/src/fmt/print.go:64:2[0m
+      [35mtestdata/getrefs/sources/default/type_switch_narrowing.go:20:12[0m
+    [38;5;208mv[0m [90mtestdata/getrefs/sources/default/type_switch_narrowing.go:15:25[0m
+[1mImports[0m
+- [35mfmt[0m -> fmt
+[1mSource[0m
+   1  [90mpackage sample[0m
+   2  [90m[0m
+   3  [90mimport "fmt"[0m
+   4  [90m[0m
+   5  [90mtype [0m[36mNamer[0m[90m interface {[0m
+   6  [90m	Name() string[0m
+   7  [90m}[0m
+   8  [90m[0m
+   9  [90mtype [0m[36mperson[0m[90m struct {[0m
+  10  [90m	name string[0m
+  11  [90m}[0m
+  12  [90m[0m
+  13  [90mfunc (p person) [0m[32mName[0m[90m() string { [0m[1m[35mreturn[0m[90m [0m[30m[42mp[0m[90m.[0m[30m[42mname[0m[90m }[0m
+  14  [90m[0m
+  15  [90mfunc [0m[32mnarrowByTypeSwitch[0m[90m([0m[38;5;208mv[0m[90m interface{}) string {[0m
+  16  [90m	switch [0m[97mx[0m[90m := [0m[30m[48;5;208mv[0m[90m.(type) {[0m
+  17  [90m	case [0m[30m[42mNamer[0m[90m:[0m
+  18  [90m		[0m[1m[35mreturn[0m[90m [0m[30m[42mx[0m[90m.[0m[97;41mN[0m[90m[0m[97;41ma[0m[90m[0m[97;41mm[0m[90m[0m[97;41me[0m[90m()[0m
+  19  [90m	case [0m[97m[45mfmt[0m[90m.[0m[97m[45mStringer[0m[90m:[0m
+  20  [90m		[0m[1m[35mreturn[0m[90m [0m[30m[42mx[0m[90m.[0m[97;41mS[0m[90m[0m[97;41mt[0m[90m[0m[97;41mr[0m[90m[0m[97;41mi[0m[90m[0m[97;41mn[0m[90m[0m[97;41mg[0m[90m()[0m
+  21  [90m	default:[0m
+  22  [90m		[0m[1m[35mreturn[0m[90m "unknown"[0m
+  23  [90m	}[0m
+  24  [90m}[0m
+  25  [90m[0m
