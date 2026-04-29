@@ -494,13 +494,13 @@ func openEditor(items []EditItem) (string, error) {
 	buf.WriteString("# Please review the following notes as their underlying code has been changed.\n")
 	buf.WriteString("# Lines starting with '#' will be ignored, and an empty message aborts the commit.\n\n")
 	for _, it := range items {
-		buf.WriteString(fmt.Sprintf("file: %s\n", it.Curr.File))
-		buf.WriteString(fmt.Sprintf("line: %s\n", it.Curr.Subject.LineRef))
+		fmt.Fprintf(&buf, "file: %s\n", it.Curr.File)
+		fmt.Fprintf(&buf, "line: %s\n", it.Curr.Subject.LineRef)
 		buf.WriteString("note:\n")
 		for _, ln := range strings.Split(it.Orig.NoteText, "\n") {
 			buf.WriteString("    " + ln + "\n")
 		}
-		buf.WriteString(fmt.Sprintf("action: %s\n", it.Action))
+		fmt.Fprintf(&buf, "action: %s\n", it.Action)
 		buf.WriteString("---\n")
 	}
 	f, err := os.CreateTemp("", "notectl-review-*.txt")
@@ -726,7 +726,7 @@ func notesDiff(before, after map[string][]Note) (string, error) {
 		if ref == "" {
 			ref, line = newv.file, newv.line
 		}
-		out.WriteString(fmt.Sprintf("%s:%s\n", ref, line))
+		fmt.Fprintf(&out, "%s:%s\n", ref, line)
 		if oldok {
 			out.WriteString(colorRed("-   " + oldv.note + "\n"))
 		}

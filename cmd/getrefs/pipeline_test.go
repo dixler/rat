@@ -53,5 +53,5 @@ func TestIndirectCalls(t *testing.T) {
 	require.NoError(t, err)
 
 	// "M" should have a red span since it is a single-letter indirect call
-	require.Contains(t, out, "\x1b[31mM\x1b[0m")
+	require.Contains(t, out, "\x1b[97;41mM\x1b[0m")
 }
