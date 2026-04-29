@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"sort"
@@ -124,10 +127,39 @@ func treeLabel(d file.Declaration) string {
 }
 
 func declarationStyle(d file.Declaration) display.Style {
+	if isTopLevelDeclaration(d) {
+		return display.Style{Fg: display.Green}
+	}
+	if isTopLevelStructField(d) {
+		return display.Style{Fg: display.Green}
+	}
 	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
 		return display.Style{Fg: display.White}
 	}
 	return kindStyle(d.Kind())
+}
+
+func isTopLevelDeclaration(d file.Declaration) bool {
+	if d == nil || d.Parent() == nil {
+		return false
+	}
+	return d.Parent().Kind() == file.KindFile
+}
+
+func isTopLevelStructField(d file.Declaration) bool {
+	if d == nil || d.Kind() != file.KindVariable {
+		return false
+	}
+	for parent := d.Parent(); parent != nil; parent = parent.Parent() {
+		if parent.Kind() == file.KindFunction {
+			return false
+		}
+		if parent.Kind() == file.KindType {
+			grandparent := parent.Parent()
+			return grandparent != nil && grandparent.Kind() == file.KindFile
+		}
+	}
+	return false
 }
 
 func (r *Renderer) printImports(refs []file.PackageReference) {
@@ -176,19 +208,19 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 	}
 }
 
-func collectDeclarationSpans(root string, out map[int][]display.Span, decl file.Declaration, provider StyleProvider) {
-	addSpan(out, decl.Location(), decl.Name(), provider.Style(decl), true)
+func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration, provider StyleProvider) {
+	addSpan(out, sourceLines, decl.Location(), decl.Name(), provider.Style(decl), true)
 	for _, ref := range decl.References() {
 		if sty, ok := provider.ReferenceStyle(root, ref); ok {
-			addSpan(out, ref.Location(), ref.Text(), sty, false)
+			addSpan(out, sourceLines, ref.Location(), ref.Text(), sty, false)
 		}
 	}
 	for _, child := range decl.Declarations() {
-		collectDeclarationSpans(root, out, child, provider)
+		collectDeclarationSpans(root, out, sourceLines, child, provider)
 	}
 }
 
-func addSpan(out map[int][]display.Span, loc file.Location, text string, Style display.Style, IsDef bool) {
+func addSpan(out map[int][]display.Span, sourceLines []string, loc file.Location, text string, Style display.Style, IsDef bool) {
 	if loc == nil || text == "" {
 		return
 	}
@@ -197,7 +229,19 @@ func addSpan(out map[int][]display.Span, loc file.Location, text string, Style d
 	if line < 1 || col < 1 {
 		return
 	}
-	out[line] = append(out[line], display.Span{Start: col - 1, End: col - 1 + len(text), Style: Style, IsDef: IsDef})
+	start := col - 1
+	if IsDef && line <= len(sourceLines) {
+		lineText := sourceLines[line-1]
+		if start < 0 {
+			start = 0
+		}
+		if start < len(lineText) && !strings.HasPrefix(lineText[start:], text) {
+			if idx := strings.Index(lineText[start:], text); idx >= 0 {
+				start += idx
+			}
+		}
+	}
+	out[line] = append(out[line], display.Span{Start: start, End: start + len(text), Style: Style, IsDef: IsDef})
 }
 
 func kindStyle(kind file.Kind) display.Style {
@@ -344,6 +388,8 @@ func exists(path string) bool {
 
 func ParseFormats(f file.File, provider StyleProvider) map[int][]display.Span {
 	out := map[int][]display.Span{}
+	sourceLines := strings.Split(f.Source(), "\n")
+	addTopLevelStructFieldDeclarationSpans(out, sourceLines, f)
 
 	for _, call := range f.IndirectCalls() {
 		collectIndirectCallSpans(out, call)
@@ -351,11 +397,11 @@ func ParseFormats(f file.File, provider StyleProvider) map[int][]display.Span {
 
 	root := projectRoot(f.Name())
 	for _, decl := range f.Declarations() {
-		collectDeclarationSpans(root, out, decl, provider)
+		collectDeclarationSpans(root, out, sourceLines, decl, provider)
 	}
 
 	for _, loc := range f.Returns() {
-		addSpan(out, loc, "return", display.Style{Fg: display.Bold + display.Purple}, true)
+		addSpan(out, sourceLines, loc, "return", display.Style{Fg: display.Bold + display.Purple}, true)
 	}
 
 	for line := range out {
@@ -363,3 +409,82 @@ func ParseFormats(f file.File, provider StyleProvider) map[int][]display.Span {
 	}
 	return out
 }
+
+func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, f.Name(), f.Source(), parser.SkipObjectResolution)
+	if err != nil || node == nil {
+		return
+	}
+	for _, decl := range node.Decls {
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok || gen.Tok != token.TYPE {
+			continue
+		}
+		for _, spec := range gen.Specs {
+			ts, ok := spec.(*ast.TypeSpec)
+			if !ok {
+				continue
+			}
+			st, ok := ts.Type.(*ast.StructType)
+			if !ok {
+				continue
+			}
+			addStructFieldSpansFromAST(out, sourceLines, fset, st)
+		}
+	}
+}
+
+func addStructFieldSpansFromAST(out map[int][]display.Span, sourceLines []string, fset *token.FileSet, st *ast.StructType) {
+	if st == nil || st.Fields == nil {
+		return
+	}
+	for _, field := range st.Fields.List {
+		for _, name := range field.Names {
+			pos := fset.Position(name.Pos())
+			if pos.Line < 1 || pos.Column < 1 {
+				continue
+			}
+			loc := &astLocation{file: pos.Filename, line: pos.Line, column: pos.Column}
+			addSpan(out, sourceLines, loc, name.Name, display.Style{Fg: display.Green}, true)
+		}
+		addStructFieldSpansFromExpr(out, sourceLines, fset, field.Type)
+	}
+}
+
+func addStructFieldSpansFromExpr(out map[int][]display.Span, sourceLines []string, fset *token.FileSet, expr ast.Expr) {
+	switch n := expr.(type) {
+	case *ast.StructType:
+		addStructFieldSpansFromAST(out, sourceLines, fset, n)
+	case *ast.FuncType:
+		if n.Params != nil {
+			for _, p := range n.Params.List {
+				addStructFieldSpansFromExpr(out, sourceLines, fset, p.Type)
+			}
+		}
+		if n.Results != nil {
+			for _, r := range n.Results.List {
+				addStructFieldSpansFromExpr(out, sourceLines, fset, r.Type)
+			}
+		}
+	case *ast.ArrayType:
+		addStructFieldSpansFromExpr(out, sourceLines, fset, n.Elt)
+	case *ast.MapType:
+		addStructFieldSpansFromExpr(out, sourceLines, fset, n.Key)
+		addStructFieldSpansFromExpr(out, sourceLines, fset, n.Value)
+	case *ast.StarExpr:
+		addStructFieldSpansFromExpr(out, sourceLines, fset, n.X)
+	case *ast.ChanType:
+		addStructFieldSpansFromExpr(out, sourceLines, fset, n.Value)
+	}
+}
+
+type astLocation struct {
+	file   string
+	line   int
+	column int
+}
+
+func (l *astLocation) File() string { return l.file }
+func (l *astLocation) Line() int    { return l.line }
+func (l *astLocation) Column() int  { return l.column }

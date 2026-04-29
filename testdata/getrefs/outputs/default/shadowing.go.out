@@ -1,6 +1,6 @@
 [1mtestdata/getrefs/sources/default/shadowing.go[0m
 [38;5;208mfile[0m [90mtestdata/getrefs/sources/default/shadowing.go:1:1[0m
-  [38;5;208mn[0m [90mtestdata/getrefs/sources/default/shadowing.go:3:5[0m
+  [32mn[0m [90mtestdata/getrefs/sources/default/shadowing.go:3:5[0m
   [32mshadowing[0m [90mtestdata/getrefs/sources/default/shadowing.go:5:6[0m
     [38;5;208mn[0m [90mtestdata/getrefs/sources/default/shadowing.go:5:16[0m
       [38;5;208mtestdata/getrefs/sources/default/shadowing.go:6:11[0m
@@ -15,7 +15,7 @@
 [1mSource[0m
    1  [90mpackage sample[0m
    2  [90m[0m
-   3  [90mvar [0m[38;5;208mn[0m[90m = 1[0m
+   3  [90mvar [0m[32mn[0m[90m = 1[0m
    4  [90m[0m
    5  [90mfunc [0m[32mshadowing[0m[90m([0m[38;5;208mn[0m[90m int) int {[0m
    6  [90m	[0m[97mvalue[0m[90m := [0m[30m[48;5;208mn[0m[90m[0m

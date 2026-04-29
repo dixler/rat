@@ -1,6 +1,6 @@
 [1mtestdata/getrefs/sources/default/function_params_and_iface_params.go[0m
 [38;5;208mfile[0m [90mtestdata/getrefs/sources/default/function_params_and_iface_params.go:1:1[0m
-  [36mReader[0m [90mtestdata/getrefs/sources/default/function_params_and_iface_params.go:3:6[0m
+  [32mReader[0m [90mtestdata/getrefs/sources/default/function_params_and_iface_params.go:3:6[0m
   [32mapplyFn[0m [90mtestdata/getrefs/sources/default/function_params_and_iface_params.go:7:6[0m
     [38;5;208mfn[0m [90mtestdata/getrefs/sources/default/function_params_and_iface_params.go:7:14[0m
       [38;5;208mtestdata/getrefs/sources/default/function_params_and_iface_params.go:8:9[0m
@@ -24,7 +24,7 @@
 [1mSource[0m
    1  [90mpackage sample[0m
    2  [90m[0m
-   3  [90mtype [0m[36mReader[0m[90m interface {[0m
+   3  [90mtype [0m[32mReader[0m[90m interface {[0m
    4  [90m	Read([]byte) (int, error)[0m
    5  [90m}[0m
    6  [90m[0m

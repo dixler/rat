@@ -1,6 +1,6 @@
 [1mtestdata/getrefs/sources/default/sample.go[0m
 [38;5;208mfile[0m [90mtestdata/getrefs/sources/default/sample.go:1:1[0m
-  [38;5;208mcount[0m [90mtestdata/getrefs/sources/default/sample.go:5:5[0m
+  [32mcount[0m [90mtestdata/getrefs/sources/default/sample.go:5:5[0m
   [32mrun[0m [90mtestdata/getrefs/sources/default/sample.go:7:6[0m
     [35mfmt[0m [90mtestdata/getrefs/sources/default/sample.go:3:8[0m
       [35mtestdata/getrefs/sources/default/sample.go:9:2[0m
@@ -21,7 +21,7 @@
    2  [90m[0m
    3  [90mimport "fmt"[0m
    4  [90m[0m
-   5  [90mvar [0m[38;5;208mcount[0m[90m = 1[0m
+   5  [90mvar [0m[32mcount[0m[90m = 1[0m
    6  [90m[0m
    7  [90mfunc [0m[32mrun[0m[90m([0m[38;5;208minput[0m[90m string) {[0m
    8  [90m	[0m[97mvalue[0m[90m := [0m[30m[42mcount[0m[90m[0m
