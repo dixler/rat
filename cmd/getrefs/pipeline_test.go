@@ -14,16 +14,15 @@ func TestRenderFixtures(t *testing.T) {
 	t.Parallel()
 
 	root := fixtureRoot(t)
-	sourcesDir := filepath.Join(root, "sources")
-	outputsDir := filepath.Join(root, "outputs")
+	fixturesDir := root
 
-	cases := fixtureSources(t, sourcesDir)
+	cases := fixtureSources(t, fixturesDir)
 	require.True(t, len(cases) > 0, "no fixture source files found")
 
 	accept := os.Getenv("ACCEPT") == "1"
 	for _, sourcePath := range cases {
 		sourcePath := sourcePath
-		rel, err := filepath.Rel(sourcesDir, sourcePath)
+		rel, err := filepath.Rel(fixturesDir, sourcePath)
 		require.NoError(t, err)
 
 		t.Run(rel, func(t *testing.T) {
@@ -34,7 +33,7 @@ func TestRenderFixtures(t *testing.T) {
 			require.NoError(t, err)
 
 			normalized := normalizeOutput(out, sourcePath, rel)
-			expectedPath := filepath.Join(outputsDir, rel+".out")
+			expectedPath := sourcePath + ".out"
 
 			if accept {
 				require.NoError(t, os.MkdirAll(filepath.Dir(expectedPath), 0o755))
@@ -83,7 +82,7 @@ func fixtureSources(t *testing.T, root string) []string {
 }
 
 func normalizeOutput(output, sourcePath, rel string) string {
-	relPath := filepath.ToSlash(filepath.Join("testdata", "getrefs", "sources", rel))
+	relPath := filepath.ToSlash(filepath.Join("testdata", "getrefs", rel))
 	absPath := filepath.ToSlash(sourcePath)
 	normalized := filepath.ToSlash(output)
 	normalized = replaceAll(normalized, absPath, relPath)
