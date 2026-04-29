@@ -1,6 +1,7 @@
 [1mtestdata/rat/default/interfaces_and_params.go[0m
 [38;5;208mfile[0m [90mtestdata/rat/default/interfaces_and_params.go:1:1[0m
   [32mWorker[0m [90mtestdata/rat/default/interfaces_and_params.go:5:6[0m
+    [32mWork[0m [90mtestdata/rat/default/interfaces_and_params.go:6:2[0m
   [32mprinter[0m [90mtestdata/rat/default/interfaces_and_params.go:9:6[0m
   [32mWork[0m [90mtestdata/rat/default/interfaces_and_params.go:11:16[0m
     [38;5;208mtask[0m [90mtestdata/rat/default/interfaces_and_params.go:11:21[0m
@@ -29,7 +30,7 @@
    3  [97mimport "fmt"[0m
    4  [97m[0m
    5  [97mtype [0m[30m[42mWorker[0m[97m interface {[0m
-   6  [97m	Work(task string) string[0m
+   6  [97m	[0m[30m[42mWork[0m[97m(task string) string[0m
    7  [97m}[0m
    8  [97m[0m
    9  [97mtype [0m[30m[42mprinter[0m[97m struct{}[0m

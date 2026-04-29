@@ -1,0 +1,61 @@
+[1mtestdata/rat/default/interface_func_samefile_types.go[0m
+[38;5;208mfile[0m [90mtestdata/rat/default/interface_func_samefile_types.go:1:1[0m
+  [32mItem[0m [90mtestdata/rat/default/interface_func_samefile_types.go:3:6[0m
+  [32mItemProcessor[0m [90mtestdata/rat/default/interface_func_samefile_types.go:7:6[0m
+    [32mItem[0m [90mtestdata/rat/default/interface_func_samefile_types.go:3:6[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:8:13[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:8:19[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:8:25[0m
+    [32mApply[0m [90mtestdata/rat/default/interface_func_samefile_types.go:8:2[0m
+  [32mlocalProcessor[0m [90mtestdata/rat/default/interface_func_samefile_types.go:11:6[0m
+  [32mApply[0m [90mtestdata/rat/default/interface_func_samefile_types.go:13:26[0m
+    [38;5;208mfn[0m [90mtestdata/rat/default/interface_func_samefile_types.go:13:32[0m
+      [38;5;208mtestdata/rat/default/interface_func_samefile_types.go:15:9[0m
+    [38;5;120mitem[0m [90mtestdata/rat/default/interface_func_samefile_types.go:14:2[0m
+      [38;5;120mtestdata/rat/default/interface_func_samefile_types.go:15:12[0m
+    [32mItem[0m [90mtestdata/rat/default/interface_func_samefile_types.go:3:6[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:13:40[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:13:46[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:13:52[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:14:10[0m
+    [32mValue[0m [90mtestdata/rat/default/interface_func_samefile_types.go:4:2[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:14:15[0m
+    [38;5;208mp[0m [90mtestdata/rat/default/interface_func_samefile_types.go:13:7[0m
+    [38;5;208mfn[0m [90mtestdata/rat/default/interface_func_samefile_types.go:13:32[0m
+  [32mrunItemProcessor[0m [90mtestdata/rat/default/interface_func_samefile_types.go:18:6[0m
+    [38;5;208mp[0m [90mtestdata/rat/default/interface_func_samefile_types.go:18:23[0m
+      [38;5;208mtestdata/rat/default/interface_func_samefile_types.go:19:9[0m
+    [38;5;208mfn[0m [90mtestdata/rat/default/interface_func_samefile_types.go:18:40[0m
+      [38;5;208mtestdata/rat/default/interface_func_samefile_types.go:19:17[0m
+    [32mItem[0m [90mtestdata/rat/default/interface_func_samefile_types.go:3:6[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:18:48[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:18:54[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:18:60[0m
+    [32mItemProcessor[0m [90mtestdata/rat/default/interface_func_samefile_types.go:7:6[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:18:25[0m
+    [32mApply[0m [90mtestdata/rat/default/interface_func_samefile_types.go:8:2[0m
+      [32mtestdata/rat/default/interface_func_samefile_types.go:19:11[0m
+    [38;5;208mp[0m [90mtestdata/rat/default/interface_func_samefile_types.go:18:23[0m
+    [38;5;208mfn[0m [90mtestdata/rat/default/interface_func_samefile_types.go:18:40[0m
+[1mSource[0m
+   1  [97mpackage sample[0m
+   2  [97m[0m
+   3  [97mtype [0m[30m[42mItem[0m[97m struct {[0m
+   4  [97m	[0m[30m[42mValue[0m[97m int[0m
+   5  [97m}[0m
+   6  [97m[0m
+   7  [97mtype [0m[30m[42mItemProcessor[0m[97m interface {[0m
+   8  [97m	[0m[30m[42mApply[0m[97m(func([0m[32mItem[0m[97m) [0m[32mItem[0m[97m) [0m[32mItem[0m[97m[0m
+   9  [97m}[0m
+  10  [97m[0m
+  11  [97mtype [0m[30m[42mlocalProcessor[0m[97m struct{}[0m
+  12  [97m[0m
+  13  [97mfunc ([0m[30m[48;5;208mp[0m[97m *localProcessor) [0m[30m[42mApply[0m[97m([0m[30m[48;5;208mfn[0m[97m func([0m[32mItem[0m[97m) [0m[32mItem[0m[97m) [0m[32mItem[0m[97m {[0m
+  14  [97m	[0m[30m[48;5;120mitem[0m[97m := [0m[32mItem[0m[97m{[0m[32mValue[0m[97m: 1}[0m
+  15  [97m	[0m[1m[35mreturn[0m[97m [0m[31mf[0m[97m[0m[31mn[0m[97m([0m[38;5;120mitem[0m[97m)[0m
+  16  [97m}[0m
+  17  [97m[0m
+  18  [97mfunc [0m[30m[42mrunItemProcessor[0m[97m([0m[30m[48;5;208mp[0m[97m [0m[32mItemProcessor[0m[97m, [0m[30m[48;5;208mfn[0m[97m func([0m[32mItem[0m[97m) [0m[32mItem[0m[97m) [0m[32mItem[0m[97m {[0m
+  19  [97m	[0m[1m[35mreturn[0m[97m [0m[38;5;208mp[0m[97m.[0m[31mA[0m[97m[0m[31mp[0m[97m[0m[31mp[0m[97m[0m[31ml[0m[97m[0m[31my[0m[97m([0m[38;5;208mfn[0m[97m)[0m
+  20  [97m}[0m
+  21  [97m[0m

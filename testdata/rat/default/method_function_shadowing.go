@@ -6,11 +6,12 @@ func runValue(v int) int {
 	return v + 1
 }
 
-func (runner) runValue(v int) int {
+func (r *runner) runValue(v int) int {
+	_ = r
 	return v + 2
 }
 
-func useRunValue(r runner, runValue int) int {
+func useRunValue(r *runner, runValue int) int {
 	local := func(runValue int) int {
 		return runValue + 3
 	}

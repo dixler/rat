@@ -286,6 +286,8 @@ func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 	switch s := spec.(type) {
 	case *ast.TypeSpec:
 		decl := b.newDeclaration(s.Name, "type")
+		b.appendTypeParamDeclarations(&decl, s.TypeParams)
+		b.appendInterfaceMethodDeclarations(&decl, s.Type)
 		b.collectReferences(s.Type, &decl)
 		return []Declaration{decl}
 	case *ast.ValueSpec:
@@ -313,8 +315,8 @@ func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 
 func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	decl := b.newDeclaration(fn.Name, "function")
-	if fn.Type != nil && fn.Type.Params != nil {
-		for _, field := range fn.Type.Params.List {
+	if fn.Recv != nil {
+		for _, field := range fn.Recv.List {
 			for _, name := range field.Names {
 				if name == nil || name.Name == "_" {
 					continue
@@ -324,6 +326,17 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 		}
 	}
 	if fn.Type != nil {
+		b.appendTypeParamDeclarations(&decl, fn.Type.TypeParams)
+		if fn.Type.Params != nil {
+			for _, field := range fn.Type.Params.List {
+				for _, name := range field.Names {
+					if name == nil || name.Name == "_" {
+						continue
+					}
+					decl.Declarations = append(decl.Declarations, b.newDeclaration(name, "parameter"))
+				}
+			}
+		}
 		b.collectReferences(fn.Type, &decl)
 	}
 	if fn.Body == nil {
@@ -367,6 +380,35 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	b.collectReferences(fn.Body, &decl)
 	sortDeclarations(decl.Declarations)
 	return decl
+}
+
+func (b *builder) appendTypeParamDeclarations(parent *Declaration, fields *ast.FieldList) {
+	if fields == nil {
+		return
+	}
+	for _, field := range fields.List {
+		for _, name := range field.Names {
+			if name == nil || name.Name == "_" {
+				continue
+			}
+			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, "parameter"))
+		}
+	}
+}
+
+func (b *builder) appendInterfaceMethodDeclarations(parent *Declaration, expr ast.Expr) {
+	iface, ok := expr.(*ast.InterfaceType)
+	if !ok || iface.Methods == nil {
+		return
+	}
+	for _, field := range iface.Methods.List {
+		for _, name := range field.Names {
+			if name == nil || name.Name == "_" {
+				continue
+			}
+			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, "function"))
+		}
+	}
 }
 
 func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
@@ -511,9 +553,17 @@ func (b *builder) classifyObject(obj types.Object) string {
 	case *types.PkgName:
 		return "package"
 	case *types.TypeName:
+		if _, ok := obj.Type().(*types.TypeParam); ok {
+			return "parameter"
+		}
 		return "type"
 	case *types.Func:
 		return "function"
+	case *types.Var:
+		if _, ok := obj.Type().(*types.TypeParam); ok {
+			return "parameter"
+		}
+		return "variable"
 	default:
 		return "variable"
 	}

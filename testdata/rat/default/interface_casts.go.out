@@ -1,12 +1,14 @@
 [1mtestdata/rat/default/interface_casts.go[0m
 [38;5;208mfile[0m [90mtestdata/rat/default/interface_casts.go:1:1[0m
   [32mStringer[0m [90mtestdata/rat/default/interface_casts.go:5:6[0m
+    [32mString[0m [90mtestdata/rat/default/interface_casts.go:6:2[0m
   [32mnamed[0m [90mtestdata/rat/default/interface_casts.go:9:6[0m
   [32mString[0m [90mtestdata/rat/default/interface_casts.go:13:16[0m
     [32mv[0m [90mtestdata/rat/default/interface_casts.go:10:2[0m
       [32mtestdata/rat/default/interface_casts.go:14:11[0m
-    [32mn[0m [90mtestdata/rat/default/interface_casts.go:13:7[0m
-      [32mtestdata/rat/default/interface_casts.go:14:9[0m
+    [38;5;208mn[0m [90mtestdata/rat/default/interface_casts.go:13:7[0m
+      [38;5;208mtestdata/rat/default/interface_casts.go:14:9[0m
+    [38;5;208mn[0m [90mtestdata/rat/default/interface_casts.go:13:7[0m
   [32minterfaceCasts[0m [90mtestdata/rat/default/interface_casts.go:17:6[0m
     [32mString[0m [90mtestdata/rat/default/interface_casts.go:13:16[0m
       [32mtestdata/rat/default/interface_casts.go:20:12[0m
@@ -36,15 +38,15 @@
    3  [97mimport "fmt"[0m
    4  [97m[0m
    5  [97mtype [0m[30m[42mStringer[0m[97m interface {[0m
-   6  [97m	String() string[0m
+   6  [97m	[0m[30m[42mString[0m[97m() string[0m
    7  [97m}[0m
    8  [97m[0m
    9  [97mtype [0m[30m[42mnamed[0m[97m struct {[0m
   10  [97m	[0m[30m[42mv[0m[97m string[0m
   11  [97m}[0m
   12  [97m[0m
-  13  [97mfunc (n named) [0m[30m[42mString[0m[97m() string {[0m
-  14  [97m	[0m[1m[35mreturn[0m[97m [0m[32mn[0m[97m.[0m[32mv[0m[97m[0m
+  13  [97mfunc ([0m[30m[48;5;208mn[0m[97m named) [0m[30m[42mString[0m[97m() string {[0m
+  14  [97m	[0m[1m[35mreturn[0m[97m [0m[38;5;208mn[0m[97m.[0m[32mv[0m[97m[0m
   15  [97m}[0m
   16  [97m[0m
   17  [97mfunc [0m[30m[42minterfaceCasts[0m[97m([0m[30m[48;5;208mx[0m[97m interface{}) string {[0m
