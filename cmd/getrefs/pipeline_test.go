@@ -3,55 +3,97 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestRenderFilePrintsSections(t *testing.T) {
+func TestRenderFixtures(t *testing.T) {
 	t.Parallel()
-	dir := t.TempDir()
-	src := "package sample\n\nimport \"fmt\"\n\nvar count = 1\n\nfunc run(input string) {\n\tvalue := count\n\tfmt.Println(value)\n\tprintln(value, input)\n}\n"
-	path := filepath.Join(dir, "sample.go")
-	require.NoError(t, os.WriteFile(path, []byte(src), 0o644))
 
-	out, err := ProcessPipeline(path)
-	require.NoError(t, err)
+	root := fixtureRoot(t)
+	sourcesDir := filepath.Join(root, "sources")
+	outputsDir := filepath.Join(root, "outputs")
 
-	require.Contains(t, out, path)
-	require.Contains(t, out, "Source")
-	require.Contains(t, out, "\x1b[32mrun\x1b[0m")
-	require.Contains(t, out, "\x1b[38;5;208mcount\x1b[0m")
-	require.Contains(t, out, "\x1b[38;5;208minput\x1b[0m")
-	require.Contains(t, out, "\x1b[32mrun\x1b[0m")
-	require.Contains(t, out, "\x1b[97mvalue\x1b[0m")
-	require.Contains(t, out, "\x1b[30m\x1b[42mcount\x1b[0m")
-	require.Contains(t, out, "\x1b[30m\x1b[48;5;208minput\x1b[0m")
-	require.Contains(t, out, "\x1b[30m\x1b[47mvalue\x1b[0m")
-	require.Contains(t, out, "- \x1b[35mfmt\x1b[0m -> fmt")
-	require.Contains(t, out, "\x1b[90mpackage sample\x1b[0m")
-	require.True(t, regexp.MustCompile(`count\x1b\[0m \x1b\[90m.*sample.go:5:5`).MatchString(out))
-	require.True(t, regexp.MustCompile(`run\x1b\[0m \x1b\[90m.*sample.go:7:`).MatchString(out))
-	require.True(t, regexp.MustCompile(`input\x1b\[0m \x1b\[90m.*sample.go:7:10`).MatchString(out))
-	require.True(t, regexp.MustCompile(`value\x1b\[0m \x1b\[90m.*sample.go:8:2`).MatchString(out))
-	require.False(t, strings.Contains(out, "variable\x1b[0m"))
-	require.False(t, strings.Contains(out, "function\x1b[0m"))
-	require.False(t, strings.Contains(out, "println.go"))
+	cases := fixtureSources(t, sourcesDir)
+	require.True(t, len(cases) > 0, "no fixture source files found")
+
+	accept := os.Getenv("ACCEPT") == "1"
+	for _, sourcePath := range cases {
+		sourcePath := sourcePath
+		rel, err := filepath.Rel(sourcesDir, sourcePath)
+		require.NoError(t, err)
+
+		t.Run(rel, func(t *testing.T) {
+			escapeMode = filepath.Dir(rel) == "escapes"
+			defer func() { escapeMode = false }()
+
+			out, err := ProcessPipeline(sourcePath)
+			require.NoError(t, err)
+
+			normalized := normalizeOutput(out, sourcePath, rel)
+			expectedPath := filepath.Join(outputsDir, rel+".out")
+
+			if accept {
+				require.NoError(t, os.MkdirAll(filepath.Dir(expectedPath), 0o755))
+				require.NoError(t, os.WriteFile(expectedPath, []byte(normalized), 0o644))
+				return
+			}
+
+			expected, err := os.ReadFile(expectedPath)
+			require.NoError(t, err, "expected output not found; run with ACCEPT=1 to create it")
+			require.Equal(t, string(expected), normalized)
+		})
+	}
 }
 
-func TestIndirectCalls(t *testing.T) {
-	dir := t.TempDir()
-	src := "package p\ntype I interface{ M() }\nfunc test(i I) {\n\ti.M()\n}\n"
-	path := filepath.Join(dir, "sample_indirect.go")
-	require.NoError(t, os.WriteFile(path, []byte(src), 0o644))
+func fixtureRoot(t *testing.T) string {
+	t.Helper()
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	return filepath.Join(wd, "testdata")
+}
 
-	escapeMode = true
-	defer func() { escapeMode = false }()
-	out, err := ProcessPipeline(path)
+func fixtureSources(t *testing.T, root string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(root)
 	require.NoError(t, err)
 
-	// "M" should have a red span since it is a single-letter indirect call
-	require.Contains(t, out, "\x1b[97;41mM\x1b[0m")
+	out := make([]string, 0, len(entries))
+	var walk func(string)
+	walk = func(dir string) {
+		dirEntries, err := os.ReadDir(dir)
+		require.NoError(t, err)
+		for _, entry := range dirEntries {
+			path := filepath.Join(dir, entry.Name())
+			if entry.IsDir() {
+				walk(path)
+				continue
+			}
+			if filepath.Ext(path) == ".go" {
+				out = append(out, path)
+			}
+		}
+	}
+	walk(root)
+	sort.Strings(out)
+	return out
+}
+
+func normalizeOutput(output, sourcePath, rel string) string {
+	relPath := filepath.ToSlash(filepath.Join("testdata", "sources", rel))
+	absPath := filepath.ToSlash(sourcePath)
+	normalized := filepath.ToSlash(output)
+	normalized = replaceAll(normalized, absPath, relPath)
+	normalized = replaceAll(normalized, filepath.ToSlash(filepath.Clean(sourcePath)), relPath)
+	return normalized
+}
+
+func replaceAll(s, old, new string) string {
+	if old == "" {
+		return s
+	}
+	return strings.ReplaceAll(s, old, new)
 }
