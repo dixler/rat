@@ -14,7 +14,7 @@ import (
 	"sort"
 	"strings"
 
-	"notectl/internal/goplsclient"
+	"rat/internal/goplsclient"
 )
 
 type Result struct {

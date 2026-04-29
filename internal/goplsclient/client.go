@@ -69,7 +69,7 @@ func start() (*Client, error) {
 func (c *Client) initialize() error {
 	params := map[string]any{
 		"processId":    os.Getpid(),
-		"clientInfo":   map[string]any{"name": "notectl", "version": "dev"},
+		"clientInfo":   map[string]any{"name": "rat", "version": "dev"},
 		"capabilities": map[string]any{},
 	}
 	if _, err := c.request("initialize", params); err != nil {

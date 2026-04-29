@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"notectl/internal/file"
+	"rat/internal/file"
 )
 
 func TestNewBuildsFileTree(t *testing.T) {

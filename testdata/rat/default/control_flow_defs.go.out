@@ -1,0 +1,58 @@
+[1mtestdata/rat/default/control_flow_defs.go[0m
+[38;5;208mfile[0m [90mtestdata/rat/default/control_flow_defs.go:1:1[0m
+  [32mcontrolFlowDefs[0m [90mtestdata/rat/default/control_flow_defs.go:3:6[0m
+    [30mmode[0m [90mtestdata/rat/default/control_flow_defs.go:11:9[0m
+      [30mtestdata/rat/default/control_flow_defs.go:11:28[0m
+      [30mtestdata/rat/default/control_flow_defs.go:13:12[0m
+    [30mn[0m [90mtestdata/rat/default/control_flow_defs.go:18:7[0m
+      [30mtestdata/rat/default/control_flow_defs.go:19:12[0m
+    [38;5;208mvalues[0m [90mtestdata/rat/default/control_flow_defs.go:3:22[0m
+      [38;5;208mtestdata/rat/default/control_flow_defs.go:5:14[0m
+      [38;5;208mtestdata/rat/default/control_flow_defs.go:8:22[0m
+      [38;5;208mtestdata/rat/default/control_flow_defs.go:9:12[0m
+    [38;5;208mch[0m [90mtestdata/rat/default/control_flow_defs.go:3:36[0m
+      [38;5;208mtestdata/rat/default/control_flow_defs.go:18:14[0m
+    [30mtotal[0m [90mtestdata/rat/default/control_flow_defs.go:4:2[0m
+      [30mtestdata/rat/default/control_flow_defs.go:11:17[0m
+      [30mtestdata/rat/default/control_flow_defs.go:13:3[0m
+      [30mtestdata/rat/default/control_flow_defs.go:15:3[0m
+      [30mtestdata/rat/default/control_flow_defs.go:19:3[0m
+      [30mtestdata/rat/default/control_flow_defs.go:21:3[0m
+      [30mtestdata/rat/default/control_flow_defs.go:23:9[0m
+      [30mtestdata/rat/default/control_flow_defs.go:6:3[0m
+      [30mtestdata/rat/default/control_flow_defs.go:9:3[0m
+    [30mv[0m [90mtestdata/rat/default/control_flow_defs.go:5:5[0m
+      [30mtestdata/rat/default/control_flow_defs.go:5:23[0m
+      [30mtestdata/rat/default/control_flow_defs.go:6:12[0m
+    [30mi[0m [90mtestdata/rat/default/control_flow_defs.go:8:6[0m
+      [30mtestdata/rat/default/control_flow_defs.go:8:14[0m
+      [30mtestdata/rat/default/control_flow_defs.go:8:31[0m
+      [30mtestdata/rat/default/control_flow_defs.go:9:19[0m
+    [38;5;208mvalues[0m [90mtestdata/rat/default/control_flow_defs.go:3:22[0m
+    [38;5;208mch[0m [90mtestdata/rat/default/control_flow_defs.go:3:36[0m
+[1mSource[0m
+   1  [90mpackage sample[0m
+   2  [90m[0m
+   3  [90mfunc [0m[32mcontrolFlowDefs[0m[90m([0m[38;5;208mvalues[0m[90m []int, [0m[38;5;208mch[0m[90m <-chan int) int {[0m
+   4  [90m	[0m[97mtotal[0m[90m := 0[0m
+   5  [90m	if [0m[97mv[0m[90m := len([0m[30m[48;5;208mvalues[0m[90m); [0m[30m[47mv[0m[90m > 0 {[0m
+   6  [90m		[0m[30m[47mtotal[0m[90m += [0m[30m[47mv[0m[90m[0m
+   7  [90m	}[0m
+   8  [90m	for [0m[97mi[0m[90m := 0; [0m[30m[47mi[0m[90m < len([0m[30m[48;5;208mvalues[0m[90m); [0m[30m[47mi[0m[90m++ {[0m
+   9  [90m		[0m[30m[47mtotal[0m[90m += [0m[30m[48;5;208mvalues[0m[90m[[0m[30m[47mi[0m[90m][0m
+  10  [90m	}[0m
+  11  [90m	switch [0m[97mmode[0m[90m := [0m[30m[47mtotal[0m[90m % 3; [0m[30m[47mmode[0m[90m {[0m
+  12  [90m	case 0:[0m
+  13  [90m		[0m[30m[47mtotal[0m[90m += [0m[30m[47mmode[0m[90m[0m
+  14  [90m	default:[0m
+  15  [90m		[0m[30m[47mtotal[0m[90m += 1[0m
+  16  [90m	}[0m
+  17  [90m	select {[0m
+  18  [90m	case [0m[97mn[0m[90m := <-[0m[30m[48;5;208mch[0m[90m:[0m
+  19  [90m		[0m[30m[47mtotal[0m[90m += [0m[30m[47mn[0m[90m[0m
+  20  [90m	default:[0m
+  21  [90m		[0m[30m[47mtotal[0m[90m += 0[0m
+  22  [90m	}[0m
+  23  [90m	[0m[1m[35mreturn[0m[90m [0m[30m[47mtotal[0m[90m[0m
+  24  [90m}[0m
+  25  [90m[0m

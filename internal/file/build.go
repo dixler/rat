@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"notectl/internal/file/scan"
+	"rat/internal/file/scan"
 )
 
 func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaration, []Location, []IndirectCall, error) {

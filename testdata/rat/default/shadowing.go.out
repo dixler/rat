@@ -1,0 +1,29 @@
+[1mtestdata/rat/default/shadowing.go[0m
+[38;5;208mfile[0m [90mtestdata/rat/default/shadowing.go:1:1[0m
+  [32mn[0m [90mtestdata/rat/default/shadowing.go:3:5[0m
+  [32mshadowing[0m [90mtestdata/rat/default/shadowing.go:5:6[0m
+    [38;5;208mn[0m [90mtestdata/rat/default/shadowing.go:5:16[0m
+      [38;5;208mtestdata/rat/default/shadowing.go:6:11[0m
+    [30mvalue[0m [90mtestdata/rat/default/shadowing.go:6:2[0m
+      [30mtestdata/rat/default/shadowing.go:12:9[0m
+      [30mtestdata/rat/default/shadowing.go:8:8[0m
+    [30mn[0m [90mtestdata/rat/default/shadowing.go:8:3[0m
+      [30mtestdata/rat/default/shadowing.go:9:12[0m
+    [30mvalue[0m [90mtestdata/rat/default/shadowing.go:9:3[0m
+      [30mtestdata/rat/default/shadowing.go:10:7[0m
+    [38;5;208mn[0m [90mtestdata/rat/default/shadowing.go:5:16[0m
+[1mSource[0m
+   1  [90mpackage sample[0m
+   2  [90m[0m
+   3  [90mvar [0m[32mn[0m[90m = 1[0m
+   4  [90m[0m
+   5  [90mfunc [0m[32mshadowing[0m[90m([0m[38;5;208mn[0m[90m int) int {[0m
+   6  [90m	[0m[97mvalue[0m[90m := [0m[30m[48;5;208mn[0m[90m[0m
+   7  [90m	{[0m
+   8  [90m		[0m[97mn[0m[90m := [0m[30m[47mvalue[0m[90m + 1[0m
+   9  [90m		[0m[97mvalue[0m[90m := [0m[30m[47mn[0m[90m[0m
+  10  [90m		_ = [0m[30m[47mvalue[0m[90m[0m
+  11  [90m	}[0m
+  12  [90m	[0m[1m[35mreturn[0m[90m [0m[30m[47mvalue[0m[90m[0m
+  13  [90m}[0m
+  14  [90m[0m

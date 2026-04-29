@@ -1,5 +1,5 @@
 1. **Deduplicate `collectSpans` and `ParseFormats` sorting logic:**
-   - I'll create a single `sortSpans` function in `cmd/getrefs/format.go` to handle the span sorting logic that is currently duplicated.
+   - I'll create a single `sortSpans` function in `cmd/rat/format.go` to handle the span sorting logic that is currently duplicated.
    - I will replace the duplicate sorting loops in `collectSpans` and `ParseFormats` with calls to `sortSpans`.
 
 2. **Add `Yellow` style:**
@@ -14,7 +14,7 @@
    - Update `internal/file/file.go`'s `File` interface to include `IndirectCalls() []IndirectCall`. Add the implementation to the `file` struct.
 
 5. **Format indirect calls in `ParseFormats`:**
-   - Modify `ParseFormats` in `cmd/getrefs/format.go` to iterate over `f.IndirectCalls()`.
+   - Modify `ParseFormats` in `cmd/rat/format.go` to iterate over `f.IndirectCalls()`.
    - For each indirect call, generate individual `display.Span` items for each character of its `Text()`.
    - Use the colors R, O, Y, G, B, V mapped to R=Red, O=Orange, Y=Yellow, G=Green, B=Blue, V=Purple. Keep repeating them using modulo.
    - Insert these spans into the map by line number.

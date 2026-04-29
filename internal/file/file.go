@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"notectl/internal/file/scan"
+	"rat/internal/file/scan"
 )
 
 type Kind string
