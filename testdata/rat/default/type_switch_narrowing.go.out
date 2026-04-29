@@ -1,57 +1,25 @@
-[1mtestdata/rat/default/type_switch_narrowing.go[0m
-[38;5;208mfile[0m [90mtestdata/rat/default/type_switch_narrowing.go:1:1[0m
-  [32mNamer[0m [90mtestdata/rat/default/type_switch_narrowing.go:5:6[0m
-    [32mName[0m [90mtestdata/rat/default/type_switch_narrowing.go:6:2[0m
-  [32mperson[0m [90mtestdata/rat/default/type_switch_narrowing.go:9:6[0m
-  [32mName[0m [90mtestdata/rat/default/type_switch_narrowing.go:13:17[0m
-    [32mname[0m [90mtestdata/rat/default/type_switch_narrowing.go:10:2[0m
-      [32mtestdata/rat/default/type_switch_narrowing.go:13:42[0m
-    [38;5;208mp[0m [90mtestdata/rat/default/type_switch_narrowing.go:13:7[0m
-      [38;5;208mtestdata/rat/default/type_switch_narrowing.go:13:40[0m
-    [38;5;208mp[0m [90mtestdata/rat/default/type_switch_narrowing.go:13:7[0m
-  [32mnarrowByTypeSwitch[0m [90mtestdata/rat/default/type_switch_narrowing.go:15:6[0m
-    [38;5;208mv[0m [90mtestdata/rat/default/type_switch_narrowing.go:15:25[0m
-      [38;5;208mtestdata/rat/default/type_switch_narrowing.go:16:14[0m
-    [32mx[0m [90mtestdata/rat/default/type_switch_narrowing.go:16:9[0m
-      [32mtestdata/rat/default/type_switch_narrowing.go:16:9[0m
-      [32mtestdata/rat/default/type_switch_narrowing.go:18:10[0m
-      [32mtestdata/rat/default/type_switch_narrowing.go:20:10[0m
-    [35mfmt[0m [90mtestdata/rat/default/type_switch_narrowing.go:3:8[0m
-      [35mtestdata/rat/default/type_switch_narrowing.go:19:7[0m
-    [32mNamer[0m [90mtestdata/rat/default/type_switch_narrowing.go:5:6[0m
-      [32mtestdata/rat/default/type_switch_narrowing.go:17:7[0m
-    [32mName[0m [90mtestdata/rat/default/type_switch_narrowing.go:6:2[0m
-      [32mtestdata/rat/default/type_switch_narrowing.go:18:12[0m
-    [35mStringer[0m [90m/usr/lib/go/src/fmt/print.go:63:6[0m
-      [35mtestdata/rat/default/type_switch_narrowing.go:19:11[0m
-    [35mString[0m [90m/usr/lib/go/src/fmt/print.go:64:2[0m
-      [35mtestdata/rat/default/type_switch_narrowing.go:20:12[0m
-    [38;5;208mv[0m [90mtestdata/rat/default/type_switch_narrowing.go:15:25[0m
-[1mImports[0m
-- [35mfmt[0m -> fmt
-[1mSource[0m
-   1  [97mpackage sample[0m
-   2  [97m[0m
-   3  [97mimport "fmt"[0m
-   4  [97m[0m
-   5  [97mtype [0m[30m[42mNamer[0m[97m interface {[0m
-   6  [97m	[0m[30m[42mName[0m[97m() string[0m
-   7  [97m}[0m
-   8  [97m[0m
-   9  [97mtype [0m[30m[42mperson[0m[97m struct {[0m
-  10  [97m	[0m[30m[42mname[0m[97m string[0m
-  11  [97m}[0m
-  12  [97m[0m
-  13  [97mfunc ([0m[30m[48;5;208mp[0m[97m person) [0m[30m[42mName[0m[97m() string { [0m[1m[35mreturn[0m[97m [0m[38;5;208mp[0m[97m.[0m[32mname[0m[97m }[0m
-  14  [97m[0m
-  15  [97mfunc [0m[30m[42mnarrowByTypeSwitch[0m[97m([0m[30m[48;5;208mv[0m[97m interface{}) string {[0m
-  16  [97m	switch [0m[30m[48;5;120mx[0m[97m := [0m[38;5;208mv[0m[97m.(type) {[0m
-  17  [97m	case [0m[32mNamer[0m[97m:[0m
-  18  [97m		[0m[1m[35mreturn[0m[97m [0m[32mx[0m[97m.[0m[31mN[0m[97m[0m[31ma[0m[97m[0m[31mm[0m[97m[0m[31me[0m[97m()[0m
-  19  [97m	case [0m[35mfmt[0m[97m.[0m[35mStringer[0m[97m:[0m
-  20  [97m		[0m[1m[35mreturn[0m[97m [0m[32mx[0m[97m.[0m[31mS[0m[97m[0m[31mt[0m[97m[0m[31mr[0m[97m[0m[31mi[0m[97m[0m[31mn[0m[97m[0m[31mg[0m[97m()[0m
-  21  [97m	default:[0m
-  22  [97m		[0m[1m[35mreturn[0m[97m "unknown"[0m
-  23  [97m	}[0m
-  24  [97m}[0m
-  25  [97m[0m
+ [97m 1[0m  [97mpackage sample[0m
+ [97m 2[0m  [97m[0m
+ [97m 3[0m  [97mimport "fmt"[0m
+ [97m 4[0m  [97m[0m
+ [97m 5[0m  [97mtype [0m[30m[42mNamer[0m[97m interface {[0m
+ [97m 6[0m  [97m	[0m[30m[42mName[0m[97m() string[0m
+ [97m 7[0m  [97m}[0m
+ [97m 8[0m  [97m[0m
+ [97m 9[0m  [97mtype [0m[30m[42mperson[0m[97m struct {[0m
+ [97m10[0m  [97m	[0m[30m[42mname[0m[97m string[0m
+ [97m11[0m  [97m}[0m
+ [97m12[0m  [97m[0m
+ [97m13[0m  [97mfunc ([0m[30m[48;5;208mp[0m[97m person) [0m[30m[42mName[0m[97m() string { [0m[1m[35mreturn[0m[97m [0m[38;5;208mp[0m[97m.[0m[32mname[0m[97m }[0m
+ [97m14[0m  [97m[0m
+ [97m15[0m  [97mfunc [0m[30m[42mnarrowByTypeSwitch[0m[97m([0m[30m[48;5;208mv[0m[97m interface{}) string {[0m
+ [97m16[0m  [97m	switch [0m[30m[48;5;120mx[0m[97m := [0m[38;5;208mv[0m[97m.(type) {[0m
+ [97m17[0m  [97m	case [0m[32mNamer[0m[97m:[0m
+ [97m18[0m  [97m		[0m[1m[35mreturn[0m[97m [0m[32mx[0m[97m.[0m[31mN[0m[97m[0m[31ma[0m[97m[0m[31mm[0m[97m[0m[31me[0m[97m()[0m
+ [97m19[0m  [97m	case [0m[35mfmt[0m[97m.[0m[35mStringer[0m[97m:[0m
+ [97m20[0m  [97m		[0m[1m[35mreturn[0m[97m [0m[32mx[0m[97m.[0m[31mS[0m[97m[0m[31mt[0m[97m[0m[31mr[0m[97m[0m[31mi[0m[97m[0m[31mn[0m[97m[0m[31mg[0m[97m()[0m
+ [97m21[0m  [97m	default:[0m
+ [97m22[0m  [97m		[0m[1m[35mreturn[0m[97m "unknown"[0m
+ [97m23[0m  [97m	}[0m
+ [97m24[0m  [97m}[0m
+ [97m25[0m  [97m[0m

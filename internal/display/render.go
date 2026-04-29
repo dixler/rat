@@ -2,6 +2,7 @@ package display
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -43,10 +44,10 @@ func RenderSource(src string, spans map[int][]Span) string {
 		return ""
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "%sSource%s\n", Bold, Reset)
 	lines := strings.Split(src, "\n")
+	lineNumberWidth := len(strconv.Itoa(len(lines)))
 	for i, line := range lines {
-		fmt.Fprintf(&b, "%4d  %s\n", i+1, ColorLine(line, spans[i+1]))
+		fmt.Fprintf(&b, " %s%*d%s  %s\n", White, lineNumberWidth, i+1, Reset, ColorLine(line, spans[i+1]))
 	}
 	return b.String()
 }

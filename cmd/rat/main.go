@@ -27,16 +27,7 @@ func ProcessPipeline(filepath string, opts ProcessOptions) (string, error) {
 	}
 
 	spans := ParseFormats(f, provider)
-
-	r := &Renderer{}
-	r.printHeader(f)
-	r.printTree(projectRoot(f.Name()), f.Tree(), 0, provider)
-	r.printImports(f.PackageReferences())
-
-	srcRender := display.RenderSource(f.Source(), spans)
-	r.b.WriteString(srcRender)
-
-	return r.b.String(), nil
+	return display.RenderSource(f.Source(), spans), nil
 }
 
 func main() {
