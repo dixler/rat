@@ -74,15 +74,9 @@ type EscapeStyleProvider struct{}
 
 func (EscapeStyleProvider) Style(d file.Declaration) display.Style {
 	if d.Escapes() {
-		return display.Style{Fg: display.Red}
+		return display.Style{Fg: display.Red, Bg: "\x1b[41m", RefText: display.White}
 	}
-	if d.Kind() == file.KindParameter {
-		return display.Style{Fg: display.Orange}
-	}
-	if d.Kind() == file.KindFunction {
-		return display.Style{Fg: display.Green}
-	}
-	return display.Style{}
+	return declarationStyle(d)
 }
 
 func (EscapeStyleProvider) ReferenceStyle(root string, ref file.Reference) (display.Style, bool) {
@@ -128,13 +122,13 @@ func treeLabel(d file.Declaration) string {
 
 func declarationStyle(d file.Declaration) display.Style {
 	if isTopLevelDeclaration(d) {
-		return display.Style{Fg: display.Green}
+		return display.Style{Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black}
 	}
 	if isTopLevelStructField(d) {
-		return display.Style{Fg: display.Green}
+		return display.Style{Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black}
 	}
 	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
-		return display.Style{Fg: display.LightGreen}
+		return display.Style{Fg: display.LightGreen, Bg: display.LightGreenBg, RefText: display.Black}
 	}
 	return kindStyle(d.Kind())
 }
@@ -198,12 +192,12 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 	}
 
 	for i := 0; i < len(text); i++ {
-		charStyle := display.Style{Fg: "\x1b[97;41m"}
+		charStyle := display.Style{Fg: display.Red}
 		out[line] = append(out[line], display.Span{
 			Start: col - 1 + i,
 			End:   col - 1 + i + 1,
 			Style: charStyle,
-			IsDef: true, // we highlight it as def to apply fg color directly
+			IsDef: false,
 		})
 	}
 }
@@ -401,7 +395,7 @@ func ParseFormats(f file.File, provider StyleProvider) map[int][]display.Span {
 	}
 
 	for _, loc := range f.Returns() {
-		addSpan(out, sourceLines, loc, "return", display.Style{Fg: display.Bold + display.Purple}, true)
+		addSpan(out, sourceLines, loc, "return", display.Style{Fg: display.Bold + display.Purple}, false)
 	}
 
 	for line := range out {
@@ -446,7 +440,7 @@ func addStructFieldSpansFromAST(out map[int][]display.Span, sourceLines []string
 				continue
 			}
 			loc := &astLocation{file: pos.Filename, line: pos.Line, column: pos.Column}
-			addSpan(out, sourceLines, loc, name.Name, display.Style{Fg: display.Green}, true)
+			addSpan(out, sourceLines, loc, name.Name, display.Style{Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black}, true)
 		}
 		addStructFieldSpansFromExpr(out, sourceLines, fset, field.Type)
 	}

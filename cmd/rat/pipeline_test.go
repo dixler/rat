@@ -27,10 +27,9 @@ func TestRenderFixtures(t *testing.T) {
 
 		t.Run(rel, func(t *testing.T) {
 			t.Parallel()
-			escapeMode = filepath.Dir(rel) == "escapes"
-			defer func() { escapeMode = false }()
+			escapes := filepath.Dir(rel) == "escapes"
 
-			out, err := ProcessPipeline(sourcePath)
+			out, err := ProcessPipeline(sourcePath, ProcessOptions{EscapeMode: escapes})
 			require.NoError(t, err)
 
 			normalized := normalizeOutput(out, sourcePath, rel)

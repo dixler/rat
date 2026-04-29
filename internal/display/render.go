@@ -35,6 +35,7 @@ type Span struct {
 	End   int
 	Style Style
 	IsDef bool
+	UseFg bool
 }
 
 func RenderSource(src string, spans map[int][]Span) string {
@@ -69,7 +70,7 @@ func ColorLine(line string, spans []Span) string {
 		b.WriteString(White)
 		b.WriteString(line[idx:s.Start])
 		b.WriteString(Reset)
-		if s.IsDef {
+		if s.UseFg || !s.IsDef {
 			b.WriteString(s.Style.Fg)
 			b.WriteString(line[s.Start:s.End])
 			b.WriteString(Reset)

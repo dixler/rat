@@ -9,10 +9,10 @@
 [1mSource[0m
    1  [97mpackage sample[0m
    2  [97m[0m
-   3  [97mvar [0m[32mglobalCount[0m[97m = 1[0m
+   3  [97mvar [0m[30m[42mglobalCount[0m[97m = 1[0m
    4  [97m[0m
-   5  [97mfunc [0m[32mreassignGlobal[0m[97m() int {[0m
-   6  [97m	[0m[30m[42mglobalCount[0m[97m = [0m[30m[42mglobalCount[0m[97m + 1[0m
-   7  [97m	[0m[1m[35mreturn[0m[97m [0m[30m[42mglobalCount[0m[97m[0m
+   5  [97mfunc [0m[30m[42mreassignGlobal[0m[97m() int {[0m
+   6  [97m	[0m[32mglobalCount[0m[97m = [0m[32mglobalCount[0m[97m + 1[0m
+   7  [97m	[0m[1m[35mreturn[0m[97m [0m[32mglobalCount[0m[97m[0m
    8  [97m}[0m
    9  [97m[0m

@@ -9,20 +9,18 @@ import (
 	"rat/internal/file"
 )
 
-var escapeMode bool
-
-func init() {
-	flag.BoolVar(&escapeMode, "escapes", false, "Render escape analysis information")
+type ProcessOptions struct {
+	EscapeMode bool
 }
 
-func ProcessPipeline(filepath string) (string, error) {
+func ProcessPipeline(filepath string, opts ProcessOptions) (string, error) {
 	f, err := file.Analyze(filepath)
 	if err != nil {
 		return "", err
 	}
 
 	var provider StyleProvider
-	if escapeMode {
+	if opts.EscapeMode {
 		provider = EscapeStyleProvider{}
 	} else {
 		provider = DefaultStyleProvider{}
@@ -42,13 +40,16 @@ func ProcessPipeline(filepath string) (string, error) {
 }
 
 func main() {
+	var escapeMode bool
+	flag.BoolVar(&escapeMode, "escapes", false, "Render escape analysis information")
 	flag.Parse()
 
 	if len(flag.Args()) != 1 {
 		die("usage: rat [-escapes] <file.go>")
 	}
 
-	out, err := ProcessPipeline(flag.Args()[0])
+	path := flag.Args()[0]
+	out, err := ProcessPipeline(path, ProcessOptions{EscapeMode: escapeMode})
 	if err != nil {
 		die(err.Error())
 	}
