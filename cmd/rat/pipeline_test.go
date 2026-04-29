@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,11 +22,11 @@ func TestRenderFixtures(t *testing.T) {
 
 	accept := os.Getenv("ACCEPT") == "1"
 	for _, sourcePath := range cases {
-		sourcePath := sourcePath
 		rel, err := filepath.Rel(fixturesDir, sourcePath)
 		require.NoError(t, err)
 
 		t.Run(rel, func(t *testing.T) {
+			t.Parallel()
 			escapeMode = filepath.Dir(rel) == "escapes"
 			defer func() { escapeMode = false }()
 
@@ -42,8 +43,8 @@ func TestRenderFixtures(t *testing.T) {
 			}
 
 			expected, err := os.ReadFile(expectedPath)
-			require.NoError(t, err, "expected output not found; run with ACCEPT=1 to create it")
-			require.Equal(t, string(expected), normalized)
+			assert.NoError(t, err, "expected output not found; run with ACCEPT=1 to create it")
+			assert.Equal(t, string(expected), normalized)
 		})
 	}
 }
