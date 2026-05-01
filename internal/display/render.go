@@ -9,6 +9,7 @@ import (
 const (
 	Reset        = "\x1b[0m"
 	Bold         = "\x1b[1m"
+	Invert       = "\x1b[7m"
 	Blink        = "\x1b[5m"
 	Underline    = "\x1b[4m"
 	Gray         = "\x1b[90m"
@@ -23,6 +24,11 @@ const (
 	Black        = "\x1b[30m"
 	Purple       = "\x1b[35m"
 	White        = "\x1b[97m"
+	Lavender     = "\x1b[38;5;183m"
+	Amber        = "\x1b[38;5;214m"
+	Lime         = "\x1b[38;5;118m"
+	CoralRed     = "\x1b[38;5;203m"
+	HotMagenta   = "\x1b[38;5;198m"
 )
 
 type Style struct {
@@ -39,7 +45,7 @@ type Span struct {
 	UseFg bool
 }
 
-func RenderSource(src string, spans map[int][]Span) string {
+func RenderSource(src string, spans map[int][]Span, lineNumberStyles map[int]Style) string {
 	if src == "" {
 		return ""
 	}
@@ -47,9 +53,16 @@ func RenderSource(src string, spans map[int][]Span) string {
 	lines := strings.Split(src, "\n")
 	lineNumberWidth := len(strconv.Itoa(len(lines)))
 	for i, line := range lines {
-		fmt.Fprintf(&b, " %s%*d%s  %s\n", White, lineNumberWidth, i+1, Reset, ColorLine(line, spans[i+1]))
+		fmt.Fprintf(&b, " %s%*d%s  %s\n", lineNumberPrefix(lineNumberStyles[i+1]), lineNumberWidth, i+1, Reset, ColorLine(line, spans[i+1]))
 	}
 	return b.String()
+}
+
+func lineNumberPrefix(sty Style) string {
+	if sty.Fg != "" {
+		return sty.Fg + Invert
+	}
+	return White
 }
 
 func ColorLine(line string, spans []Span) string {
@@ -76,8 +89,8 @@ func ColorLine(line string, spans []Span) string {
 			b.WriteString(line[s.Start:s.End])
 			b.WriteString(Reset)
 		} else {
-			b.WriteString(s.Style.RefText)
-			b.WriteString(s.Style.Bg)
+			b.WriteString(s.Style.Fg)
+			b.WriteString(Invert)
 			b.WriteString(line[s.Start:s.End])
 			b.WriteString(Reset)
 		}

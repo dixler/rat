@@ -29,26 +29,51 @@ const (
 )
 
 var kindStyles = map[file.Kind]display.Style{
-	file.KindType:      {Fg: display.Cyan, Bg: "\x1b[46m", RefText: display.Black},
-	file.KindVariable:  {Fg: display.Orange, Bg: "\x1b[48;5;208m", RefText: display.Black},
-	file.KindParameter: {Fg: display.Orange, Bg: "\x1b[48;5;208m", RefText: display.Black},
-	file.KindFunction:  {Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black},
-	file.KindPackage:   {Fg: display.Purple, Bg: "\x1b[45m", RefText: display.White},
-	file.KindFile:      {Fg: display.Orange, Bg: "\x1b[48;5;208m", RefText: display.Black},
+	file.KindType:      {Fg: display.Cyan},
+	file.KindVariable:  {Fg: display.Orange},
+	file.KindParameter: {Fg: display.Orange},
+	file.KindFunction:  {Fg: display.Green},
+	file.KindPackage:   {Fg: display.Purple},
+	file.KindFile:      {Fg: display.Orange},
 }
 
 var relationStyles = map[relation]display.Style{
-	relSameFunction: {Fg: display.LightGreen, Bg: display.LightGreenBg, RefText: display.Black},
-	relSameFile:     {Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black},
-	relSamePackage:  {Fg: display.Cyan, Bg: "\x1b[46m", RefText: display.Black},
-	relSameProject:  {Fg: display.Blue, Bg: "\x1b[44m", RefText: display.White},
-	relExternal:     {Fg: display.Purple, Bg: "\x1b[45m", RefText: display.White},
+	relSameFunction: {Fg: display.LightGreen},
+	relSameFile:     {Fg: display.Green},
+	relSamePackage:  {Fg: display.Cyan},
+	relSameProject:  {Fg: display.Blue},
+	relExternal:     {Fg: display.Purple},
 }
 
 type refGroup struct {
 	decl  file.Declaration
 	Style display.Style
 	refs  []file.Reference
+}
+
+type ParseResult struct {
+	SourceSpans map[int][]display.Span
+	LineSpans   map[int]display.Style
+}
+
+type controlFlowMark struct {
+	loc       file.Location
+	text      string
+	textStyle display.Style
+	lineStyle display.Style
+}
+
+var controlFlowStyles = map[string]display.Style{
+	"return-text":   {Fg: display.Bold + display.Lavender},
+	"return-line":   {Fg: display.Lavender},
+	"break-text":    {Fg: display.Bold + display.Amber},
+	"break-line":    {Fg: display.Amber},
+	"continue-text": {Fg: display.Bold + display.Lime},
+	"continue-line": {Fg: display.Lime},
+	"panic-text":    {Fg: display.Bold + display.CoralRed},
+	"panic-line":    {Fg: display.CoralRed},
+	"goto-text":     {Fg: display.Bold + display.HotMagenta},
+	"goto-line":     {Fg: display.HotMagenta},
 }
 
 func (r *Renderer) printHeader(f file.File) {
@@ -74,14 +99,14 @@ type EscapeStyleProvider struct{}
 
 func (EscapeStyleProvider) Style(d file.Declaration) display.Style {
 	if d.Escapes() {
-		return display.Style{Fg: display.Red, Bg: "\x1b[41m", RefText: display.White}
+		return display.Style{Fg: display.Red}
 	}
 	return declarationStyle(d)
 }
 
 func (EscapeStyleProvider) ReferenceStyle(root string, ref file.Reference) (display.Style, bool) {
 	if ref.Escapes() || (ref.Declaration() != nil && ref.Declaration().Escapes()) {
-		return display.Style{Fg: display.White, Bg: "\x1b[41m", RefText: display.White}, true
+		return display.Style{Fg: display.Red}, true
 	}
 	if ref.Kind() == file.KindParameter {
 		return kindStyles[file.KindParameter], true
@@ -122,13 +147,13 @@ func treeLabel(d file.Declaration) string {
 
 func declarationStyle(d file.Declaration) display.Style {
 	if isTopLevelDeclaration(d) {
-		return display.Style{Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black}
+		return display.Style{Fg: display.Green}
 	}
 	if isTopLevelStructField(d) {
-		return display.Style{Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black}
+		return display.Style{Fg: display.Green}
 	}
 	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
-		return display.Style{Fg: display.LightGreen, Bg: display.LightGreenBg, RefText: display.Black}
+		return display.Style{Fg: display.LightGreen}
 	}
 	return kindStyle(d.Kind())
 }
@@ -380,28 +405,79 @@ func exists(path string) bool {
 	return err == nil
 }
 
-func ParseFormats(f file.File, provider StyleProvider) map[int][]display.Span {
-	out := map[int][]display.Span{}
+func ParseFormats(f file.File, provider StyleProvider) ParseResult {
+	result := ParseResult{
+		SourceSpans: map[int][]display.Span{},
+		LineSpans:   map[int]display.Style{},
+	}
 	sourceLines := strings.Split(f.Source(), "\n")
-	addTopLevelStructFieldDeclarationSpans(out, sourceLines, f)
+	addTopLevelStructFieldDeclarationSpans(result.SourceSpans, sourceLines, f)
 
 	for _, call := range f.IndirectCalls() {
-		collectIndirectCallSpans(out, call)
+		collectIndirectCallSpans(result.SourceSpans, call)
 	}
 
 	root := projectRoot(f.Name())
 	for _, decl := range f.Declarations() {
-		collectDeclarationSpans(root, out, sourceLines, decl, provider)
+		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl, provider)
 	}
 
-	for _, loc := range f.Returns() {
-		addSpan(out, sourceLines, loc, "return", display.Style{Fg: display.Bold + display.Purple}, false)
+	for _, mark := range collectControlFlowMarks(f) {
+		if mark.loc == nil || mark.loc.Line() < 1 {
+			continue
+		}
+		result.LineSpans[mark.loc.Line()] = mark.lineStyle
+		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, mark.textStyle, false)
 	}
 
-	for line := range out {
-		sortSpans(out[line])
+	for line := range result.SourceSpans {
+		sortSpans(result.SourceSpans[line])
 	}
-	return out
+	return result
+}
+
+func collectControlFlowMarks(f file.File) []controlFlowMark {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, f.Name(), f.Source(), parser.SkipObjectResolution)
+	if err != nil || node == nil {
+		return nil
+	}
+
+	marks := make([]controlFlowMark, 0)
+	ast.Inspect(node, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.ReturnStmt:
+			marks = append(marks, newControlFlowMark(fset, x.Return, "return", controlFlowStyles["return-text"], controlFlowStyles["return-line"]))
+		case *ast.BranchStmt:
+			switch x.Tok {
+			case token.BREAK:
+				marks = append(marks, newControlFlowMark(fset, x.TokPos, "break", controlFlowStyles["break-text"], controlFlowStyles["break-line"]))
+			case token.CONTINUE:
+				marks = append(marks, newControlFlowMark(fset, x.TokPos, "continue", controlFlowStyles["continue-text"], controlFlowStyles["continue-line"]))
+			case token.GOTO:
+				marks = append(marks, newControlFlowMark(fset, x.TokPos, "goto", controlFlowStyles["goto-text"], controlFlowStyles["goto-line"]))
+			}
+		case *ast.CallExpr:
+			id, ok := x.Fun.(*ast.Ident)
+			if !ok || id.Name != "panic" {
+				return true
+			}
+			marks = append(marks, newControlFlowMark(fset, id.NamePos, "panic", controlFlowStyles["panic-text"], controlFlowStyles["panic-line"]))
+		}
+		return true
+	})
+
+	return marks
+}
+
+func newControlFlowMark(fset *token.FileSet, pos token.Pos, text string, textStyle, lineStyle display.Style) controlFlowMark {
+	p := fset.Position(pos)
+	return controlFlowMark{
+		loc:       &astLocation{file: p.Filename, line: p.Line, column: p.Column},
+		text:      text,
+		textStyle: textStyle,
+		lineStyle: lineStyle,
+	}
 }
 
 func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
@@ -440,7 +516,7 @@ func addStructFieldSpansFromAST(out map[int][]display.Span, sourceLines []string
 				continue
 			}
 			loc := &astLocation{file: pos.Filename, line: pos.Line, column: pos.Column}
-			addSpan(out, sourceLines, loc, name.Name, display.Style{Fg: display.Green, Bg: "\x1b[42m", RefText: display.Black}, true)
+			addSpan(out, sourceLines, loc, name.Name, display.Style{Fg: display.Green}, true)
 		}
 		addStructFieldSpansFromExpr(out, sourceLines, fset, field.Type)
 	}

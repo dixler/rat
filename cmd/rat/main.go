@@ -26,8 +26,8 @@ func ProcessPipeline(filepath string, opts ProcessOptions) (string, error) {
 		provider = DefaultStyleProvider{}
 	}
 
-	spans := ParseFormats(f, provider)
-	return display.RenderSource(f.Source(), spans), nil
+	parsed := ParseFormats(f, provider)
+	return display.RenderSource(f.Source(), parsed.SourceSpans, parsed.LineSpans), nil
 }
 
 func main() {
