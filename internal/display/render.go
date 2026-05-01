@@ -60,7 +60,7 @@ func RenderSource(src string, spans map[int][]Span, lineNumberStyles map[int]Sty
 
 func lineNumberPrefix(sty Style) string {
 	if sty.Fg != "" {
-		return sty.Fg + Invert
+		return sty.Fg
 	}
 	return White
 }
