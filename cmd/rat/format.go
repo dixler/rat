@@ -29,20 +29,20 @@ const (
 )
 
 var kindStyles = map[file.Kind]display.Style{
-	file.KindType:      {Fg: display.Cyan},
-	file.KindVariable:  {Fg: display.Orange},
-	file.KindParameter: {Fg: display.Orange},
-	file.KindFunction:  {Fg: display.Green},
-	file.KindPackage:   {Fg: display.Purple},
-	file.KindFile:      {Fg: display.Orange},
+	file.KindType:      display.Cyan,
+	file.KindVariable:  display.Orange,
+	file.KindParameter: display.Orange,
+	file.KindFunction:  display.Green,
+	file.KindPackage:   display.Purple,
+	file.KindFile:      display.Orange,
 }
 
 var relationStyles = map[relation]display.Style{
-	relSameFunction: {Fg: display.LightGreen},
-	relSameFile:     {Fg: display.Green},
-	relSamePackage:  {Fg: display.Cyan},
-	relSameProject:  {Fg: display.Blue},
-	relExternal:     {Fg: display.Purple},
+	relSameFunction: display.LightGreen,
+	relSameFile:     display.Green,
+	relSamePackage:  display.Cyan,
+	relSameProject:  display.Blue,
+	relExternal:     display.Purple,
 }
 
 type refGroup struct {
@@ -64,20 +64,21 @@ type controlFlowMark struct {
 }
 
 var controlFlowStyles = map[string]display.Style{
-	"return-text":   {Fg: display.Bold + display.Lavender},
-	"return-line":   {Fg: display.Lavender},
-	"break-text":    {Fg: display.Bold + display.Amber},
-	"break-line":    {Fg: display.Amber},
-	"continue-text": {Fg: display.Bold + display.Lime},
-	"continue-line": {Fg: display.Lime},
-	"panic-text":    {Fg: display.Bold + display.CoralRed},
-	"panic-line":    {Fg: display.CoralRed},
-	"goto-text":     {Fg: display.Bold + display.HotMagenta},
-	"goto-line":     {Fg: display.HotMagenta},
+	"return-text":   display.Bold + display.Lavender,
+	"return-line":   display.Lavender,
+	"break-text":    display.Bold + display.Amber,
+	"break-line":    display.Amber,
+	"continue-text": display.Bold + display.Lime,
+	"continue-line": display.Lime,
+	"panic-text":    display.Bold + display.CoralRed,
+	"panic-line":    display.CoralRed,
+	"goto-text":     display.Bold + display.HotMagenta,
+	"goto-line":     display.HotMagenta,
 }
 
 func (r *Renderer) printHeader(f file.File) {
-	fmt.Fprintf(&r.b, "%s%s%s\n", display.Bold, f.Name(), display.Reset)
+	headerStyle := display.Bold
+	fmt.Fprintf(&r.b, "%s\n", headerStyle.Format(f.Name()))
 }
 
 type StyleProvider interface {
@@ -99,32 +100,34 @@ type EscapeStyleProvider struct{}
 
 func (EscapeStyleProvider) Style(d file.Declaration) display.Style {
 	if d.Escapes() {
-		return display.Style{Fg: display.Red}
+		return display.Red
 	}
 	return declarationStyle(d)
 }
 
 func (EscapeStyleProvider) ReferenceStyle(root string, ref file.Reference) (display.Style, bool) {
 	if ref.Escapes() || (ref.Declaration() != nil && ref.Declaration().Escapes()) {
-		return display.Style{Fg: display.Red}, true
+		return display.Red, true
 	}
 	if ref.Kind() == file.KindParameter {
 		return kindStyles[file.KindParameter], true
 	}
-	return display.Style{}, false
+	return "", false
 }
 
 func (r *Renderer) printTree(root string, d file.Declaration, depth int, provider StyleProvider) {
 	indent := strings.Repeat("  ", depth)
-	fmt.Fprintf(&r.b, "%s%s%s%s %s%s:%d:%d%s\n", indent, provider.Style(d).Fg, treeLabel(d), display.Reset, display.Gray, d.Location().File(), d.Location().Line(), d.Location().Column(), display.Reset)
+	declStyle := provider.Style(d)
+	locStyle := display.Gray
+	fmt.Fprintf(&r.b, "%s%s %s\n", indent, declStyle.Format(treeLabel(d)), locStyle.Format(fmt.Sprintf("%s:%d:%d", d.Location().File(), d.Location().Line(), d.Location().Column())))
 	for _, group := range groupReferences(root, d, provider) {
-		fmt.Fprintf(&r.b, "%s  %s%s%s %s%s:%d:%d%s\n", indent, group.Style.Fg, group.decl.Name(), display.Reset, display.Gray, group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column(), display.Reset)
+		fmt.Fprintf(&r.b, "%s  %s %s\n", indent, group.Style.Format(group.decl.Name()), locStyle.Format(fmt.Sprintf("%s:%d:%d", group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column())))
 		for _, ref := range group.refs {
 			sty, ok := provider.ReferenceStyle(root, ref)
 			if !ok {
 				continue
 			}
-			fmt.Fprintf(&r.b, "%s    %s%s:%d:%d%s\n", indent, sty.Fg, ref.Location().File(), ref.Location().Line(), ref.Location().Column(), display.Reset)
+			fmt.Fprintf(&r.b, "%s    %s\n", indent, sty.Format(fmt.Sprintf("%s:%d:%d", ref.Location().File(), ref.Location().Line(), ref.Location().Column())))
 		}
 	}
 	for _, child := range d.Declarations() {
@@ -147,13 +150,13 @@ func treeLabel(d file.Declaration) string {
 
 func declarationStyle(d file.Declaration) display.Style {
 	if isTopLevelDeclaration(d) {
-		return display.Style{Fg: display.Green}
+		return display.Green
 	}
 	if isTopLevelStructField(d) {
-		return display.Style{Fg: display.Green}
+		return display.Green
 	}
 	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
-		return display.Style{Fg: display.LightGreen}
+		return display.LightGreen
 	}
 	return kindStyle(d.Kind())
 }
@@ -185,9 +188,11 @@ func (r *Renderer) printImports(refs []file.PackageReference) {
 	if len(refs) == 0 {
 		return
 	}
-	fmt.Fprintf(&r.b, "%sImports%s\n", display.Bold, display.Reset)
+	headerStyle := display.Bold
+	fmt.Fprintf(&r.b, "%s\n", headerStyle.Format("Imports"))
+	importStyle := display.Purple
 	for _, ref := range refs {
-		fmt.Fprintf(&r.b, "- %s%s%s -> %s\n", display.Purple, ref.Text(), display.Reset, ref.Package().Name())
+		fmt.Fprintf(&r.b, "- %s -> %s\n", importStyle.Format(ref.Text()), ref.Package().Name())
 	}
 }
 
@@ -217,7 +222,7 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 	}
 
 	for i := 0; i < len(text); i++ {
-		charStyle := display.Style{Fg: display.Red}
+		charStyle := display.Red
 		out[line] = append(out[line], display.Span{
 			Start: col - 1 + i,
 			End:   col - 1 + i + 1,
@@ -308,11 +313,11 @@ func relationshipStyle(root string, parent, target file.Declaration, kind file.K
 		return kindStyle(kind), true
 	}
 	if target == nil || target.Location() == nil {
-		return display.Style{}, false
+		return "", false
 	}
 	path := filepath.Clean(target.Location().File())
 	if path == "" || strings.Contains(path, "/src/builtin") {
-		return display.Style{}, false
+		return "", false
 	}
 	if sameFunction(parent, target) {
 		return relationStyles[relSameFunction], true
@@ -516,7 +521,7 @@ func addStructFieldSpansFromAST(out map[int][]display.Span, sourceLines []string
 				continue
 			}
 			loc := &astLocation{file: pos.Filename, line: pos.Line, column: pos.Column}
-			addSpan(out, sourceLines, loc, name.Name, display.Style{Fg: display.Green}, true)
+			addSpan(out, sourceLines, loc, name.Name, display.Green, true)
 		}
 		addStructFieldSpansFromExpr(out, sourceLines, fset, field.Type)
 	}
