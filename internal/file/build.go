@@ -1,32 +1,32 @@
 package file
 
 import (
-	"fmt"
 	"path/filepath"
 
+	"rat/internal/file/controlflow"
+	"rat/internal/file/reftree"
 	"rat/internal/file/scan"
 )
 
 func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaration, []Location, []IndirectCall, error) {
-	root := &declaration{name: filepath.Base(raw.File), kind: KindFile, location: newLocation(raw.File, 1, 1)}
-	declsByID := map[string]*declaration{"file": root}
-	for _, d := range raw.Declarations {
-		decl, err := buildDeclaration(d, root, declsByID)
-		if err != nil {
-			return nil, nil, nil, nil, nil, err
-		}
-		root.declarations = append(root.declarations, decl)
+	tree, err := reftree.Build(raw)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
 	}
+
+	declMap := map[*reftree.Declaration]*declaration{}
+	root := toDeclaration(tree.Root, nil, declMap)
+	decls := make([]Declaration, 0, len(root.declarations))
+	decls = append(decls, root.declarations...)
+	attachReferencesFromRefTree(declMap)
+
 	pkgDecls := map[string]*packageDeclaration{}
 	for _, p := range raw.Packages {
 		pkgDecls[p.ID] = buildPackageDeclaration(p)
 	}
-	pkgRefs := make([]PackageReference, 0, len(raw.PackageReferences))
-	for _, p := range raw.PackageReferences {
-		parent, ok := declsByID[p.ParentID]
-		if !ok {
-			return nil, nil, nil, nil, nil, fmt.Errorf("missing package parent %q", p.ParentID)
-		}
+	pkgRefs := make([]PackageReference, 0, len(tree.PackageRefs))
+	for _, p := range tree.PackageRefs {
+		parent := declMap[p.Parent]
 		pkgRef := &packageReference{reference: &reference{
 			parent:   parent,
 			location: newLocation(p.File, p.Line, p.Column),
@@ -35,8 +35,6 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 		}, pkg: pkgDecls[p.PackageID]}
 		pkgRefs = append(pkgRefs, pkgRef)
 	}
-	attachReferences(raw.Declarations, declsByID)
-	decls := append([]Declaration(nil), root.declarations...)
 
 	var returns []Location
 	for _, r := range raw.Returns {
@@ -54,66 +52,58 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 	return root, pkgRefs, decls, returns, indirectCalls, nil
 }
 
-func buildDeclaration(raw scan.Declaration, parent Declaration, declsByID map[string]*declaration) (*declaration, error) {
+func toDeclaration(src *reftree.Declaration, parent Declaration, declMap map[*reftree.Declaration]*declaration) *declaration {
+	if src == nil {
+		return nil
+	}
 	d := &declaration{
-		name:        raw.Name,
-		kind:        mapKind(raw.Kind),
-		location:    newLocation(raw.File, raw.Line, raw.Column),
+		name:        src.Name,
+		kind:        mapKind(src.Kind),
+		location:    newLocation(src.File, src.Line, src.Column),
 		parent:      parent,
-		escapes:     raw.Escapes,
-		controlFlow: buildControlFlowBlocks(raw.ControlFlow),
+		escapes:     src.Escapes,
+		controlFlow: buildControlFlowBlocks(controlflow.FromScan(src.ControlFlow)),
 	}
-	declsByID[raw.ID] = d
-	for _, child := range raw.Declarations {
-		childDecl, err := buildDeclaration(child, d, declsByID)
-		if err != nil {
-			return nil, err
-		}
-		d.declarations = append(d.declarations, childDecl)
+	declMap[src] = d
+	for _, child := range src.Declarations {
+		d.declarations = append(d.declarations, toDeclaration(child, d, declMap))
 	}
-	return d, nil
+	return d
 }
 
-func attachReferences(rawDecls []scan.Declaration, declsByID map[string]*declaration) {
-	for _, raw := range rawDecls {
-		attachDeclarationReferences(raw, declsByID)
-	}
-}
-
-func attachDeclarationReferences(raw scan.Declaration, declsByID map[string]*declaration) {
-	decl := declsByID[raw.ID]
-	for _, rr := range raw.References {
-		ref := &reference{
-			parent:   decl,
-			location: newLocation(rr.File, rr.Line, rr.Column),
-			text:     rr.Text,
-			kind:     mapKind(rr.Kind),
-			escapes:  rr.Escapes,
+func attachReferencesFromRefTree(declMap map[*reftree.Declaration]*declaration) {
+	for src, dst := range declMap {
+		for _, rr := range src.References {
+			ref := &reference{
+				parent:   dst,
+				location: newLocation(rr.File, rr.Line, rr.Column),
+				text:     rr.Text,
+				kind:     mapKind(rr.Kind),
+				escapes:  rr.Escapes,
+			}
+			if rr.Declaration != nil {
+				ref.declaration = ensureMappedDeclaration(rr.Declaration, declMap)
+			}
+			dst.references = append(dst.references, ref)
 		}
-		if rr.DeclarationID != "" {
-			ref.declaration = declsByID[rr.DeclarationID]
-		} else if rr.DeclarationFile != "" && rr.DeclarationLine > 0 && rr.DeclarationColumn > 0 {
-			ref.declaration = externalDeclaration(rr, declsByID)
-		}
-		decl.references = append(decl.references, ref)
-	}
-	for _, child := range raw.Declarations {
-		attachDeclarationReferences(child, declsByID)
 	}
 }
 
-func externalDeclaration(raw scan.Reference, declsByID map[string]*declaration) *declaration {
-	key := fmt.Sprintf("external:%s:%d:%d:%s", raw.DeclarationFile, raw.DeclarationLine, raw.DeclarationColumn, raw.Kind)
-	if decl := declsByID[key]; decl != nil {
-		return decl
+func ensureMappedDeclaration(src *reftree.Declaration, declMap map[*reftree.Declaration]*declaration) Declaration {
+	if src == nil {
+		return nil
 	}
-	decl := &declaration{
-		name:     raw.Text,
-		kind:     mapKind(raw.Kind),
-		location: newLocation(raw.DeclarationFile, raw.DeclarationLine, raw.DeclarationColumn),
+	if mapped, ok := declMap[src]; ok && mapped != nil {
+		return mapped
 	}
-	declsByID[key] = decl
-	return decl
+	mapped := &declaration{
+		name:     src.Name,
+		kind:     mapKind(src.Kind),
+		location: newLocation(src.File, src.Line, src.Column),
+		escapes:  src.Escapes,
+	}
+	declMap[src] = mapped
+	return mapped
 }
 
 func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
@@ -140,6 +130,8 @@ func mapKind(kind string) Kind {
 		return KindFunction
 	case "package":
 		return KindPackage
+	case "file":
+		return KindFile
 	default:
 		return KindVariable
 	}
@@ -149,7 +141,7 @@ func newLocation(file string, line, column int) location {
 	return location{file: file, line: line, column: column}
 }
 
-func buildControlFlowBlocks(raw []scan.ControlFlowBlock) []ControlFlowBlock {
+func buildControlFlowBlocks(raw []controlflow.Block) []ControlFlowBlock {
 	out := make([]ControlFlowBlock, 0, len(raw))
 	for _, block := range raw {
 		out = append(out, buildControlFlowBlock(block))
@@ -157,7 +149,7 @@ func buildControlFlowBlocks(raw []scan.ControlFlowBlock) []ControlFlowBlock {
 	return out
 }
 
-func buildControlFlowBlock(raw scan.ControlFlowBlock) ControlFlowBlock {
+func buildControlFlowBlock(raw controlflow.Block) ControlFlowBlock {
 	block := &controlFlowBlock{
 		kind:       raw.Kind,
 		location:   newLocation(raw.File, raw.Line, raw.Column),
