@@ -9,10 +9,7 @@ import (
 	"rat/internal/file"
 )
 
-type ProcessOptions struct {
-}
-
-func ProcessPipeline(filepath string, opts ProcessOptions) (string, error) {
+func ProcessPipeline(filepath string) (string, error) {
 	f, err := file.Analyze(filepath)
 	if err != nil {
 		return "", err
@@ -30,7 +27,7 @@ func main() {
 	}
 
 	path := flag.Args()[0]
-	out, err := ProcessPipeline(path, ProcessOptions{})
+	out, err := ProcessPipeline(path)
 	if err != nil {
 		die(err.Error())
 	}
