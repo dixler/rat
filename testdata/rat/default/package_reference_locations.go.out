@@ -6,17 +6,17 @@
  [97m 6[0m  [97m	"rat/internal/[0m[34mdisplay[0m[97m"[0m
  [97m 7[0m  [97m)[0m
  [97m 8[0m  [97m[0m
- [97m 9[0m  [97mtype [0m[32m[7mgreeter[0m[97m struct{}[0m
+ [97m 9[0m  [97mtype [0m[38;5;120m[7mgreeter[0m[97m struct{}[0m
  [97m10[0m  [97m[0m
- [97m11[0m  [97mfunc (greeter) [0m[32m[7mmessage[0m[97m() string {[0m
+ [97m11[0m  [97mfunc (greeter) [0m[38;5;120m[7mmessage[0m[97m() string {[0m
  [38;5;183m12[0m  [97m	[0m[1m[38;5;183mreturn[0m[97m "hello"[0m
  [97m13[0m  [97m}[0m
  [97m14[0m  [97m[0m
- [97m15[0m  [97mfunc [0m[32m[7msamePackageFn[0m[97m() string {[0m
+ [97m15[0m  [97mfunc [0m[38;5;120m[7msamePackageFn[0m[97m() string {[0m
  [38;5;183m16[0m  [97m	[0m[1m[38;5;183mreturn[0m[97m "world"[0m
  [97m17[0m  [97m}[0m
  [97m18[0m  [97m[0m
- [97m19[0m  [97mfunc [0m[32m[7mexercise[0m[97m() {[0m
+ [97m19[0m  [97mfunc [0m[38;5;120m[7mexercise[0m[97m() {[0m
  [97m20[0m  [97m	[0m[38;5;120m[7mg[0m[97m := [0m[32mgreeter[0m[97m{}[0m
  [97m21[0m  [97m	[0m[35mfmt[0m[97m.[0m[35mPrintln[0m[97m([0m[32msamePackageFn[0m[97m())[0m
  [97m22[0m  [97m	[0m[35mfmt[0m[97m.[0m[35mPrintln[0m[97m([0m[38;5;120mg[0m[97m.[0m[32mmessage[0m[97m())[0m

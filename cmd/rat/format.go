@@ -150,10 +150,10 @@ func treeLabel(d file.Declaration) string {
 
 func declarationStyle(d file.Declaration) display.Style {
 	if isTopLevelDeclaration(d) {
-		return display.Green
+		return relationStyles[relSameFunction]
 	}
 	if isTopLevelStructField(d) {
-		return display.Green
+		return relationStyles[relSameFunction]
 	}
 	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
 		return display.LightGreen
@@ -547,10 +547,14 @@ func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLi
 				continue
 			}
 			st, ok := ts.Type.(*ast.StructType)
-			if !ok {
+			if ok {
+				addStructFieldSpansFromAST(out, sourceLines, fset, st)
 				continue
 			}
-			addStructFieldSpansFromAST(out, sourceLines, fset, st)
+			iface, ok := ts.Type.(*ast.InterfaceType)
+			if ok {
+				addNamedFieldSpansFromAST(out, sourceLines, fset, iface.Methods)
+			}
 		}
 	}
 }
@@ -559,16 +563,25 @@ func addStructFieldSpansFromAST(out map[int][]display.Span, sourceLines []string
 	if st == nil || st.Fields == nil {
 		return
 	}
+	addNamedFieldSpansFromAST(out, sourceLines, fset, st.Fields)
 	for _, field := range st.Fields.List {
+		addStructFieldSpansFromExpr(out, sourceLines, fset, field.Type)
+	}
+}
+
+func addNamedFieldSpansFromAST(out map[int][]display.Span, sourceLines []string, fset *token.FileSet, fields *ast.FieldList) {
+	if fields == nil {
+		return
+	}
+	for _, field := range fields.List {
 		for _, name := range field.Names {
 			pos := fset.Position(name.Pos())
 			if pos.Line < 1 || pos.Column < 1 {
 				continue
 			}
 			loc := &astLocation{file: pos.Filename, line: pos.Line, column: pos.Column}
-			addSpan(out, sourceLines, loc, name.Name, display.Green, true)
+			addSpan(out, sourceLines, loc, name.Name, relationStyles[relSameFunction], true)
 		}
-		addStructFieldSpansFromExpr(out, sourceLines, fset, field.Type)
 	}
 }
 
