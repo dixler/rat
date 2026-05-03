@@ -61,7 +61,7 @@ func RenderSource(src string, spans map[int][]Span, lineNumberStyles map[int]Sty
 		lineNumber := fmt.Sprintf("%*d", lineNumberWidth, i+1)
 		fmt.Fprintf(&b, " %s  %s\n", lineNumberStyle.Format(lineNumber), ColorLine(line, spans[i+1]))
 	}
-	return b.String()
+	return strings.ReplaceAll(b.String(), "\t", strings.Repeat(" ", 4))
 }
 
 func ColorLine(line string, spans []Span) string {
