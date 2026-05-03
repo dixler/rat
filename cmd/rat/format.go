@@ -81,49 +81,15 @@ func (r *Renderer) printHeader(f file.File) {
 	fmt.Fprintf(&r.b, "%s\n", headerStyle.Format(f.Name()))
 }
 
-type StyleProvider interface {
-	Style(d file.Declaration) display.Style
-	ReferenceStyle(root string, ref file.Reference) (display.Style, bool)
-}
-
-type DefaultStyleProvider struct{}
-
-func (DefaultStyleProvider) Style(d file.Declaration) display.Style {
-	return declarationStyle(d)
-}
-
-func (DefaultStyleProvider) ReferenceStyle(root string, ref file.Reference) (display.Style, bool) {
-	return relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
-}
-
-type EscapeStyleProvider struct{}
-
-func (EscapeStyleProvider) Style(d file.Declaration) display.Style {
-	if d.Escapes() {
-		return display.Red
-	}
-	return declarationStyle(d)
-}
-
-func (EscapeStyleProvider) ReferenceStyle(root string, ref file.Reference) (display.Style, bool) {
-	if ref.Escapes() || (ref.Declaration() != nil && ref.Declaration().Escapes()) {
-		return display.Red, true
-	}
-	if ref.Kind() == file.KindParameter {
-		return kindStyles[file.KindParameter], true
-	}
-	return "", false
-}
-
-func (r *Renderer) printTree(root string, d file.Declaration, depth int, provider StyleProvider) {
+func (r *Renderer) printTree(root string, d file.Declaration, depth int) {
 	indent := strings.Repeat("  ", depth)
-	declStyle := provider.Style(d)
+	declStyle := declarationStyle(d)
 	locStyle := display.Gray
 	fmt.Fprintf(&r.b, "%s%s %s\n", indent, declStyle.Format(treeLabel(d)), locStyle.Format(fmt.Sprintf("%s:%d:%d", d.Location().File(), d.Location().Line(), d.Location().Column())))
-	for _, group := range groupReferences(root, d, provider) {
+	for _, group := range groupReferences(root, d) {
 		fmt.Fprintf(&r.b, "%s  %s %s\n", indent, group.Style.Format(group.decl.Name()), locStyle.Format(fmt.Sprintf("%s:%d:%d", group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column())))
 		for _, ref := range group.refs {
-			sty, ok := provider.ReferenceStyle(root, ref)
+			sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
 			if !ok {
 				continue
 			}
@@ -134,7 +100,7 @@ func (r *Renderer) printTree(root string, d file.Declaration, depth int, provide
 		if d.Kind() == file.KindFunction && child.Kind() == file.KindVariable {
 			continue
 		}
-		r.printTree(root, child, depth+1, provider)
+		r.printTree(root, child, depth+1)
 	}
 }
 
@@ -236,15 +202,15 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 	}
 }
 
-func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration, provider StyleProvider) {
-	addSpan(out, sourceLines, decl.Location(), decl.Name(), provider.Style(decl), true)
+func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
+	addSpan(out, sourceLines, decl.Location(), decl.Name(), declarationStyle(decl), true)
 	for _, ref := range decl.References() {
-		if sty, ok := provider.ReferenceStyle(root, ref); ok {
+		if sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind()); ok {
 			addSpan(out, sourceLines, ref.Location(), ref.Text(), sty, false)
 		}
 	}
 	for _, child := range decl.Declarations() {
-		collectDeclarationSpans(root, out, sourceLines, child, provider)
+		collectDeclarationSpans(root, out, sourceLines, child)
 	}
 }
 
@@ -279,10 +245,10 @@ func kindStyle(kind file.Kind) display.Style {
 	return kindStyles[file.KindVariable]
 }
 
-func groupReferences(root string, decl file.Declaration, provider StyleProvider) []refGroup {
+func groupReferences(root string, decl file.Declaration) []refGroup {
 	byKey := map[string]*refGroup{}
 	for _, ref := range decl.References() {
-		sty, ok := provider.ReferenceStyle(root, ref)
+		sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
 		if !ok || ref.Declaration() == nil {
 			continue
 		}
@@ -434,7 +400,7 @@ func exists(path string) bool {
 	return err == nil
 }
 
-func ParseFormats(f file.File, provider StyleProvider) ParseResult {
+func ParseFormats(f file.File) ParseResult {
 	result := ParseResult{
 		SourceSpans: map[int][]display.Span{},
 		LineSpans:   map[int]display.Style{},
@@ -449,7 +415,7 @@ func ParseFormats(f file.File, provider StyleProvider) ParseResult {
 
 	root := projectRoot(f.Name())
 	for _, decl := range f.Declarations() {
-		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl, provider)
+		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl)
 	}
 
 	for _, mark := range collectControlFlowMarks(f) {

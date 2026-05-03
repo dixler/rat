@@ -10,7 +10,6 @@ import (
 )
 
 type ProcessOptions struct {
-	EscapeMode bool
 }
 
 func ProcessPipeline(filepath string, opts ProcessOptions) (string, error) {
@@ -19,28 +18,19 @@ func ProcessPipeline(filepath string, opts ProcessOptions) (string, error) {
 		return "", err
 	}
 
-	var provider StyleProvider
-	if opts.EscapeMode {
-		provider = EscapeStyleProvider{}
-	} else {
-		provider = DefaultStyleProvider{}
-	}
-
-	parsed := ParseFormats(f, provider)
+	parsed := ParseFormats(f)
 	return display.RenderSource(f.Source(), parsed.SourceSpans, parsed.LineSpans), nil
 }
 
 func main() {
-	var escapeMode bool
-	flag.BoolVar(&escapeMode, "escapes", false, "Render escape analysis information")
 	flag.Parse()
 
 	if len(flag.Args()) != 1 {
-		die("usage: rat [-escapes] <file.go>")
+		die("usage: rat <file.go>")
 	}
 
 	path := flag.Args()[0]
-	out, err := ProcessPipeline(path, ProcessOptions{EscapeMode: escapeMode})
+	out, err := ProcessPipeline(path, ProcessOptions{})
 	if err != nil {
 		die(err.Error())
 	}
