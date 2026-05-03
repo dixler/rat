@@ -441,6 +441,7 @@ func ParseFormats(f file.File, provider StyleProvider) ParseResult {
 	}
 	sourceLines := strings.Split(f.Source(), "\n")
 	addTopLevelStructFieldDeclarationSpans(result.SourceSpans, sourceLines, f)
+	collectPackageReferenceSpans(result.SourceSpans, sourceLines, f)
 
 	for _, call := range f.IndirectCalls() {
 		collectIndirectCallSpans(result.SourceSpans, call)
@@ -463,6 +464,26 @@ func ParseFormats(f file.File, provider StyleProvider) ParseResult {
 		sortSpans(result.SourceSpans[line])
 	}
 	return result
+}
+
+func collectPackageReferenceSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
+	root := projectRoot(f.Name())
+	for _, ref := range f.PackageReferences() {
+		addImportReferenceSpan(out, sourceLines, ref, packageDeclarationStyle(root, ref.Package()))
+	}
+}
+
+func addImportReferenceSpan(out map[int][]display.Span, sourceLines []string, ref file.PackageReference, style display.Style) {
+	loc := ref.Location()
+	if loc == nil || loc.Line() < 1 || loc.Line() > len(sourceLines) || ref.Text() == "" {
+		return
+	}
+	line := sourceLines[loc.Line()-1]
+	start := strings.Index(line, ref.Text())
+	if start < 0 {
+		return
+	}
+	out[loc.Line()] = append(out[loc.Line()], display.Span{Start: start, End: start + len(ref.Text()), Style: style, IsDef: false})
 }
 
 func collectControlFlowMarks(f file.File) []controlFlowMark {

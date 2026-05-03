@@ -1,6 +1,6 @@
  [97m 1[0m  [97mpackage sample[0m
  [97m 2[0m  [97m[0m
- [97m 3[0m  [97mimport "fmt"[0m
+ [97m 3[0m  [97mimport "[0m[35mfmt[0m[97m"[0m
  [97m 4[0m  [97m[0m
  [97m 5[0m  [97mtype [0m[32m[7mStringer[0m[97m interface {[0m
  [97m 6[0m  [97m	[0m[32m[7mString[0m[97m() string[0m
