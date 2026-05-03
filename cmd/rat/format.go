@@ -38,8 +38,8 @@ var kindStyles = map[file.Kind]display.Style{
 }
 
 var relationStyles = map[relation]display.Style{
-	relSameFunction: display.LightGreen,
-	relSameFile:     display.Green,
+	relSameFunction: display.Yellow,
+	relSameFile:     display.LightGreen,
 	relSamePackage:  display.Cyan,
 	relSameProject:  display.Blue,
 	relExternal:     display.Purple,
@@ -156,7 +156,7 @@ func declarationStyle(d file.Declaration) display.Style {
 		return relationStyles[relSameFunction]
 	}
 	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
-		return display.LightGreen
+		return relationStyles[relSameFunction]
 	}
 	return kindStyle(d.Kind())
 }
@@ -226,7 +226,7 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 	}
 
 	for i := 0; i < len(text); i++ {
-		charStyle := display.Red
+		charStyle := display.HotMagenta
 		out[line] = append(out[line], display.Span{
 			Start: col - 1 + i,
 			End:   col - 1 + i + 1,
