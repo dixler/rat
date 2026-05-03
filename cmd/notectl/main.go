@@ -737,8 +737,8 @@ func notesDiff(before, after map[string][]Note) (string, error) {
 	return out.String(), nil
 }
 
-func colorRed(s string) string   { return "\x1b[31m" + s + "\x1b[0m" }
-func colorGreen(s string) string { return "\x1b[32m" + s + "\x1b[0m" }
+func colorRed(s string) string   { return "\x1b[91m" + s + "\x1b[0m" }
+func colorGreen(s string) string { return "\x1b[92m" + s + "\x1b[0m" }
 
 func cloneNotes(a []Note) []Note {
 	b := make([]Note, len(a))
