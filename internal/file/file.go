@@ -45,8 +45,27 @@ type Declaration interface {
 	Location() Location
 	References() []Reference
 	Declarations() []Declaration
+	ControlFlowBlocks() []ControlFlowBlock
 	Parent() Declaration
 	Escapes() bool
+}
+
+type ControlFlowStatement interface {
+	Kind() string
+	Location() Location
+}
+
+type ControlFlowBlock interface {
+	Kind() string
+	Location() Location
+	IfChainID() string
+	IfStep() int
+	Blocks() []ControlFlowBlock
+	Statements() []ControlFlowStatement
+	ControlFlowStatements() []ControlFlowStatement
+	CaseCount() int
+	HasDefault() bool
+	HasBreak() bool
 }
 
 type PackageReference interface {
@@ -92,8 +111,26 @@ type declaration struct {
 	location     location
 	references   []Reference
 	declarations []Declaration
+	controlFlow  []ControlFlowBlock
 	parent       Declaration
 	escapes      bool
+}
+
+type controlFlowStatement struct {
+	kind     string
+	location location
+}
+
+type controlFlowBlock struct {
+	kind       string
+	location   location
+	ifChainID  string
+	ifStep     int
+	blocks     []ControlFlowBlock
+	statements []ControlFlowStatement
+	caseCount  int
+	hasDefault bool
+	hasBreak   bool
 }
 
 type reference struct {
@@ -167,8 +204,35 @@ func (d *declaration) References() []Reference { return append([]Reference(nil),
 func (d *declaration) Declarations() []Declaration {
 	return append([]Declaration(nil), d.declarations...)
 }
+func (d *declaration) ControlFlowBlocks() []ControlFlowBlock {
+	return append([]ControlFlowBlock(nil), d.controlFlow...)
+}
 func (d *declaration) Parent() Declaration { return d.parent }
 func (d *declaration) Escapes() bool       { return d.escapes }
+
+func (s *controlFlowStatement) Kind() string       { return s.kind }
+func (s *controlFlowStatement) Location() Location { return s.location }
+
+func (b *controlFlowBlock) Kind() string       { return b.kind }
+func (b *controlFlowBlock) Location() Location { return b.location }
+func (b *controlFlowBlock) IfChainID() string  { return b.ifChainID }
+func (b *controlFlowBlock) IfStep() int        { return b.ifStep }
+func (b *controlFlowBlock) Blocks() []ControlFlowBlock {
+	return append([]ControlFlowBlock(nil), b.blocks...)
+}
+func (b *controlFlowBlock) Statements() []ControlFlowStatement {
+	return append([]ControlFlowStatement(nil), b.statements...)
+}
+func (b *controlFlowBlock) ControlFlowStatements() []ControlFlowStatement {
+	out := append([]ControlFlowStatement(nil), b.statements...)
+	for _, child := range b.blocks {
+		out = append(out, child.ControlFlowStatements()...)
+	}
+	return out
+}
+func (b *controlFlowBlock) CaseCount() int   { return b.caseCount }
+func (b *controlFlowBlock) HasDefault() bool { return b.hasDefault }
+func (b *controlFlowBlock) HasBreak() bool   { return b.hasBreak }
 
 func (r *reference) Parent() Declaration      { return r.parent }
 func (r *reference) Declaration() Declaration { return r.declaration }

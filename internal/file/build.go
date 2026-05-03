@@ -56,11 +56,12 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 
 func buildDeclaration(raw scan.Declaration, parent Declaration, declsByID map[string]*declaration) (*declaration, error) {
 	d := &declaration{
-		name:     raw.Name,
-		kind:     mapKind(raw.Kind),
-		location: newLocation(raw.File, raw.Line, raw.Column),
-		parent:   parent,
-		escapes:  raw.Escapes,
+		name:        raw.Name,
+		kind:        mapKind(raw.Kind),
+		location:    newLocation(raw.File, raw.Line, raw.Column),
+		parent:      parent,
+		escapes:     raw.Escapes,
+		controlFlow: buildControlFlowBlocks(raw.ControlFlow),
 	}
 	declsByID[raw.ID] = d
 	for _, child := range raw.Declarations {
@@ -146,4 +147,34 @@ func mapKind(kind string) Kind {
 
 func newLocation(file string, line, column int) location {
 	return location{file: file, line: line, column: column}
+}
+
+func buildControlFlowBlocks(raw []scan.ControlFlowBlock) []ControlFlowBlock {
+	out := make([]ControlFlowBlock, 0, len(raw))
+	for _, block := range raw {
+		out = append(out, buildControlFlowBlock(block))
+	}
+	return out
+}
+
+func buildControlFlowBlock(raw scan.ControlFlowBlock) ControlFlowBlock {
+	block := &controlFlowBlock{
+		kind:       raw.Kind,
+		location:   newLocation(raw.File, raw.Line, raw.Column),
+		ifChainID:  raw.IfChainID,
+		ifStep:     raw.IfStep,
+		caseCount:  raw.CaseCount,
+		hasDefault: raw.HasDefault,
+		hasBreak:   raw.HasBreak,
+	}
+	for _, stmt := range raw.Statements {
+		block.statements = append(block.statements, &controlFlowStatement{
+			kind:     stmt.Kind,
+			location: newLocation(stmt.File, stmt.Line, stmt.Column),
+		})
+	}
+	for _, child := range raw.Blocks {
+		block.blocks = append(block.blocks, buildControlFlowBlock(child))
+	}
+	return block
 }

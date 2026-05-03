@@ -49,6 +49,28 @@ type Declaration struct {
 	Escapes      bool
 	References   []Reference
 	Declarations []Declaration
+	ControlFlow  []ControlFlowBlock
+}
+
+type ControlFlowStatement struct {
+	Kind   string
+	File   string
+	Line   int
+	Column int
+}
+
+type ControlFlowBlock struct {
+	Kind       string
+	File       string
+	Line       int
+	Column     int
+	IfChainID  string
+	IfStep     int
+	Statements []ControlFlowStatement
+	Blocks     []ControlFlowBlock
+	CaseCount  int
+	HasDefault bool
+	HasBreak   bool
 }
 
 type Reference struct {
@@ -345,6 +367,7 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	if fn.Body == nil {
 		return decl
 	}
+	decl.ControlFlow = b.buildControlFlowBlocks(fn.Body.List)
 	ast.Inspect(fn.Body, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.DeclStmt:
@@ -406,6 +429,206 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	b.collectReferences(fn.Body, &decl)
 	sortDeclarations(decl.Declarations)
 	return decl
+}
+
+type controlFlowBuilder struct {
+	fset       *token.FileSet
+	file       string
+	labels     map[string]*ControlFlowBlock
+	breakStack []*ControlFlowBlock
+	ifChainSeq int
+}
+
+func (b *builder) buildControlFlowBlocks(stmts []ast.Stmt) []ControlFlowBlock {
+	cfb := controlFlowBuilder{fset: b.fset, file: b.file, labels: map[string]*ControlFlowBlock{}}
+	return cfb.buildBlocks(stmts)
+}
+
+func (b *controlFlowBuilder) buildBlocks(stmts []ast.Stmt) []ControlFlowBlock {
+	out := make([]ControlFlowBlock, 0, len(stmts))
+	for _, stmt := range stmts {
+		out = append(out, b.buildBlock(stmt))
+	}
+	return out
+}
+
+func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
+	if labeled, ok := stmt.(*ast.LabeledStmt); ok {
+		block := b.buildBlock(labeled.Stmt)
+		if labeled.Label != nil && (block.Kind == "for" || block.Kind == "range") {
+			b.labels[labeled.Label.Name] = &block
+		}
+		return block
+	}
+
+	pos := b.fset.Position(stmt.Pos())
+	block := ControlFlowBlock{Kind: "block", File: b.file, Line: pos.Line, Column: pos.Column}
+	switch s := stmt.(type) {
+	case *ast.BlockStmt:
+		block.Blocks = b.buildBlocks(s.List)
+	case *ast.IfStmt:
+		block = b.buildIfBlock(s)
+	case *ast.ForStmt:
+		block = b.buildLoopBlock("for", s.Pos(), s.Body)
+	case *ast.RangeStmt:
+		block = b.buildLoopBlock("range", s.Pos(), s.Body)
+	case *ast.SwitchStmt:
+		block = b.buildSwitchLikeBlock("switch", s.Pos(), s.Body.List)
+	case *ast.TypeSwitchStmt:
+		block = b.buildSwitchLikeBlock("switch", s.Pos(), s.Body.List)
+	case *ast.SelectStmt:
+		block = b.buildSelectBlock(s)
+	default:
+		block.Statements = b.collectControlFlowStatements(stmt)
+	}
+	return block
+}
+
+func (b *controlFlowBuilder) buildIfBlock(stmt *ast.IfStmt) ControlFlowBlock {
+	b.ifChainSeq++
+	chainID := fmt.Sprintf("if-chain-%d", b.ifChainSeq)
+	return b.buildIfChain(stmt, chainID, 1, "if", stmt.If)
+}
+
+func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step int, kind string, keywordPos token.Pos) ControlFlowBlock {
+	pos := b.fset.Position(keywordPos)
+	block := ControlFlowBlock{Kind: kind, File: b.file, Line: pos.Line, Column: pos.Column, IfChainID: chainID, IfStep: step}
+	block.Statements = b.collectControlFlowStatements(stmt.Init, stmt.Cond)
+	if stmt.Body != nil {
+		block.Blocks = append(block.Blocks, b.buildBlocks(stmt.Body.List)...)
+	}
+	if stmt.Else != nil {
+		elsePos := stmt.Else.Pos()
+		switch e := stmt.Else.(type) {
+		case *ast.IfStmt:
+			block.Blocks = append(block.Blocks, b.buildIfChain(e, chainID, step+1, "elseif", elsePos))
+		case *ast.BlockStmt:
+			elseLoc := b.fset.Position(elsePos)
+			elseBlock := ControlFlowBlock{Kind: "else", File: b.file, Line: elseLoc.Line, Column: elseLoc.Column, IfChainID: chainID, IfStep: step + 1}
+			elseBlock.Blocks = b.buildBlocks(e.List)
+			block.Blocks = append(block.Blocks, elseBlock)
+		default:
+			block.Blocks = append(block.Blocks, b.buildBlock(e))
+		}
+	}
+	return block
+}
+
+func (b *controlFlowBuilder) buildLoopBlock(kind string, pos token.Pos, body *ast.BlockStmt) ControlFlowBlock {
+	p := b.fset.Position(pos)
+	block := ControlFlowBlock{Kind: kind, File: b.file, Line: p.Line, Column: p.Column}
+	b.breakStack = append(b.breakStack, &block)
+	if body != nil {
+		block.Blocks = b.buildBlocks(body.List)
+	}
+	b.breakStack = b.breakStack[:len(b.breakStack)-1]
+	return block
+}
+
+func (b *controlFlowBuilder) buildSwitchLikeBlock(kind string, pos token.Pos, clauses []ast.Stmt) ControlFlowBlock {
+	p := b.fset.Position(pos)
+	block := ControlFlowBlock{Kind: kind, File: b.file, Line: p.Line, Column: p.Column}
+	b.breakStack = append(b.breakStack, &block)
+	for _, stmt := range clauses {
+		clause, ok := stmt.(*ast.CaseClause)
+		if !ok {
+			continue
+		}
+		if clause.List == nil {
+			block.HasDefault = true
+		}
+		block.CaseCount++
+		casePos := b.fset.Position(clause.Case)
+		caseBlock := ControlFlowBlock{Kind: "case", File: b.file, Line: casePos.Line, Column: casePos.Column}
+		caseBlock.Blocks = b.buildBlocks(clause.Body)
+		block.Blocks = append(block.Blocks, caseBlock)
+	}
+	b.breakStack = b.breakStack[:len(b.breakStack)-1]
+	return block
+}
+
+func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowBlock {
+	p := b.fset.Position(stmt.Select)
+	block := ControlFlowBlock{Kind: "select", File: b.file, Line: p.Line, Column: p.Column}
+	b.breakStack = append(b.breakStack, &block)
+	if stmt.Body != nil {
+		for _, entry := range stmt.Body.List {
+			clause, ok := entry.(*ast.CommClause)
+			if !ok {
+				continue
+			}
+			if clause.Comm == nil {
+				block.HasDefault = true
+			}
+			block.CaseCount++
+			casePos := b.fset.Position(clause.Case)
+			caseBlock := ControlFlowBlock{Kind: "case", File: b.file, Line: casePos.Line, Column: casePos.Column}
+			caseBlock.Blocks = b.buildBlocks(clause.Body)
+			block.Blocks = append(block.Blocks, caseBlock)
+		}
+	}
+	b.breakStack = b.breakStack[:len(b.breakStack)-1]
+	return block
+}
+
+func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []ControlFlowStatement {
+	var out []ControlFlowStatement
+	for _, node := range nodes {
+		if node == nil {
+			continue
+		}
+		ast.Inspect(node, func(n ast.Node) bool {
+			if n == nil {
+				return true
+			}
+			if n != node {
+				if _, ok := n.(*ast.FuncLit); ok {
+					return false
+				}
+			}
+			switch s := n.(type) {
+			case *ast.ReturnStmt:
+				p := b.fset.Position(s.Return)
+				out = append(out, ControlFlowStatement{Kind: "return", File: b.file, Line: p.Line, Column: p.Column})
+			case *ast.BranchStmt:
+				if s.Tok == token.BREAK {
+					b.markBreakTarget(s)
+				}
+				kind := strings.ToLower(s.Tok.String())
+				p := b.fset.Position(s.TokPos)
+				out = append(out, ControlFlowStatement{Kind: kind, File: b.file, Line: p.Line, Column: p.Column})
+			case *ast.CallExpr:
+				id, ok := s.Fun.(*ast.Ident)
+				if !ok || id.Name != "panic" {
+					return true
+				}
+				p := b.fset.Position(id.NamePos)
+				out = append(out, ControlFlowStatement{Kind: "panic", File: b.file, Line: p.Line, Column: p.Column})
+			}
+			return true
+		})
+	}
+	return out
+}
+
+func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
+	if stmt == nil || stmt.Tok != token.BREAK {
+		return
+	}
+	if stmt.Label != nil {
+		target := b.labels[stmt.Label.Name]
+		if target != nil && (target.Kind == "for" || target.Kind == "range") {
+			target.HasBreak = true
+		}
+		return
+	}
+	if len(b.breakStack) == 0 {
+		return
+	}
+	target := b.breakStack[len(b.breakStack)-1]
+	if target != nil && (target.Kind == "for" || target.Kind == "range") {
+		target.HasBreak = true
+	}
 }
 
 func (b *builder) appendTypeParamDeclarations(parent *Declaration, fields *ast.FieldList) {

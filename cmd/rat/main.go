@@ -16,7 +16,7 @@ func ProcessPipeline(filepath string) (string, error) {
 	}
 
 	parsed := ParseFormats(f)
-	return display.RenderSource(f.Source(), parsed.SourceSpans, parsed.LineSpans), nil
+	return display.RenderSource(f.Source(), parsed.SourceSpans, parsed.LineSpans, parsed.LineMarkers), nil
 }
 
 func main() {
