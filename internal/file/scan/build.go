@@ -108,8 +108,9 @@ func Build(file string) (*Result, error) {
 		return nil, err
 	}
 	info := &types.Info{
-		Defs: map[*ast.Ident]types.Object{},
-		Uses: map[*ast.Ident]types.Object{},
+		Defs:      map[*ast.Ident]types.Object{},
+		Uses:      map[*ast.Ident]types.Object{},
+		Implicits: map[ast.Node]types.Object{},
 	}
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
@@ -375,6 +376,29 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 				}
 				child := b.newDeclaration(id, "variable")
 				decl.Declarations = append(decl.Declarations, child)
+			}
+		case *ast.TypeSwitchStmt:
+			assign, ok := x.Assign.(*ast.AssignStmt)
+			if !ok || assign.Tok != token.DEFINE || len(assign.Lhs) != 1 {
+				break
+			}
+			id, ok := assign.Lhs[0].(*ast.Ident)
+			if !ok || id.Name == "_" {
+				break
+			}
+			child := b.newDeclaration(id, "variable")
+			decl.Declarations = append(decl.Declarations, child)
+			for _, stmt := range x.Body.List {
+				clause, ok := stmt.(*ast.CaseClause)
+				if !ok {
+					continue
+				}
+				obj := b.info.Implicits[clause]
+				if obj == nil {
+					continue
+				}
+				b.declByObj[obj] = child.ID
+				b.kindByObj[obj] = "variable"
 			}
 		}
 		return true
