@@ -114,14 +114,15 @@ func Build(file string) (*Result, error) {
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
 	b := builder{
-		file:       file,
-		fset:       fset,
-		info:       info,
-		declByObj:  map[types.Object]string{},
-		kindByObj:  map[types.Object]string{},
-		pkgByPath:  map[string]string{},
-		goplsByPos: map[string]definitionLocation{},
-		escapes:    getEscapeAnalysis(file),
+		file:         file,
+		fset:         fset,
+		info:         info,
+		declByObj:    map[types.Object]string{},
+		kindByObj:    map[types.Object]string{},
+		pkgByPath:    map[string]string{},
+		pkgDefByPath: map[string]definitionLocation{},
+		goplsByPos:   map[string]definitionLocation{},
+		escapes:      getEscapeAnalysis(file),
 	}
 	res := &Result{File: file}
 	ast.Inspect(parsed, func(n ast.Node) bool {
@@ -226,15 +227,16 @@ func Build(file string) (*Result, error) {
 }
 
 type builder struct {
-	file       string
-	fset       *token.FileSet
-	info       *types.Info
-	declByObj  map[types.Object]string
-	kindByObj  map[types.Object]string
-	pkgByPath  map[string]string
-	goplsByPos map[string]definitionLocation
-	escapes    map[string]bool
-	seq        int
+	file         string
+	fset         *token.FileSet
+	info         *types.Info
+	declByObj    map[types.Object]string
+	kindByObj    map[types.Object]string
+	pkgByPath    map[string]string
+	pkgDefByPath map[string]definitionLocation
+	goplsByPos   map[string]definitionLocation
+	escapes      map[string]bool
+	seq          int
 }
 
 func getEscapeAnalysis(file string) map[string]bool {
@@ -451,11 +453,20 @@ func (b *builder) collectReferences(node ast.Node, decl *Declaration) {
 		}
 		if obj := b.info.Uses[id]; obj != nil {
 			ref.DeclarationID = b.declByObj[obj]
+			if pkgName, ok := obj.(*types.PkgName); ok && pkgName.Imported() != nil {
+				if loc, ok := b.packageDefinitionForImportPath(pkgName.Imported().Path()); ok {
+					ref.DeclarationFile = loc.file
+					ref.DeclarationLine = loc.line
+					ref.DeclarationColumn = loc.column
+				}
+			}
 		}
-		if target, ok := b.definitionFor(id.Pos()); ok {
-			ref.DeclarationFile = target.file
-			ref.DeclarationLine = target.line
-			ref.DeclarationColumn = target.column
+		if ref.DeclarationFile == "" {
+			if target, ok := b.definitionFor(id.Pos()); ok {
+				ref.DeclarationFile = target.file
+				ref.DeclarationLine = target.line
+				ref.DeclarationColumn = target.column
+			}
 		}
 		decl.References = append(decl.References, ref)
 		return true
@@ -497,7 +508,14 @@ func (b *builder) buildImport(imp *ast.ImportSpec) (PackageReference, Package) {
 		b.pkgByPath[path] = pkgID
 	}
 	pkgRef := PackageReference{PackageID: pkgID, ParentID: "file", Text: name, File: b.file, Line: pos.Line, Column: pos.Column}
-	return pkgRef, Package{ID: pkgID, Name: path, File: b.file, Line: pos.Line, Column: pos.Column, Files: loadPackageFiles(path)}
+	pkgFiles := loadPackageFiles(path)
+	pkgFile := b.file
+	pkgLine, pkgColumn := pos.Line, pos.Column
+	if len(pkgFiles) > 0 {
+		pkgFile = pkgFiles[0].File
+		pkgLine, pkgColumn = pkgFiles[0].Line, pkgFiles[0].Column
+	}
+	return pkgRef, Package{ID: pkgID, Name: path, File: pkgFile, Line: pkgLine, Column: pkgColumn, Files: pkgFiles}
 }
 
 func loadPackageFiles(importPath string) []PackageFile {
@@ -543,6 +561,20 @@ func loadPackageFiles(importPath string) []PackageFile {
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].File < files[j].File })
 	return files
+}
+
+func (b *builder) packageDefinitionForImportPath(importPath string) (definitionLocation, bool) {
+	if cached, ok := b.pkgDefByPath[importPath]; ok {
+		return cached, cached.ok
+	}
+	files := loadPackageFiles(importPath)
+	if len(files) == 0 {
+		b.pkgDefByPath[importPath] = definitionLocation{}
+		return definitionLocation{}, false
+	}
+	loc := definitionLocation{file: files[0].File, line: files[0].Line, column: files[0].Column, ok: files[0].File != "" && files[0].Line > 0 && files[0].Column > 0}
+	b.pkgDefByPath[importPath] = loc
+	return loc, loc.ok
 }
 
 func (b *builder) classifyObject(obj types.Object) string {

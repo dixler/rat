@@ -190,8 +190,12 @@ func (r *Renderer) printImports(refs []file.PackageReference) {
 	}
 	headerStyle := display.Bold
 	fmt.Fprintf(&r.b, "%s\n", headerStyle.Format("Imports"))
-	importStyle := display.Purple
+	root := ""
+	if refs[0].Location() != nil {
+		root = projectRoot(refs[0].Location().File())
+	}
 	for _, ref := range refs {
+		importStyle := packageDeclarationStyle(root, ref.Package())
 		fmt.Fprintf(&r.b, "- %s -> %s\n", importStyle.Format(ref.Text()), ref.Package().Name())
 	}
 }
@@ -306,14 +310,17 @@ func groupReferences(root string, decl file.Declaration, provider StyleProvider)
 }
 
 func relationshipStyle(root string, parent, target file.Declaration, kind file.Kind) (display.Style, bool) {
-	if kind == file.KindPackage {
-		return kindStyle(kind), true
-	}
 	if kind == file.KindParameter {
 		return kindStyle(kind), true
 	}
 	if target == nil || target.Location() == nil {
+		if kind == file.KindPackage {
+			return relationStyles[relExternal], true
+		}
 		return "", false
+	}
+	if kind == file.KindPackage {
+		return packageDeclarationStyle(root, target), true
 	}
 	path := filepath.Clean(target.Location().File())
 	if path == "" || strings.Contains(path, "/src/builtin") {
@@ -332,6 +339,23 @@ func relationshipStyle(root string, parent, target file.Declaration, kind file.K
 		return relationStyles[relSameProject], true
 	}
 	return relationStyles[relExternal], true
+}
+
+func packageDeclarationStyle(root string, target interface{ Location() file.Location }) display.Style {
+	if target == nil || target.Location() == nil {
+		return relationStyles[relExternal]
+	}
+	targetFile := filepath.Clean(target.Location().File())
+	if targetFile == "" {
+		return relationStyles[relExternal]
+	}
+	if root != "" {
+		cleanRoot := filepath.Clean(root)
+		if strings.HasPrefix(targetFile, cleanRoot+string(filepath.Separator)) {
+			return relationStyles[relSameProject]
+		}
+	}
+	return relationStyles[relExternal]
 }
 
 func sameFunction(left, right file.Declaration) bool {
