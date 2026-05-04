@@ -8,6 +8,15 @@ import (
 	"rat/internal/file/scan"
 )
 
+var kindMap = map[string]Kind{
+	scan.KindType:      KindType,
+	scan.KindVariable:  KindVariable,
+	scan.KindParameter: KindParameter,
+	scan.KindFunction:  KindFunction,
+	scan.KindPackage:   KindPackage,
+	scan.KindFile:      KindFile,
+}
+
 func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaration, []Location, []IndirectCall, error) {
 	tree, err := reftree.Build(raw)
 	if err != nil {
@@ -119,22 +128,10 @@ func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
 }
 
 func mapKind(kind string) Kind {
-	switch kind {
-	case "type":
-		return KindType
-	case "variable":
-		return KindVariable
-	case "parameter":
-		return KindParameter
-	case "function":
-		return KindFunction
-	case "package":
-		return KindPackage
-	case "file":
-		return KindFile
-	default:
-		return KindVariable
+	if mapped, ok := kindMap[kind]; ok {
+		return mapped
 	}
+	return KindVariable
 }
 
 func newLocation(file string, line, column int) location {
@@ -153,15 +150,15 @@ func buildBlock(raw controlflow.Block) Block {
 	base := blockBase{location: newLocation(raw.File, raw.Line, raw.Column)}
 	var block Block
 	switch raw.Kind {
-	case "if":
+	case scan.BlockKindIf:
 		return buildIfBlock(raw)
-	case "elseif", "else":
+	case scan.BlockKindElseIf, scan.BlockKindElse:
 		block = &anonymousBlock{blockBase: base}
-	case "for", "range":
+	case scan.BlockKindFor:
 		block = &loopBlock{blockBase: base, kind: raw.Kind, hasBreak: raw.HasBreak}
-	case "switch", "select":
+	case scan.BlockKindSwitch, scan.BlockKindSelect:
 		block = &switchBlock{blockBase: base, kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}
-	case "case":
+	case scan.BlockKindCase:
 		block = &caseBlock{blockBase: base}
 	default:
 		block = &anonymousBlock{blockBase: base}
@@ -202,20 +199,20 @@ func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
 		return
 	}
 	kind := raw.Kind
-	if kind != "if" && kind != "elseif" && kind != "else" {
+	if !isIfBranchKind(kind) {
 		return
 	}
 	var branch IfBranch
-	if kind == "else" {
+	if kind == scan.BlockKindElse {
 		branch = &elseBranch{ifBranchBase: ifBranchBase{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}}
 	} else {
-		branch = &ifBranch{ifBranchBase: ifBranchBase{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}, elseIf: kind == "elseif"}
+		branch = &ifBranch{ifBranchBase: ifBranchBase{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}, elseIf: kind == scan.BlockKindElseIf}
 	}
 	for _, stmt := range raw.Statements {
 		dst.statements = append(dst.statements, &controlFlowStatement{kind: stmt.Kind, location: newLocation(stmt.File, stmt.Line, stmt.Column)})
 	}
 	for _, child := range raw.Blocks {
-		if child.Kind == "elseif" || child.Kind == "else" {
+		if child.Kind == scan.BlockKindElseIf || child.Kind == scan.BlockKindElse {
 			collectIfBranches(child, dst)
 			continue
 		}
@@ -224,6 +221,10 @@ func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
 		}
 	}
 	dst.branches = append(dst.branches, branch)
+}
+
+func isIfBranchKind(kind string) bool {
+	return kind == scan.BlockKindIf || kind == scan.BlockKindElseIf || kind == scan.BlockKindElse
 }
 
 func ifBranchBaseOf(branch IfBranch) *ifBranchBase {

@@ -529,9 +529,6 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				style = controlFlowOrange
 			}
 			keyword := b.LoopKind()
-			if keyword == "range" {
-				keyword = "for"
-			}
 			mark := newControlFlowMark(block.Location(), keyword, style)
 			*marks = append(*marks, mark)
 			if b.HasBreak() {

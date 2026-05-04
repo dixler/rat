@@ -119,6 +119,31 @@ type DeclarationSummary struct {
 	Column int
 }
 
+const (
+	KindPackage   = "package"
+	KindType      = "type"
+	KindVariable  = "variable"
+	KindParameter = "parameter"
+	KindFunction  = "function"
+	KindFile      = "file"
+)
+
+const (
+	BlockKindBase   = "block"
+	BlockKindIf     = "if"
+	BlockKindElseIf = "elseif"
+	BlockKindElse   = "else"
+	BlockKindFor    = "for"
+	BlockKindSwitch = "switch"
+	BlockKindSelect = "select"
+	BlockKindCase   = "case"
+)
+
+const (
+	StatementKindReturn = "return"
+	StatementKindPanic  = "panic"
+)
+
 func Build(file string) (*Result, error) {
 	fset := token.NewFileSet()
 	parsed, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
@@ -310,7 +335,7 @@ func (b *builder) nextID(prefix string) string {
 func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 	switch s := spec.(type) {
 	case *ast.TypeSpec:
-		decl := b.newDeclaration(s.Name, "type")
+		decl := b.newDeclaration(s.Name, KindType)
 		b.appendTypeParamDeclarations(&decl, s.TypeParams)
 		b.appendInterfaceMethodDeclarations(&decl, s.Type)
 		b.collectReferences(s.Type, &decl)
@@ -321,7 +346,7 @@ func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 		}
 		var decls []Declaration
 		for i, name := range s.Names {
-			decl := b.newDeclaration(name, "variable")
+			decl := b.newDeclaration(name, KindVariable)
 			if i == 0 {
 				if s.Type != nil {
 					b.collectReferences(s.Type, &decl)
@@ -339,14 +364,14 @@ func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 }
 
 func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
-	decl := b.newDeclaration(fn.Name, "function")
+	decl := b.newDeclaration(fn.Name, KindFunction)
 	if fn.Recv != nil {
 		for _, field := range fn.Recv.List {
 			for _, name := range field.Names {
 				if name == nil || name.Name == "_" {
 					continue
 				}
-				decl.Declarations = append(decl.Declarations, b.newDeclaration(name, "parameter"))
+				decl.Declarations = append(decl.Declarations, b.newDeclaration(name, KindParameter))
 			}
 		}
 	}
@@ -358,7 +383,7 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 					if name == nil || name.Name == "_" {
 						continue
 					}
-					decl.Declarations = append(decl.Declarations, b.newDeclaration(name, "parameter"))
+					decl.Declarations = append(decl.Declarations, b.newDeclaration(name, KindParameter))
 				}
 			}
 		}
@@ -387,7 +412,7 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 					if !ok || id.Name == "_" {
 						continue
 					}
-					child := b.newDeclaration(id, "variable")
+					child := b.newDeclaration(id, KindVariable)
 					decl.Declarations = append(decl.Declarations, child)
 				}
 			}
@@ -397,7 +422,7 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 				if !ok || id.Name == "_" {
 					continue
 				}
-				child := b.newDeclaration(id, "variable")
+				child := b.newDeclaration(id, KindVariable)
 				decl.Declarations = append(decl.Declarations, child)
 			}
 		case *ast.TypeSwitchStmt:
@@ -409,7 +434,7 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 			if !ok || id.Name == "_" {
 				break
 			}
-			child := b.newDeclaration(id, "variable")
+			child := b.newDeclaration(id, KindVariable)
 			decl.Declarations = append(decl.Declarations, child)
 			for _, stmt := range x.Body.List {
 				clause, ok := stmt.(*ast.CaseClause)
@@ -421,7 +446,7 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 					continue
 				}
 				b.declByObj[obj] = child.ID
-				b.kindByObj[obj] = "variable"
+				b.kindByObj[obj] = KindVariable
 			}
 		}
 		return true
@@ -455,27 +480,27 @@ func (b *controlFlowBuilder) buildBlocks(stmts []ast.Stmt) []ControlFlowBlock {
 func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	if labeled, ok := stmt.(*ast.LabeledStmt); ok {
 		block := b.buildBlock(labeled.Stmt)
-		if labeled.Label != nil && (block.Kind == "for" || block.Kind == "range") {
+		if labeled.Label != nil && block.Kind == BlockKindFor {
 			b.labels[labeled.Label.Name] = &block
 		}
 		return block
 	}
 
 	pos := b.fset.Position(stmt.Pos())
-	block := ControlFlowBlock{Kind: "block", File: b.file, Line: pos.Line, Column: pos.Column}
+	block := ControlFlowBlock{Kind: BlockKindBase, File: b.file, Line: pos.Line, Column: pos.Column}
 	switch s := stmt.(type) {
 	case *ast.BlockStmt:
 		block.Blocks = b.buildBlocks(s.List)
 	case *ast.IfStmt:
 		block = b.buildIfBlock(s)
 	case *ast.ForStmt:
-		block = b.buildLoopBlock("for", s.Pos(), s.Body)
+		block = b.buildForBlock(s.Pos(), s.Body)
 	case *ast.RangeStmt:
-		block = b.buildLoopBlock("range", s.Pos(), s.Body)
+		block = b.buildForBlock(s.Pos(), s.Body)
 	case *ast.SwitchStmt:
-		block = b.buildSwitchLikeBlock("switch", s.Pos(), s.Body.List)
+		block = b.buildSwitchBlock(s.Pos(), s.Body.List)
 	case *ast.TypeSwitchStmt:
-		block = b.buildSwitchLikeBlock("switch", s.Pos(), s.Body.List)
+		block = b.buildSwitchBlock(s.Pos(), s.Body.List)
 	case *ast.SelectStmt:
 		block = b.buildSelectBlock(s)
 	default:
@@ -487,7 +512,7 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 func (b *controlFlowBuilder) buildIfBlock(stmt *ast.IfStmt) ControlFlowBlock {
 	b.ifChainSeq++
 	chainID := fmt.Sprintf("if-chain-%d", b.ifChainSeq)
-	return b.buildIfChain(stmt, chainID, 1, "if", stmt.If)
+	return b.buildIfChain(stmt, chainID, 1, BlockKindIf, stmt.If)
 }
 
 func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step int, kind string, keywordPos token.Pos) ControlFlowBlock {
@@ -501,10 +526,10 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 		elsePos := stmt.Else.Pos()
 		switch e := stmt.Else.(type) {
 		case *ast.IfStmt:
-			block.Blocks = append(block.Blocks, b.buildIfChain(e, chainID, step+1, "elseif", elsePos))
+			block.Blocks = append(block.Blocks, b.buildIfChain(e, chainID, step+1, BlockKindElseIf, elsePos))
 		case *ast.BlockStmt:
 			elseLoc := b.fset.Position(elsePos)
-			elseBlock := ControlFlowBlock{Kind: "else", File: b.file, Line: elseLoc.Line, Column: elseLoc.Column, IfChainID: chainID, IfStep: step + 1}
+			elseBlock := ControlFlowBlock{Kind: BlockKindElse, File: b.file, Line: elseLoc.Line, Column: elseLoc.Column, IfChainID: chainID, IfStep: step + 1}
 			elseBlock.Blocks = b.buildBlocks(e.List)
 			block.Blocks = append(block.Blocks, elseBlock)
 		default:
@@ -514,9 +539,9 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 	return block
 }
 
-func (b *controlFlowBuilder) buildLoopBlock(kind string, pos token.Pos, body *ast.BlockStmt) ControlFlowBlock {
+func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt) ControlFlowBlock {
 	p := b.fset.Position(pos)
-	block := ControlFlowBlock{Kind: kind, File: b.file, Line: p.Line, Column: p.Column}
+	block := ControlFlowBlock{Kind: BlockKindFor, File: b.file, Line: p.Line, Column: p.Column}
 	b.breakStack = append(b.breakStack, &block)
 	if body != nil {
 		block.Blocks = b.buildBlocks(body.List)
@@ -525,9 +550,9 @@ func (b *controlFlowBuilder) buildLoopBlock(kind string, pos token.Pos, body *as
 	return block
 }
 
-func (b *controlFlowBuilder) buildSwitchLikeBlock(kind string, pos token.Pos, clauses []ast.Stmt) ControlFlowBlock {
+func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, clauses []ast.Stmt) ControlFlowBlock {
 	p := b.fset.Position(pos)
-	block := ControlFlowBlock{Kind: kind, File: b.file, Line: p.Line, Column: p.Column}
+	block := ControlFlowBlock{Kind: BlockKindSwitch, File: b.file, Line: p.Line, Column: p.Column}
 	b.breakStack = append(b.breakStack, &block)
 	for _, stmt := range clauses {
 		clause, ok := stmt.(*ast.CaseClause)
@@ -539,7 +564,7 @@ func (b *controlFlowBuilder) buildSwitchLikeBlock(kind string, pos token.Pos, cl
 		}
 		block.CaseCount++
 		casePos := b.fset.Position(clause.Case)
-		caseBlock := ControlFlowBlock{Kind: "case", File: b.file, Line: casePos.Line, Column: casePos.Column}
+		caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: casePos.Line, Column: casePos.Column}
 		caseBlock.Blocks = b.buildBlocks(clause.Body)
 		block.Blocks = append(block.Blocks, caseBlock)
 	}
@@ -549,7 +574,7 @@ func (b *controlFlowBuilder) buildSwitchLikeBlock(kind string, pos token.Pos, cl
 
 func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowBlock {
 	p := b.fset.Position(stmt.Select)
-	block := ControlFlowBlock{Kind: "select", File: b.file, Line: p.Line, Column: p.Column}
+	block := ControlFlowBlock{Kind: BlockKindSelect, File: b.file, Line: p.Line, Column: p.Column}
 	b.breakStack = append(b.breakStack, &block)
 	if stmt.Body != nil {
 		for _, entry := range stmt.Body.List {
@@ -562,7 +587,7 @@ func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowB
 			}
 			block.CaseCount++
 			casePos := b.fset.Position(clause.Case)
-			caseBlock := ControlFlowBlock{Kind: "case", File: b.file, Line: casePos.Line, Column: casePos.Column}
+			caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: casePos.Line, Column: casePos.Column}
 			caseBlock.Blocks = b.buildBlocks(clause.Body)
 			block.Blocks = append(block.Blocks, caseBlock)
 		}
@@ -589,7 +614,7 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 			switch s := n.(type) {
 			case *ast.ReturnStmt:
 				p := b.fset.Position(s.Return)
-				out = append(out, ControlFlowStatement{Kind: "return", File: b.file, Line: p.Line, Column: p.Column})
+				out = append(out, ControlFlowStatement{Kind: StatementKindReturn, File: b.file, Line: p.Line, Column: p.Column})
 			case *ast.BranchStmt:
 				if s.Tok == token.BREAK {
 					b.markBreakTarget(s)
@@ -599,11 +624,11 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 				out = append(out, ControlFlowStatement{Kind: kind, File: b.file, Line: p.Line, Column: p.Column})
 			case *ast.CallExpr:
 				id, ok := s.Fun.(*ast.Ident)
-				if !ok || id.Name != "panic" {
+				if !ok || id.Name != StatementKindPanic {
 					return true
 				}
 				p := b.fset.Position(id.NamePos)
-				out = append(out, ControlFlowStatement{Kind: "panic", File: b.file, Line: p.Line, Column: p.Column})
+				out = append(out, ControlFlowStatement{Kind: StatementKindPanic, File: b.file, Line: p.Line, Column: p.Column})
 			}
 			return true
 		})
@@ -617,7 +642,7 @@ func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
 	}
 	if stmt.Label != nil {
 		target := b.labels[stmt.Label.Name]
-		if target != nil && (target.Kind == "for" || target.Kind == "range") {
+		if target != nil && target.Kind == BlockKindFor {
 			target.HasBreak = true
 		}
 		return
@@ -626,7 +651,7 @@ func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
 		return
 	}
 	target := b.breakStack[len(b.breakStack)-1]
-	if target != nil && (target.Kind == "for" || target.Kind == "range") {
+	if target != nil && target.Kind == BlockKindFor {
 		target.HasBreak = true
 	}
 }
@@ -640,7 +665,7 @@ func (b *builder) appendTypeParamDeclarations(parent *Declaration, fields *ast.F
 			if name == nil || name.Name == "_" {
 				continue
 			}
-			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, "parameter"))
+			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, KindParameter))
 		}
 	}
 }
@@ -655,7 +680,7 @@ func (b *builder) appendInterfaceMethodDeclarations(parent *Declaration, expr as
 			if name == nil || name.Name == "_" {
 				continue
 			}
-			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, "function"))
+			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, KindFunction))
 		}
 	}
 }
@@ -754,7 +779,7 @@ func (b *builder) buildImport(imp *ast.ImportSpec) (PackageReference, Package) {
 		pkgID = b.nextID("pkg")
 		b.pkgByPath[path] = pkgID
 	}
-	pkgRef := PackageReference{PackageID: pkgID, ParentID: "file", Text: name, File: b.file, Line: pos.Line, Column: pos.Column}
+	pkgRef := PackageReference{PackageID: pkgID, ParentID: KindFile, Text: name, File: b.file, Line: pos.Line, Column: pos.Column}
 	pkgFiles := loadPackageFiles(path)
 	pkgFile := b.file
 	pkgLine, pkgColumn := pos.Line, pos.Column
@@ -787,17 +812,17 @@ func loadPackageFiles(importPath string) []PackageFile {
 			switch d := decl.(type) {
 			case *ast.FuncDecl:
 				pos := fset.Position(d.Name.Pos())
-				pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: d.Name.Name, Kind: "function", File: file, Line: pos.Line, Column: pos.Column})
+				pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: d.Name.Name, Kind: KindFunction, File: file, Line: pos.Line, Column: pos.Column})
 			case *ast.GenDecl:
 				for _, spec := range d.Specs {
 					switch s := spec.(type) {
 					case *ast.TypeSpec:
 						pos := fset.Position(s.Name.Pos())
-						pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: s.Name.Name, Kind: "type", File: file, Line: pos.Line, Column: pos.Column})
+						pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: s.Name.Name, Kind: KindType, File: file, Line: pos.Line, Column: pos.Column})
 					case *ast.ValueSpec:
 						for _, name := range s.Names {
 							pos := fset.Position(name.Pos())
-							pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: name.Name, Kind: "variable", File: file, Line: pos.Line, Column: pos.Column})
+							pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: name.Name, Kind: KindVariable, File: file, Line: pos.Line, Column: pos.Column})
 						}
 					}
 				}
@@ -830,21 +855,21 @@ func (b *builder) classifyObject(obj types.Object) string {
 	}
 	switch obj.(type) {
 	case *types.PkgName:
-		return "package"
+		return KindPackage
 	case *types.TypeName:
 		if _, ok := obj.Type().(*types.TypeParam); ok {
-			return "parameter"
+			return KindParameter
 		}
-		return "type"
+		return KindType
 	case *types.Func:
-		return "function"
+		return KindFunction
 	case *types.Var:
 		if _, ok := obj.Type().(*types.TypeParam); ok {
-			return "parameter"
+			return KindParameter
 		}
-		return "variable"
+		return KindVariable
 	default:
-		return "variable"
+		return KindVariable
 	}
 }
 
