@@ -187,7 +187,7 @@ func buildIfBlock(raw controlflow.Block) Block {
 	ifb := &ifBlock{ifChainID: raw.IfChainID}
 	collectIfBranches(raw, ifb)
 	if len(ifb.branches) > 0 {
-		if first, ok := ifb.branches[0].(*ifBranch); ok {
+		if first := ifBranchBaseOf(ifb.branches[0]); first != nil {
 			ifb.location = first.location
 		}
 	}
@@ -207,9 +207,9 @@ func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
 	}
 	var branch IfBranch
 	if kind == "else" {
-		branch = &elseBranch{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}
+		branch = &elseBranch{ifBranchBase: ifBranchBase{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}}
 	} else {
-		branch = &ifBranch{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep, elseIf: kind == "elseif"}
+		branch = &ifBranch{ifBranchBase: ifBranchBase{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}, elseIf: kind == "elseif"}
 	}
 	for _, stmt := range raw.Statements {
 		dst.statements = append(dst.statements, &controlFlowStatement{kind: stmt.Kind, location: newLocation(stmt.File, stmt.Line, stmt.Column)})
@@ -219,14 +219,22 @@ func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
 			collectIfBranches(child, dst)
 			continue
 		}
-		switch typed := branch.(type) {
-		case *ifBranch:
-			typed.blocks = append(typed.blocks, buildBlock(child))
-		case *elseBranch:
-			typed.blocks = append(typed.blocks, buildBlock(child))
+		if base := ifBranchBaseOf(branch); base != nil {
+			base.blocks = append(base.blocks, buildBlock(child))
 		}
 	}
 	dst.branches = append(dst.branches, branch)
+}
+
+func ifBranchBaseOf(branch IfBranch) *ifBranchBase {
+	switch b := branch.(type) {
+	case *ifBranch:
+		return &b.ifBranchBase
+	case *elseBranch:
+		return &b.ifBranchBase
+	default:
+		return nil
+	}
 }
 
 func baseOf(block Block) *blockBase {

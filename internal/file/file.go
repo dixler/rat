@@ -163,13 +163,15 @@ type ifBlock struct {
 }
 
 type ifBranch struct {
-	location location
-	step     int
-	blocks   []Block
-	elseIf   bool
+	ifBranchBase
+	elseIf bool
 }
 
 type elseBranch struct {
+	ifBranchBase
+}
+
+type ifBranchBase struct {
 	location location
 	step     int
 	blocks   []Block
@@ -293,14 +295,11 @@ func (b *ifBlock) IfChainID() string { return b.ifChainID }
 func (b *ifBlock) Branches() []IfBranch {
 	return append([]IfBranch(nil), b.branches...)
 }
-func (b *ifBranch) Location() Location { return b.location }
-func (b *ifBranch) Step() int          { return b.step }
-func (b *ifBranch) Blocks() []Block    { return append([]Block(nil), b.blocks...) }
-func (b *ifBranch) IsElseIf() bool     { return b.elseIf }
+func (b *ifBranchBase) Location() Location { return b.location }
+func (b *ifBranchBase) Step() int          { return b.step }
+func (b *ifBranchBase) Blocks() []Block    { return append([]Block(nil), b.blocks...) }
+func (b *ifBranch) IsElseIf() bool         { return b.elseIf }
 
-func (b *elseBranch) Location() Location  { return b.location }
-func (b *elseBranch) Step() int           { return b.step }
-func (b *elseBranch) Blocks() []Block     { return append([]Block(nil), b.blocks...) }
 func (b *elseBranch) IsElse() bool        { return true }
 func (b *loopBlock) LoopKind() string     { return b.kind }
 func (b *loopBlock) HasBreak() bool       { return b.hasBreak }
