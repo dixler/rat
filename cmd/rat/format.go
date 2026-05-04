@@ -508,7 +508,7 @@ func collectDeclarationControlFlowMarks(decl file.Declaration, marks *[]controlF
 }
 
 func collectFunctionControlFlowMarks(decl file.Declaration, marks *[]controlFlowMark) {
-	blocks := decl.ControlFlowBlocks()
+	blocks := decl.Blocks()
 	if len(blocks) == 0 {
 		return
 	}
@@ -518,59 +518,53 @@ func collectFunctionControlFlowMarks(decl file.Declaration, marks *[]controlFlow
 	collectBlockMarks(blocks, marks, returnTotal, ifChainSizes, 0)
 }
 
-func collectBlockMarks(blocks []file.ControlFlowBlock, marks *[]controlFlowMark, returnTotal int, ifChainSizes map[string]int, depth int) {
+func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark, returnTotal int, ifChainSizes map[string]int, depth int) {
 	for _, block := range blocks {
 		if block == nil || block.Location() == nil {
 			continue
 		}
 		gutterPrefix := strings.Repeat("  ", depth)
-		switch block.Kind() {
-		case "if", "elseif":
-			step := block.IfStep()
-			if step < 1 {
-				step = 1
+		switch b := block.(type) {
+		case file.IfBlock:
+			for _, branch := range b.Branches() {
+				step := branch.Step()
+				if step < 1 {
+					step = 1
+				}
+				gutter := ")"
+				if ifChainSizes[b.IfChainID()] > 1 {
+					gutter = fmt.Sprintf("%d)", step)
+				}
+				keyword := "if"
+				kind := "if"
+				if branch.Kind() == "else" {
+					keyword = "else"
+					kind = "else"
+				} else if branch.Kind() == "elseif" {
+					keyword = "else if"
+				}
+				mark := newControlFlowMark(branch.Location(), kind, keyword, gutterPrefix+gutter)
+				mark.depth = depth
+				*marks = append(*marks, mark)
 			}
-			gutter := ")"
-			if ifChainSizes[block.IfChainID()] > 1 {
-				gutter = fmt.Sprintf("%d)", step)
-			}
-			keyword := "if"
-			if block.Kind() == "elseif" {
-				keyword = "else if"
-			}
-			mark := newControlFlowMark(block.Location(), "if", keyword, gutterPrefix+gutter)
-			mark.depth = depth
-			*marks = append(*marks, mark)
-		case "else":
-			step := block.IfStep()
-			if step < 1 {
-				step = 1
-			}
-			gutter := ")"
-			if ifChainSizes[block.IfChainID()] > 1 {
-				gutter = fmt.Sprintf("%d)", step)
-			}
-			mark := newControlFlowMark(block.Location(), "else", "else", gutterPrefix+gutter)
-			mark.depth = depth
-			*marks = append(*marks, mark)
-		case "for", "range":
+		case file.LoopBlock:
 			gutter := ">>"
-			if block.HasBreak() {
+			if b.HasBreak() {
 				gutter = ">>?"
 			}
-			mark := newControlFlowMark(block.Location(), "break", block.Kind(), gutterPrefix+gutter)
+			mark := newControlFlowMark(block.Location(), "break", b.LoopKind(), gutterPrefix+gutter)
 			mark.depth = depth
 			*marks = append(*marks, mark)
-		case "switch", "select":
+		case file.SwitchBlock:
 			prefix := "#"
-			if block.Kind() == "select" {
+			if b.SwitchKind() == "select" {
 				prefix = "|"
 			}
-			gutter := fmt.Sprintf("%s%d", prefix, block.CaseCount())
-			if block.HasDefault() {
+			gutter := fmt.Sprintf("%s%d", prefix, b.CaseCount())
+			if b.HasDefault() {
 				gutter += "*"
 			}
-			mark := newControlFlowMark(block.Location(), block.Kind(), block.Kind(), gutterPrefix+gutter)
+			mark := newControlFlowMark(block.Location(), b.SwitchKind(), b.SwitchKind(), gutterPrefix+gutter)
 			mark.depth = depth
 			*marks = append(*marks, mark)
 		}
@@ -593,27 +587,33 @@ func collectBlockMarks(blocks []file.ControlFlowBlock, marks *[]controlFlowMark,
 				continue
 			}
 			childDepth := depth + 1
-			if child.Kind() == "elseif" || child.Kind() == "else" {
-				childDepth = depth
-			}
-			collectBlockMarks([]file.ControlFlowBlock{child}, marks, returnTotal, ifChainSizes, childDepth)
+			collectBlockMarks([]file.Block{child}, marks, returnTotal, ifChainSizes, childDepth)
 		}
 	}
 }
 
-func collectIfChainSizes(blocks []file.ControlFlowBlock) map[string]int {
+func collectIfChainSizes(blocks []file.Block) map[string]int {
 	out := map[string]int{}
-	var visit func([]file.ControlFlowBlock)
-	visit = func(items []file.ControlFlowBlock) {
+	var visit func([]file.Block)
+	visit = func(items []file.Block) {
 		for _, block := range items {
 			if block == nil {
 				continue
 			}
-			id := block.IfChainID()
-			if id != "" {
-				step := block.IfStep()
-				if step > out[id] {
-					out[id] = step
+			if ifBlock, ok := block.(interface {
+				IfChainID() string
+				Branches() []file.IfBranch
+			}); ok {
+				id := ifBlock.IfChainID()
+				if id == "" {
+					visit(block.Blocks())
+					continue
+				}
+				for _, branch := range ifBlock.Branches() {
+					step := branch.Step()
+					if step > out[id] {
+						out[id] = step
+					}
 				}
 			}
 			visit(block.Blocks())
@@ -623,7 +623,7 @@ func collectIfChainSizes(blocks []file.ControlFlowBlock) map[string]int {
 	return out
 }
 
-func collectFunctionStatementLocations(blocks []file.ControlFlowBlock, kind string) []file.Location {
+func collectFunctionStatementLocations(blocks []file.Block, kind string) []file.Location {
 	out := make([]file.Location, 0)
 	for _, block := range blocks {
 		if block == nil {

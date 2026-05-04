@@ -57,12 +57,12 @@ func toDeclaration(src *reftree.Declaration, parent Declaration, declMap map[*re
 		return nil
 	}
 	d := &declaration{
-		name:        src.Name,
-		kind:        mapKind(src.Kind),
-		location:    newLocation(src.File, src.Line, src.Column),
-		parent:      parent,
-		escapes:     src.Escapes,
-		controlFlow: buildControlFlowBlocks(controlflow.FromScan(src.ControlFlow)),
+		name:     src.Name,
+		kind:     mapKind(src.Kind),
+		location: newLocation(src.File, src.Line, src.Column),
+		parent:   parent,
+		escapes:  src.Escapes,
+		blocks:   buildBlocks(controlflow.FromScan(src.ControlFlow)),
 	}
 	declMap[src] = d
 	for _, child := range src.Declarations {
@@ -141,32 +141,97 @@ func newLocation(file string, line, column int) location {
 	return location{file: file, line: line, column: column}
 }
 
-func buildControlFlowBlocks(raw []controlflow.Block) []ControlFlowBlock {
-	out := make([]ControlFlowBlock, 0, len(raw))
+func buildBlocks(raw []controlflow.Block) []Block {
+	out := make([]Block, 0, len(raw))
 	for _, block := range raw {
-		out = append(out, buildControlFlowBlock(block))
+		out = append(out, buildBlock(block))
 	}
 	return out
 }
 
-func buildControlFlowBlock(raw controlflow.Block) ControlFlowBlock {
-	block := &controlFlowBlock{
-		kind:       raw.Kind,
-		location:   newLocation(raw.File, raw.Line, raw.Column),
-		ifChainID:  raw.IfChainID,
-		ifStep:     raw.IfStep,
-		caseCount:  raw.CaseCount,
-		hasDefault: raw.HasDefault,
-		hasBreak:   raw.HasBreak,
+func buildBlock(raw controlflow.Block) Block {
+	base := blockBase{location: newLocation(raw.File, raw.Line, raw.Column)}
+	var block Block
+	switch raw.Kind {
+	case "if":
+		return buildIfBlock(raw)
+	case "elseif", "else":
+		block = &anonymousBlock{blockBase: base}
+	case "for", "range":
+		block = &loopBlock{blockBase: base, kind: raw.Kind, hasBreak: raw.HasBreak}
+	case "switch", "select":
+		block = &switchBlock{blockBase: base, kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}
+	case "case":
+		block = &caseBlock{blockBase: base}
+	default:
+		block = &anonymousBlock{blockBase: base}
+	}
+
+	basePtr := baseOf(block)
+	if basePtr == nil {
+		return block
 	}
 	for _, stmt := range raw.Statements {
-		block.statements = append(block.statements, &controlFlowStatement{
+		basePtr.statements = append(basePtr.statements, &controlFlowStatement{
 			kind:     stmt.Kind,
 			location: newLocation(stmt.File, stmt.Line, stmt.Column),
 		})
 	}
 	for _, child := range raw.Blocks {
-		block.blocks = append(block.blocks, buildControlFlowBlock(child))
+		basePtr.blocks = append(basePtr.blocks, buildBlock(child))
 	}
 	return block
+}
+
+func buildIfBlock(raw controlflow.Block) Block {
+	ifb := &ifBlock{ifChainID: raw.IfChainID}
+	collectIfBranches(raw, ifb)
+	if len(ifb.branches) > 0 {
+		if first, ok := ifb.branches[0].(*ifBranch); ok {
+			ifb.location = first.location
+		}
+	}
+	for _, branch := range ifb.branches {
+		ifb.blocks = append(ifb.blocks, branch.Blocks()...)
+	}
+	return ifb
+}
+
+func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
+	if dst == nil {
+		return
+	}
+	kind := raw.Kind
+	if kind != "if" && kind != "elseif" && kind != "else" {
+		return
+	}
+	branch := &ifBranch{kind: kind, location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}
+	for _, stmt := range raw.Statements {
+		dst.statements = append(dst.statements, &controlFlowStatement{kind: stmt.Kind, location: newLocation(stmt.File, stmt.Line, stmt.Column)})
+	}
+	for _, child := range raw.Blocks {
+		if child.Kind == "elseif" || child.Kind == "else" {
+			collectIfBranches(child, dst)
+			continue
+		}
+		branch.blocks = append(branch.blocks, buildBlock(child))
+	}
+	dst.branches = append(dst.branches, branch)
+}
+
+func baseOf(block Block) *blockBase {
+	switch b := block.(type) {
+	case *ifBlock:
+		return &b.blockBase
+	case *loopBlock:
+		return &b.blockBase
+	case *switchBlock:
+		return &b.blockBase
+	case *caseBlock:
+		return &b.blockBase
+	case *anonymousBlock:
+		return &b.blockBase
+	default:
+		return nil
+	}
 }

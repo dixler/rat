@@ -45,6 +45,7 @@ type Declaration interface {
 	Location() Location
 	References() []Reference
 	Declarations() []Declaration
+	Blocks() []Block
 	ControlFlowBlocks() []ControlFlowBlock
 	Parent() Declaration
 	Escapes() bool
@@ -55,17 +56,47 @@ type ControlFlowStatement interface {
 	Location() Location
 }
 
-type ControlFlowBlock interface {
-	Kind() string
+type Block interface {
 	Location() Location
-	IfChainID() string
-	IfStep() int
-	Blocks() []ControlFlowBlock
+	Blocks() []Block
 	Statements() []ControlFlowStatement
 	ControlFlowStatements() []ControlFlowStatement
+}
+
+type ControlFlowBlock interface {
+	Block
+	Kind() string
+	IfChainID() string
+	IfStep() int
 	CaseCount() int
 	HasDefault() bool
 	HasBreak() bool
+}
+
+type IfBlock interface {
+	Block
+	IfChainID() string
+	Branches() []IfBranch
+}
+
+type IfBranch interface {
+	Kind() string
+	Location() Location
+	Step() int
+	Blocks() []Block
+}
+
+type LoopBlock interface {
+	Block
+	LoopKind() string
+	HasBreak() bool
+}
+
+type SwitchBlock interface {
+	Block
+	SwitchKind() string
+	CaseCount() int
+	HasDefault() bool
 }
 
 type PackageReference interface {
@@ -111,7 +142,7 @@ type declaration struct {
 	location     location
 	references   []Reference
 	declarations []Declaration
-	controlFlow  []ControlFlowBlock
+	blocks       []Block
 	parent       Declaration
 	escapes      bool
 }
@@ -121,16 +152,44 @@ type controlFlowStatement struct {
 	location location
 }
 
-type controlFlowBlock struct {
-	kind       string
+type blockBase struct {
 	location   location
-	ifChainID  string
-	ifStep     int
-	blocks     []ControlFlowBlock
+	blocks     []Block
 	statements []ControlFlowStatement
+}
+
+type ifBlock struct {
+	blockBase
+	ifChainID string
+	branches  []IfBranch
+}
+
+type ifBranch struct {
+	kind     string
+	location location
+	step     int
+	blocks   []Block
+}
+
+type loopBlock struct {
+	blockBase
+	kind     string
+	hasBreak bool
+}
+
+type switchBlock struct {
+	blockBase
+	kind       string
 	caseCount  int
 	hasDefault bool
-	hasBreak   bool
+}
+
+type caseBlock struct {
+	blockBase
+}
+
+type anonymousBlock struct {
+	blockBase
 }
 
 type reference struct {
@@ -204,8 +263,15 @@ func (d *declaration) References() []Reference { return append([]Reference(nil),
 func (d *declaration) Declarations() []Declaration {
 	return append([]Declaration(nil), d.declarations...)
 }
+func (d *declaration) Blocks() []Block { return append([]Block(nil), d.blocks...) }
 func (d *declaration) ControlFlowBlocks() []ControlFlowBlock {
-	return append([]ControlFlowBlock(nil), d.controlFlow...)
+	out := make([]ControlFlowBlock, 0, len(d.blocks))
+	for _, block := range d.blocks {
+		if typed, ok := block.(ControlFlowBlock); ok {
+			out = append(out, typed)
+		}
+	}
+	return out
 }
 func (d *declaration) Parent() Declaration { return d.parent }
 func (d *declaration) Escapes() bool       { return d.escapes }
@@ -213,26 +279,70 @@ func (d *declaration) Escapes() bool       { return d.escapes }
 func (s *controlFlowStatement) Kind() string       { return s.kind }
 func (s *controlFlowStatement) Location() Location { return s.location }
 
-func (b *controlFlowBlock) Kind() string       { return b.kind }
-func (b *controlFlowBlock) Location() Location { return b.location }
-func (b *controlFlowBlock) IfChainID() string  { return b.ifChainID }
-func (b *controlFlowBlock) IfStep() int        { return b.ifStep }
-func (b *controlFlowBlock) Blocks() []ControlFlowBlock {
-	return append([]ControlFlowBlock(nil), b.blocks...)
+func (b *blockBase) Location() Location { return b.location }
+func (b *blockBase) Blocks() []Block {
+	return append([]Block(nil), b.blocks...)
 }
-func (b *controlFlowBlock) Statements() []ControlFlowStatement {
+func (b *blockBase) Statements() []ControlFlowStatement {
 	return append([]ControlFlowStatement(nil), b.statements...)
 }
-func (b *controlFlowBlock) ControlFlowStatements() []ControlFlowStatement {
+func (b *blockBase) ControlFlowStatements() []ControlFlowStatement {
 	out := append([]ControlFlowStatement(nil), b.statements...)
 	for _, child := range b.blocks {
 		out = append(out, child.ControlFlowStatements()...)
 	}
 	return out
 }
-func (b *controlFlowBlock) CaseCount() int   { return b.caseCount }
-func (b *controlFlowBlock) HasDefault() bool { return b.hasDefault }
-func (b *controlFlowBlock) HasBreak() bool   { return b.hasBreak }
+
+func (b *ifBlock) Kind() string      { return "if" }
+func (b *ifBlock) IfChainID() string { return b.ifChainID }
+func (b *ifBlock) IfStep() int {
+	if len(b.branches) == 0 {
+		return 1
+	}
+	return b.branches[0].Step()
+}
+func (b *ifBlock) Branches() []IfBranch {
+	return append([]IfBranch(nil), b.branches...)
+}
+func (b *ifBlock) CaseCount() int   { return 0 }
+func (b *ifBlock) HasDefault() bool { return false }
+func (b *ifBlock) HasBreak() bool   { return false }
+
+func (b *ifBranch) Kind() string       { return b.kind }
+func (b *ifBranch) Location() Location { return b.location }
+func (b *ifBranch) Step() int          { return b.step }
+func (b *ifBranch) Blocks() []Block    { return append([]Block(nil), b.blocks...) }
+
+func (b *loopBlock) Kind() string      { return b.kind }
+func (b *loopBlock) LoopKind() string  { return b.kind }
+func (b *loopBlock) IfChainID() string { return "" }
+func (b *loopBlock) IfStep() int       { return 0 }
+func (b *loopBlock) CaseCount() int    { return 0 }
+func (b *loopBlock) HasDefault() bool  { return false }
+func (b *loopBlock) HasBreak() bool    { return b.hasBreak }
+
+func (b *switchBlock) Kind() string       { return b.kind }
+func (b *switchBlock) SwitchKind() string { return b.kind }
+func (b *switchBlock) IfChainID() string  { return "" }
+func (b *switchBlock) IfStep() int        { return 0 }
+func (b *switchBlock) CaseCount() int     { return b.caseCount }
+func (b *switchBlock) HasDefault() bool   { return b.hasDefault }
+func (b *switchBlock) HasBreak() bool     { return false }
+
+func (b *caseBlock) Kind() string      { return "case" }
+func (b *caseBlock) IfChainID() string { return "" }
+func (b *caseBlock) IfStep() int       { return 0 }
+func (b *caseBlock) CaseCount() int    { return 0 }
+func (b *caseBlock) HasDefault() bool  { return false }
+func (b *caseBlock) HasBreak() bool    { return false }
+
+func (b *anonymousBlock) Kind() string      { return "block" }
+func (b *anonymousBlock) IfChainID() string { return "" }
+func (b *anonymousBlock) IfStep() int       { return 0 }
+func (b *anonymousBlock) CaseCount() int    { return 0 }
+func (b *anonymousBlock) HasDefault() bool  { return false }
+func (b *anonymousBlock) HasBreak() bool    { return false }
 
 func (r *reference) Parent() Declaration      { return r.parent }
 func (r *reference) Declaration() Declaration { return r.declaration }
