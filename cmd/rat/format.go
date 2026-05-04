@@ -537,11 +537,16 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark, returnTota
 				}
 				keyword := "if"
 				kind := "if"
-				if branch.Kind() == "else" {
-					keyword = "else"
-					kind = "else"
-				} else if branch.Kind() == "elseif" {
-					keyword = "else if"
+				switch typed := branch.(type) {
+				case file.ElseBranch:
+					if typed.IsElse() {
+						keyword = "else"
+						kind = "else"
+					}
+				case file.ConditionalBranch:
+					if typed.IsElseIf() {
+						keyword = "else if"
+					}
 				}
 				mark := newControlFlowMark(branch.Location(), kind, keyword, gutterPrefix+gutter)
 				mark.depth = depth
@@ -600,10 +605,7 @@ func collectIfChainSizes(blocks []file.Block) map[string]int {
 			if block == nil {
 				continue
 			}
-			if ifBlock, ok := block.(interface {
-				IfChainID() string
-				Branches() []file.IfBranch
-			}); ok {
+			if ifBlock, ok := block.(file.IfBlock); ok {
 				id := ifBlock.IfChainID()
 				if id == "" {
 					visit(block.Blocks())

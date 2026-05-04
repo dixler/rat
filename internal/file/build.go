@@ -205,7 +205,12 @@ func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
 	if kind != "if" && kind != "elseif" && kind != "else" {
 		return
 	}
-	branch := &ifBranch{kind: kind, location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}
+	var branch IfBranch
+	if kind == "else" {
+		branch = &elseBranch{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}
+	} else {
+		branch = &ifBranch{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep, elseIf: kind == "elseif"}
+	}
 	for _, stmt := range raw.Statements {
 		dst.statements = append(dst.statements, &controlFlowStatement{kind: stmt.Kind, location: newLocation(stmt.File, stmt.Line, stmt.Column)})
 	}
@@ -214,7 +219,12 @@ func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
 			collectIfBranches(child, dst)
 			continue
 		}
-		branch.blocks = append(branch.blocks, buildBlock(child))
+		switch typed := branch.(type) {
+		case *ifBranch:
+			typed.blocks = append(typed.blocks, buildBlock(child))
+		case *elseBranch:
+			typed.blocks = append(typed.blocks, buildBlock(child))
+		}
 	}
 	dst.branches = append(dst.branches, branch)
 }

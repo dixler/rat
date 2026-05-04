@@ -46,7 +46,6 @@ type Declaration interface {
 	References() []Reference
 	Declarations() []Declaration
 	Blocks() []Block
-	ControlFlowBlocks() []ControlFlowBlock
 	Parent() Declaration
 	Escapes() bool
 }
@@ -63,16 +62,6 @@ type Block interface {
 	ControlFlowStatements() []ControlFlowStatement
 }
 
-type ControlFlowBlock interface {
-	Block
-	Kind() string
-	IfChainID() string
-	IfStep() int
-	CaseCount() int
-	HasDefault() bool
-	HasBreak() bool
-}
-
 type IfBlock interface {
 	Block
 	IfChainID() string
@@ -80,10 +69,19 @@ type IfBlock interface {
 }
 
 type IfBranch interface {
-	Kind() string
 	Location() Location
 	Step() int
 	Blocks() []Block
+}
+
+type ConditionalBranch interface {
+	IfBranch
+	IsElseIf() bool
+}
+
+type ElseBranch interface {
+	IfBranch
+	IsElse() bool
 }
 
 type LoopBlock interface {
@@ -165,7 +163,13 @@ type ifBlock struct {
 }
 
 type ifBranch struct {
-	kind     string
+	location location
+	step     int
+	blocks   []Block
+	elseIf   bool
+}
+
+type elseBranch struct {
 	location location
 	step     int
 	blocks   []Block
@@ -263,16 +267,7 @@ func (d *declaration) References() []Reference { return append([]Reference(nil),
 func (d *declaration) Declarations() []Declaration {
 	return append([]Declaration(nil), d.declarations...)
 }
-func (d *declaration) Blocks() []Block { return append([]Block(nil), d.blocks...) }
-func (d *declaration) ControlFlowBlocks() []ControlFlowBlock {
-	out := make([]ControlFlowBlock, 0, len(d.blocks))
-	for _, block := range d.blocks {
-		if typed, ok := block.(ControlFlowBlock); ok {
-			out = append(out, typed)
-		}
-	}
-	return out
-}
+func (d *declaration) Blocks() []Block     { return append([]Block(nil), d.blocks...) }
 func (d *declaration) Parent() Declaration { return d.parent }
 func (d *declaration) Escapes() bool       { return d.escapes }
 
@@ -294,55 +289,24 @@ func (b *blockBase) ControlFlowStatements() []ControlFlowStatement {
 	return out
 }
 
-func (b *ifBlock) Kind() string      { return "if" }
 func (b *ifBlock) IfChainID() string { return b.ifChainID }
-func (b *ifBlock) IfStep() int {
-	if len(b.branches) == 0 {
-		return 1
-	}
-	return b.branches[0].Step()
-}
 func (b *ifBlock) Branches() []IfBranch {
 	return append([]IfBranch(nil), b.branches...)
 }
-func (b *ifBlock) CaseCount() int   { return 0 }
-func (b *ifBlock) HasDefault() bool { return false }
-func (b *ifBlock) HasBreak() bool   { return false }
-
-func (b *ifBranch) Kind() string       { return b.kind }
 func (b *ifBranch) Location() Location { return b.location }
 func (b *ifBranch) Step() int          { return b.step }
 func (b *ifBranch) Blocks() []Block    { return append([]Block(nil), b.blocks...) }
+func (b *ifBranch) IsElseIf() bool     { return b.elseIf }
 
-func (b *loopBlock) Kind() string      { return b.kind }
-func (b *loopBlock) LoopKind() string  { return b.kind }
-func (b *loopBlock) IfChainID() string { return "" }
-func (b *loopBlock) IfStep() int       { return 0 }
-func (b *loopBlock) CaseCount() int    { return 0 }
-func (b *loopBlock) HasDefault() bool  { return false }
-func (b *loopBlock) HasBreak() bool    { return b.hasBreak }
-
-func (b *switchBlock) Kind() string       { return b.kind }
+func (b *elseBranch) Location() Location  { return b.location }
+func (b *elseBranch) Step() int           { return b.step }
+func (b *elseBranch) Blocks() []Block     { return append([]Block(nil), b.blocks...) }
+func (b *elseBranch) IsElse() bool        { return true }
+func (b *loopBlock) LoopKind() string     { return b.kind }
+func (b *loopBlock) HasBreak() bool       { return b.hasBreak }
 func (b *switchBlock) SwitchKind() string { return b.kind }
-func (b *switchBlock) IfChainID() string  { return "" }
-func (b *switchBlock) IfStep() int        { return 0 }
 func (b *switchBlock) CaseCount() int     { return b.caseCount }
 func (b *switchBlock) HasDefault() bool   { return b.hasDefault }
-func (b *switchBlock) HasBreak() bool     { return false }
-
-func (b *caseBlock) Kind() string      { return "case" }
-func (b *caseBlock) IfChainID() string { return "" }
-func (b *caseBlock) IfStep() int       { return 0 }
-func (b *caseBlock) CaseCount() int    { return 0 }
-func (b *caseBlock) HasDefault() bool  { return false }
-func (b *caseBlock) HasBreak() bool    { return false }
-
-func (b *anonymousBlock) Kind() string      { return "block" }
-func (b *anonymousBlock) IfChainID() string { return "" }
-func (b *anonymousBlock) IfStep() int       { return 0 }
-func (b *anonymousBlock) CaseCount() int    { return 0 }
-func (b *anonymousBlock) HasDefault() bool  { return false }
-func (b *anonymousBlock) HasBreak() bool    { return false }
 
 func (r *reference) Parent() Declaration      { return r.parent }
 func (r *reference) Declaration() Declaration { return r.declaration }
