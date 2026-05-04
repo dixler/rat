@@ -58,7 +58,7 @@ func toDeclaration(src *reftree.Declaration, parent Declaration, declMap map[*re
 	}
 	d := &declaration{
 		name:     src.Name,
-		kind:     mapKind(src.Kind),
+		kind:     Kind(src.Kind),
 		location: newLocation(src.File, src.Line, src.Column),
 		parent:   parent,
 		escapes:  src.Escapes,
@@ -78,7 +78,7 @@ func attachReferencesFromRefTree(declMap map[*reftree.Declaration]*declaration) 
 				parent:   dst,
 				location: newLocation(rr.File, rr.Line, rr.Column),
 				text:     rr.Text,
-				kind:     mapKind(rr.Kind),
+				kind:     Kind(rr.Kind),
 				escapes:  rr.Escapes,
 			}
 			if rr.Declaration != nil {
@@ -98,7 +98,7 @@ func ensureMappedDeclaration(src *reftree.Declaration, declMap map[*reftree.Decl
 	}
 	mapped := &declaration{
 		name:     src.Name,
-		kind:     mapKind(src.Kind),
+		kind:     Kind(src.Kind),
 		location: newLocation(src.File, src.Line, src.Column),
 		escapes:  src.Escapes,
 	}
@@ -111,25 +111,11 @@ func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
 	for _, f := range raw.Files {
 		fd := &declaration{name: filepath.Base(f.File), kind: KindFile, location: newLocation(f.File, f.Line, f.Column)}
 		for _, d := range f.Declarations {
-			fd.declarations = append(fd.declarations, &declaration{name: d.Name, kind: mapKind(d.Kind), location: newLocation(d.File, d.Line, d.Column), parent: fd})
+			fd.declarations = append(fd.declarations, &declaration{name: d.Name, kind: Kind(d.Kind), location: newLocation(d.File, d.Line, d.Column), parent: fd})
 		}
 		p.files = append(p.files, fd)
 	}
 	return p
-}
-
-func mapKind(kind string) Kind {
-	if kind, ok := map[string]Kind{
-		scan.KindType:      KindType,
-		scan.KindVariable:  KindVariable,
-		scan.KindParameter: KindParameter,
-		scan.KindFunction:  KindFunction,
-		scan.KindPackage:   KindPackage,
-		scan.KindFile:      KindFile,
-	}[kind]; ok {
-		return kind
-	}
-	return KindVariable
 }
 
 func newLocation(file string, line, column int) location {
