@@ -97,6 +97,11 @@ type SwitchBlock interface {
 	HasDefault() bool
 }
 
+type CaseBlock interface {
+	Block
+	IsDefault() bool
+}
+
 type PackageReference interface {
 	Reference
 	Package() PackageDeclaration
@@ -192,6 +197,7 @@ type switchBlock struct {
 
 type caseBlock struct {
 	blockBase
+	isDefault bool
 }
 
 type anonymousBlock struct {
@@ -306,6 +312,7 @@ func (b *loopBlock) HasBreak() bool       { return b.hasBreak }
 func (b *switchBlock) SwitchKind() string { return b.kind }
 func (b *switchBlock) CaseCount() int     { return b.caseCount }
 func (b *switchBlock) HasDefault() bool   { return b.hasDefault }
+func (b *caseBlock) IsDefault() bool      { return b.isDefault }
 
 func (r *reference) Parent() Declaration      { return r.parent }
 func (r *reference) Declaration() Declaration { return r.declaration }

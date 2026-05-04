@@ -564,6 +564,9 @@ func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, clauses []ast.Stmt)
 		block.CaseCount++
 		casePos := b.fset.Position(clause.Case)
 		caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: casePos.Line, Column: casePos.Column}
+		if clause.List == nil {
+			caseBlock.HasDefault = true
+		}
 		caseBlock.Blocks = b.buildBlocks(clause.Body)
 		block.Blocks = append(block.Blocks, caseBlock)
 	}
@@ -587,6 +590,9 @@ func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowB
 			block.CaseCount++
 			casePos := b.fset.Position(clause.Case)
 			caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: casePos.Line, Column: casePos.Column}
+			if clause.Comm == nil {
+				caseBlock.HasDefault = true
+			}
 			caseBlock.Blocks = b.buildBlocks(clause.Body)
 			block.Blocks = append(block.Blocks, caseBlock)
 		}

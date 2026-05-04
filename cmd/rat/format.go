@@ -546,6 +546,15 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 			}
 			mark := newControlFlowMark(block.Location(), b.SwitchKind(), style)
 			*marks = append(*marks, mark)
+			if b.HasDefault() {
+				for _, child := range block.Blocks() {
+					caseBlock, ok := child.(file.CaseBlock)
+					if !ok || !caseBlock.IsDefault() {
+						continue
+					}
+					*marks = append(*marks, newControlFlowMark(child.Location(), "default", style))
+				}
+			}
 		}
 		for _, child := range block.Blocks() {
 			if child == nil {

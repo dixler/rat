@@ -157,7 +157,7 @@ func buildBlock(raw controlflow.Block) Block {
 	case scan.BlockKindSwitch, scan.BlockKindSelect:
 		block = &switchBlock{blockBase: base, kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}
 	case scan.BlockKindCase:
-		block = &caseBlock{blockBase: base}
+		block = &caseBlock{blockBase: base, isDefault: raw.HasDefault}
 	default:
 		block = &anonymousBlock{blockBase: base}
 	}
