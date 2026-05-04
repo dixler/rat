@@ -53,34 +53,24 @@ func RenderSource(src string, spans map[int][]Span, lineNumberStyles map[int]Sty
 	lines := strings.Split(src, "\n")
 	lineNumberWidth := len(strconv.Itoa(len(lines)))
 	defaultLineNumberStyle := White
-	markerWidth := gutterMarkerWidth(lineMarkers)
 	for i, line := range lines {
 		lineNo := i + 1
 		lineNumberStyle, ok := lineNumberStyles[i+1]
 		if !ok || lineNumberStyle == "" {
 			lineNumberStyle = defaultLineNumberStyle
 		}
-		lineNumber := fmt.Sprintf("%*d", lineNumberWidth, lineNo)
-		marker := " "
+		marker := ""
 		if lineMarkers != nil {
-			if m, ok := lineMarkers[lineNo]; ok && m != "" {
-				marker = m
-			}
+			marker = lineMarkers[lineNo]
 		}
-		marker = fmt.Sprintf("%-*s", markerWidth, marker)
-		fmt.Fprintf(&b, " %s %s %s\n", lineNumberStyle.Format(lineNumber), lineNumberStyle.Format(marker), ColorLine(line, spans[lineNo]))
+		if marker != "" {
+			pad := strings.Repeat(" ", lineNumberWidth)
+			fmt.Fprintf(&b, " %s %s\n", lineNumberStyle.Format(pad), lineNumberStyle.Format(marker))
+		}
+		lineNumber := fmt.Sprintf("%*d", lineNumberWidth, lineNo)
+		fmt.Fprintf(&b, " %s %s\n", lineNumberStyle.Format(lineNumber), ColorLine(line, spans[lineNo]))
 	}
 	return strings.ReplaceAll(b.String(), "\t", strings.Repeat(" ", 4))
-}
-
-func gutterMarkerWidth(lineMarkers map[int]string) int {
-	width := 1
-	for _, marker := range lineMarkers {
-		if len(marker) > width {
-			width = len(marker)
-		}
-	}
-	return width
 }
 
 func ColorLine(line string, spans []Span) string {

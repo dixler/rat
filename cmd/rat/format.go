@@ -59,27 +59,16 @@ type ParseResult struct {
 
 type controlFlowMark struct {
 	loc       file.Location
-	kind      string
-	gutter    string
-	depth     int
 	text      string
 	textStyle display.Style
 	lineStyle display.Style
 }
 
-var controlFlowLineStyle = display.Bold + display.Orange
-
-var controlFlowTextStyles = map[string]display.Style{
-	"return":   display.Bold + display.Orange,
-	"if":       display.Bold + display.Orange,
-	"else":     display.Bold + display.Orange,
-	"switch":   display.Bold + display.Orange,
-	"select":   display.Bold + display.Orange,
-	"break":    display.Bold + display.Amber,
-	"continue": display.Bold + display.Lime,
-	"panic":    display.Bold + display.CoralRed,
-	"goto":     display.Bold + display.HotMagenta,
-}
+var (
+	controlFlowGreen  = display.Bold + display.Green
+	controlFlowOrange = display.Bold + display.Orange
+	controlFlowReturn = display.Bold + display.HotMagenta
+)
 
 func (r *Renderer) printHeader(f file.File) {
 	headerStyle := display.Bold
@@ -429,13 +418,6 @@ func ParseFormats(f file.File) ParseResult {
 			continue
 		}
 		result.LineSpans[mark.loc.Line()] = mark.lineStyle
-		if mark.gutter != "" {
-			if existing := result.LineMarkers[mark.loc.Line()]; existing != "" {
-				result.LineMarkers[mark.loc.Line()] = existing + "/" + mark.gutter
-			} else {
-				result.LineMarkers[mark.loc.Line()] = mark.gutter
-			}
-		}
 		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, mark.textStyle, false)
 	}
 
@@ -479,19 +461,12 @@ func collectControlFlowMarks(f file.File) []controlFlowMark {
 	return marks
 }
 
-func newControlFlowMark(loc file.Location, kind, text, gutter string) controlFlowMark {
-	textStyle := controlFlowTextStyles[kind]
-	if textStyle == "" {
-		textStyle = display.Bold + display.Orange
-	}
+func newControlFlowMark(loc file.Location, text string, style display.Style) controlFlowMark {
 	return controlFlowMark{
 		loc:       loc,
-		kind:      kind,
-		gutter:    gutter,
-		depth:     0,
 		text:      text,
-		textStyle: textStyle,
-		lineStyle: controlFlowLineStyle,
+		textStyle: style,
+		lineStyle: style,
 	}
 }
 
@@ -512,133 +487,82 @@ func collectFunctionControlFlowMarks(decl file.Declaration, marks *[]controlFlow
 	if len(blocks) == 0 {
 		return
 	}
-	returnLocs := collectFunctionStatementLocations(blocks, "return")
-	returnTotal := len(returnLocs)
-	ifChainSizes := collectIfChainSizes(blocks)
-	collectBlockMarks(blocks, marks, returnTotal, ifChainSizes, 0)
+	collectBlockMarks(blocks, marks)
 }
 
-func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark, returnTotal int, ifChainSizes map[string]int, depth int) {
+func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 	for _, block := range blocks {
 		if block == nil || block.Location() == nil {
 			continue
 		}
-		gutterPrefix := strings.Repeat("  ", depth)
 		switch b := block.(type) {
 		case file.IfBlock:
+			style := controlFlowOrange
+			hasElse := false
 			for _, branch := range b.Branches() {
-				step := branch.Step()
-				if step < 1 {
-					step = 1
+				if _, ok := branch.(file.ElseBranch); ok {
+					hasElse = true
+					break
 				}
-				gutter := ")"
-				if ifChainSizes[b.IfChainID()] > 1 {
-					gutter = fmt.Sprintf("%d)", step)
-				}
+			}
+			if hasElse {
+				style = controlFlowGreen
+			}
+			for _, branch := range b.Branches() {
 				keyword := "if"
-				kind := "if"
 				switch typed := branch.(type) {
 				case file.ElseBranch:
 					if typed.IsElse() {
 						keyword = "else"
-						kind = "else"
 					}
 				case file.ConditionalBranch:
 					if typed.IsElseIf() {
 						keyword = "else if"
 					}
 				}
-				mark := newControlFlowMark(branch.Location(), kind, keyword, gutterPrefix+gutter)
-				mark.depth = depth
+				mark := newControlFlowMark(branch.Location(), keyword, style)
 				*marks = append(*marks, mark)
 			}
 		case file.LoopBlock:
-			gutter := ">>"
+			style := controlFlowGreen
 			if b.HasBreak() {
-				gutter = ">>?"
+				style = controlFlowOrange
 			}
-			mark := newControlFlowMark(block.Location(), "break", b.LoopKind(), gutterPrefix+gutter)
-			mark.depth = depth
+			keyword := b.LoopKind()
+			if keyword == "range" {
+				keyword = "for"
+			}
+			mark := newControlFlowMark(block.Location(), keyword, style)
 			*marks = append(*marks, mark)
-		case file.SwitchBlock:
-			prefix := "#"
-			if b.SwitchKind() == "select" {
-				prefix = "|"
-			}
-			gutter := fmt.Sprintf("%s%d", prefix, b.CaseCount())
-			if b.HasDefault() {
-				gutter += "*"
-			}
-			mark := newControlFlowMark(block.Location(), b.SwitchKind(), b.SwitchKind(), gutterPrefix+gutter)
-			mark.depth = depth
-			*marks = append(*marks, mark)
-		}
-		for _, stmt := range block.Statements() {
-			if stmt == nil || stmt.Location() == nil {
-				continue
-			}
-			if stmt.Kind() == "return" {
-				gutter := "<<"
-				if returnTotal > 1 {
-					gutter = fmt.Sprintf("<<%d", returnTotal)
+			if b.HasBreak() {
+				for _, stmt := range block.Statements() {
+					if stmt == nil || stmt.Location() == nil || stmt.Kind() != "break" {
+						continue
+					}
+					*marks = append(*marks, newControlFlowMark(stmt.Location(), "break", controlFlowOrange))
 				}
-				mark := newControlFlowMark(stmt.Location(), "return", "return", gutterPrefix+gutter)
-				mark.depth = depth
-				*marks = append(*marks, mark)
 			}
+		case file.SwitchBlock:
+			style := controlFlowOrange
+			if b.HasDefault() {
+				style = controlFlowGreen
+			}
+			mark := newControlFlowMark(block.Location(), b.SwitchKind(), style)
+			*marks = append(*marks, mark)
 		}
 		for _, child := range block.Blocks() {
 			if child == nil {
 				continue
 			}
-			childDepth := depth + 1
-			collectBlockMarks([]file.Block{child}, marks, returnTotal, ifChainSizes, childDepth)
+			collectBlockMarks([]file.Block{child}, marks)
 		}
-	}
-}
-
-func collectIfChainSizes(blocks []file.Block) map[string]int {
-	out := map[string]int{}
-	var visit func([]file.Block)
-	visit = func(items []file.Block) {
-		for _, block := range items {
-			if block == nil {
+		for _, stmt := range block.Statements() {
+			if stmt == nil || stmt.Location() == nil || stmt.Kind() != "return" {
 				continue
 			}
-			if ifBlock, ok := block.(file.IfBlock); ok {
-				id := ifBlock.IfChainID()
-				if id == "" {
-					visit(block.Blocks())
-					continue
-				}
-				for _, branch := range ifBlock.Branches() {
-					step := branch.Step()
-					if step > out[id] {
-						out[id] = step
-					}
-				}
-			}
-			visit(block.Blocks())
+			*marks = append(*marks, newControlFlowMark(stmt.Location(), "return", controlFlowReturn))
 		}
 	}
-	visit(blocks)
-	return out
-}
-
-func collectFunctionStatementLocations(blocks []file.Block, kind string) []file.Location {
-	out := make([]file.Location, 0)
-	for _, block := range blocks {
-		if block == nil {
-			continue
-		}
-		for _, stmt := range block.ControlFlowStatements() {
-			if stmt == nil || stmt.Location() == nil || stmt.Kind() != kind {
-				continue
-			}
-			out = append(out, stmt.Location())
-		}
-	}
-	return out
 }
 
 func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
