@@ -8,15 +8,6 @@ import (
 	"rat/internal/file/scan"
 )
 
-var kindMap = map[string]Kind{
-	scan.KindType:      KindType,
-	scan.KindVariable:  KindVariable,
-	scan.KindParameter: KindParameter,
-	scan.KindFunction:  KindFunction,
-	scan.KindPackage:   KindPackage,
-	scan.KindFile:      KindFile,
-}
-
 func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaration, []Location, []IndirectCall, error) {
 	tree, err := reftree.Build(raw)
 	if err != nil {
@@ -128,8 +119,15 @@ func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
 }
 
 func mapKind(kind string) Kind {
-	if mapped, ok := kindMap[kind]; ok {
-		return mapped
+	if kind, ok := map[string]Kind{
+		scan.KindType:      KindType,
+		scan.KindVariable:  KindVariable,
+		scan.KindParameter: KindParameter,
+		scan.KindFunction:  KindFunction,
+		scan.KindPackage:   KindPackage,
+		scan.KindFile:      KindFile,
+	}[kind]; ok {
+		return kind
 	}
 	return KindVariable
 }

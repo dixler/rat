@@ -140,8 +140,7 @@ const (
 )
 
 const (
-	StatementKindReturn = "return"
-	StatementKindPanic  = "panic"
+	StatementKindPanic = "panic"
 )
 
 func Build(file string) (*Result, error) {
@@ -614,7 +613,7 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 			switch s := n.(type) {
 			case *ast.ReturnStmt:
 				p := b.fset.Position(s.Return)
-				out = append(out, ControlFlowStatement{Kind: StatementKindReturn, File: b.file, Line: p.Line, Column: p.Column})
+				out = append(out, ControlFlowStatement{Kind: "return", File: b.file, Line: p.Line, Column: p.Column})
 			case *ast.BranchStmt:
 				if s.Tok == token.BREAK {
 					b.markBreakTarget(s)
