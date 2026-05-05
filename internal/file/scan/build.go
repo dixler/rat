@@ -342,7 +342,7 @@ func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 	switch s := spec.(type) {
 	case *ast.TypeSpec:
 		decl := b.newDeclaration(s.Name, KindType)
-		b.appendTypeParamDeclarations(&decl, s.TypeParams)
+		b.appendFieldDeclarations(&decl, s.TypeParams, KindParameter)
 		b.appendInterfaceMethodDeclarations(&decl, s.Type)
 		b.collectReferences(s.Type, &decl)
 		return []Declaration{decl}
@@ -375,7 +375,7 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 		b.appendFieldDeclarations(&decl, fn.Recv, KindParameter)
 	}
 	if fn.Type != nil {
-		b.appendTypeParamDeclarations(&decl, fn.Type.TypeParams)
+		b.appendFieldDeclarations(&decl, fn.Type.TypeParams, KindParameter)
 		b.appendFieldDeclarations(&decl, fn.Type.Params, KindParameter)
 		b.collectReferences(fn.Type, &decl)
 	}
@@ -596,10 +596,8 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 			if n == nil {
 				return true
 			}
-			if n != node {
-				if _, ok := n.(*ast.FuncLit); ok {
-					return false
-				}
+			if _, ok := n.(*ast.FuncLit); ok && n != node {
+				return false
 			}
 			switch s := n.(type) {
 			case *ast.ReturnStmt:
@@ -644,10 +642,6 @@ func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
 	if target != nil && target.Kind == BlockKindFor {
 		target.HasBreak = true
 	}
-}
-
-func (b *builder) appendTypeParamDeclarations(parent *Declaration, fields *ast.FieldList) {
-	b.appendFieldDeclarations(parent, fields, KindParameter)
 }
 
 func (b *builder) appendInterfaceMethodDeclarations(parent *Declaration, expr ast.Expr) {
