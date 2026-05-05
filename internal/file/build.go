@@ -152,12 +152,7 @@ func buildBlock(raw controlflow.Block) Block {
 	if basePtr == nil {
 		return block
 	}
-	for _, stmt := range raw.Statements {
-		basePtr.statements = append(basePtr.statements, &controlFlowStatement{
-			kind:     stmt.Kind,
-			location: newLocation(stmt.File, stmt.Line, stmt.Column),
-		})
-	}
+	appendControlFlowStatements(&basePtr.statements, raw.Statements)
 	for _, child := range raw.Blocks {
 		basePtr.blocks = append(basePtr.blocks, buildBlock(child))
 	}
@@ -186,15 +181,14 @@ func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
 	if !isIfBranchKind(kind) {
 		return
 	}
+	loc := newLocation(raw.File, raw.Line, raw.Column)
 	var branch IfBranch
 	if kind == scan.BlockKindElse {
-		branch = &elseBranch{ifBranchBase: ifBranchBase{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}}
+		branch = &elseBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep}}
 	} else {
-		branch = &ifBranch{ifBranchBase: ifBranchBase{location: newLocation(raw.File, raw.Line, raw.Column), step: raw.IfStep}, elseIf: kind == scan.BlockKindElseIf}
+		branch = &ifBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep}, elseIf: kind == scan.BlockKindElseIf}
 	}
-	for _, stmt := range raw.Statements {
-		dst.statements = append(dst.statements, &controlFlowStatement{kind: stmt.Kind, location: newLocation(stmt.File, stmt.Line, stmt.Column)})
-	}
+	appendControlFlowStatements(&dst.statements, raw.Statements)
 	for _, child := range raw.Blocks {
 		if child.Kind == scan.BlockKindElseIf || child.Kind == scan.BlockKindElse {
 			collectIfBranches(child, dst)
@@ -205,6 +199,12 @@ func collectIfBranches(raw controlflow.Block, dst *ifBlock) {
 		}
 	}
 	dst.branches = append(dst.branches, branch)
+}
+
+func appendControlFlowStatements(dst *[]ControlFlowStatement, raw []controlflow.Statement) {
+	for _, stmt := range raw {
+		*dst = append(*dst, &controlFlowStatement{kind: stmt.Kind, location: newLocation(stmt.File, stmt.Line, stmt.Column)})
+	}
 }
 
 func isIfBranchKind(kind string) bool {
