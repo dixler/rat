@@ -119,6 +119,13 @@ type DeclarationSummary struct {
 	Column int
 }
 
+type NamedField struct {
+	File   string
+	Line   int
+	Column int
+	Text   string
+}
+
 const (
 	KindPackage   = "package"
 	KindType      = "type"
@@ -894,4 +901,82 @@ func sortReferences(refs []Reference) {
 		}
 		return refs[i].Column < refs[j].Column
 	})
+}
+
+func TopLevelNamedFields(name, source string) []NamedField {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, name, source, parser.SkipObjectResolution)
+	if err != nil || node == nil {
+		return nil
+	}
+
+	var out []NamedField
+	for _, decl := range node.Decls {
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok || gen.Tok != token.TYPE {
+			continue
+		}
+		for _, spec := range gen.Specs {
+			ts, ok := spec.(*ast.TypeSpec)
+			if !ok {
+				continue
+			}
+			switch t := ts.Type.(type) {
+			case *ast.StructType:
+				collectNamedFields(fset, t.Fields, &out)
+				for _, field := range t.Fields.List {
+					collectNamedFieldsInExpr(fset, field.Type, &out)
+				}
+			case *ast.InterfaceType:
+				collectNamedFields(fset, t.Methods, &out)
+			}
+		}
+	}
+
+	return out
+}
+
+func collectNamedFields(fset *token.FileSet, fields *ast.FieldList, out *[]NamedField) {
+	if fields == nil {
+		return
+	}
+	for _, field := range fields.List {
+		for _, name := range field.Names {
+			pos := fset.Position(name.Pos())
+			if pos.Line < 1 || pos.Column < 1 {
+				continue
+			}
+			*out = append(*out, NamedField{File: pos.Filename, Line: pos.Line, Column: pos.Column, Text: name.Name})
+		}
+	}
+}
+
+func collectNamedFieldsInExpr(fset *token.FileSet, expr ast.Expr, out *[]NamedField) {
+	switch n := expr.(type) {
+	case *ast.StructType:
+		collectNamedFields(fset, n.Fields, out)
+		for _, field := range n.Fields.List {
+			collectNamedFieldsInExpr(fset, field.Type, out)
+		}
+	case *ast.FuncType:
+		if n.Params != nil {
+			for _, p := range n.Params.List {
+				collectNamedFieldsInExpr(fset, p.Type, out)
+			}
+		}
+		if n.Results != nil {
+			for _, r := range n.Results.List {
+				collectNamedFieldsInExpr(fset, r.Type, out)
+			}
+		}
+	case *ast.ArrayType:
+		collectNamedFieldsInExpr(fset, n.Elt, out)
+	case *ast.MapType:
+		collectNamedFieldsInExpr(fset, n.Key, out)
+		collectNamedFieldsInExpr(fset, n.Value, out)
+	case *ast.StarExpr:
+		collectNamedFieldsInExpr(fset, n.X, out)
+	case *ast.ChanType:
+		collectNamedFieldsInExpr(fset, n.Value, out)
+	}
 }

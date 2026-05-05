@@ -113,6 +113,11 @@ type PackageDeclaration interface {
 	Files() []Declaration
 }
 
+type NamedLocation interface {
+	Location() Location
+	Text() string
+}
+
 type File interface {
 	Name() string
 	Source() string
@@ -224,6 +229,11 @@ type packageDeclaration struct {
 	files    []Declaration
 }
 
+type namedLocation struct {
+	location location
+	text     string
+}
+
 func Analyze(name string) (File, error) {
 	return New(name)
 }
@@ -327,6 +337,22 @@ func (p *packageDeclaration) Name() string         { return p.name }
 func (p *packageDeclaration) Location() Location   { return p.location }
 func (p *packageDeclaration) Files() []Declaration { return append([]Declaration(nil), p.files...) }
 
+func (n namedLocation) Location() Location { return n.location }
+func (n namedLocation) Text() string       { return n.text }
+
+func TopLevelNamedFields(f File) []NamedLocation {
+	if f == nil {
+		return nil
+	}
+
+	var out []NamedLocation
+	for _, field := range scan.TopLevelNamedFields(f.Name(), f.Source()) {
+		out = append(out, namedLocation{location: location{file: field.File, line: field.Line, column: field.Column}, text: field.Text})
+	}
+
+	return out
+}
+
 type indirectCall struct {
 	location location
 	text     string
@@ -334,3 +360,33 @@ type indirectCall struct {
 
 func (c *indirectCall) Location() Location { return c.location }
 func (c *indirectCall) Text() string       { return c.text }
+
+func ProjectRoot(path string) string {
+	path = filepath.Clean(path)
+	abs, err := filepath.Abs(path)
+	if err == nil {
+		path = abs
+	}
+	dir := path
+	if filepath.Ext(dir) != "" {
+		dir = filepath.Dir(dir)
+	}
+	for {
+		if pathExists(filepath.Join(dir, ".git")) || pathExists(filepath.Join(dir, "go.mod")) {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+		dir = parent
+	}
+}
+
+func pathExists(path string) bool {
+	if path == "" {
+		return false
+	}
+	_, err := os.Stat(path)
+	return err == nil
+}
