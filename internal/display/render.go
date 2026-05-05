@@ -14,6 +14,7 @@ const (
 	Underline     Style = "\x1b[4m"
 	Gray          Style = "\x1b[90m"
 	Red           Style = "\x1b[31m"
+	BrightRed     Style = "\x1b[91m"
 	MutedOrange   Style = "\x1b[38;5;130m"
 	Orange        Style = "\x1b[38;5;208m"
 	VibrantOrange Style = "\x1b[38;5;215m"

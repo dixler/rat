@@ -29,7 +29,7 @@ var kindStyles = map[file.Kind]display.Style{
 	file.KindVariable:  display.Orange,
 	file.KindParameter: display.VibrantOrange,
 	file.KindFunction:  display.Green,
-	file.KindPackage:   display.Purple,
+	file.KindPackage:   display.Lavender,
 	file.KindFile:      display.Orange,
 }
 
@@ -38,7 +38,7 @@ var relationStyles = map[relation]display.Style{
 	relSameFile:     display.LightGreen,
 	relSamePackage:  display.Cyan,
 	relSameProject:  display.Blue,
-	relExternal:     display.Purple,
+	relExternal:     display.Lavender,
 }
 
 type refGroup struct {
@@ -433,7 +433,7 @@ func ParseFormats(f file.File) ParseResult {
 
 func collectPackageReferenceSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, ref := range f.PackageReferences() {
-		addImportReferenceSpan(out, sourceLines, ref, display.HotMagenta)
+		addImportReferenceSpan(out, sourceLines, ref, display.Lavender)
 	}
 }
 
