@@ -372,27 +372,11 @@ func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	decl := b.newDeclaration(fn.Name, KindFunction)
 	if fn.Recv != nil {
-		for _, field := range fn.Recv.List {
-			for _, name := range field.Names {
-				if name == nil || name.Name == "_" {
-					continue
-				}
-				decl.Declarations = append(decl.Declarations, b.newDeclaration(name, KindParameter))
-			}
-		}
+		b.appendFieldDeclarations(&decl, fn.Recv, KindParameter)
 	}
 	if fn.Type != nil {
 		b.appendTypeParamDeclarations(&decl, fn.Type.TypeParams)
-		if fn.Type.Params != nil {
-			for _, field := range fn.Type.Params.List {
-				for _, name := range field.Names {
-					if name == nil || name.Name == "_" {
-						continue
-					}
-					decl.Declarations = append(decl.Declarations, b.newDeclaration(name, KindParameter))
-				}
-			}
-		}
+		b.appendFieldDeclarations(&decl, fn.Type.Params, KindParameter)
 		b.collectReferences(fn.Type, &decl)
 	}
 	if fn.Body == nil {
@@ -565,17 +549,7 @@ func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, clauses []ast.Stmt)
 		if !ok {
 			continue
 		}
-		if clause.List == nil {
-			block.HasDefault = true
-		}
-		block.CaseCount++
-		casePos := b.fset.Position(clause.Case)
-		caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: casePos.Line, Column: casePos.Column}
-		if clause.List == nil {
-			caseBlock.HasDefault = true
-		}
-		caseBlock.Blocks = b.buildBlocks(clause.Body)
-		block.Blocks = append(block.Blocks, caseBlock)
+		b.appendCaseBlock(&block, clause.Case, clause.List == nil, clause.Body)
 	}
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
 	return block
@@ -591,21 +565,25 @@ func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowB
 			if !ok {
 				continue
 			}
-			if clause.Comm == nil {
-				block.HasDefault = true
-			}
-			block.CaseCount++
-			casePos := b.fset.Position(clause.Case)
-			caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: casePos.Line, Column: casePos.Column}
-			if clause.Comm == nil {
-				caseBlock.HasDefault = true
-			}
-			caseBlock.Blocks = b.buildBlocks(clause.Body)
-			block.Blocks = append(block.Blocks, caseBlock)
+			b.appendCaseBlock(&block, clause.Case, clause.Comm == nil, clause.Body)
 		}
 	}
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
 	return block
+}
+
+func (b *controlFlowBuilder) appendCaseBlock(parent *ControlFlowBlock, casePos token.Pos, hasDefault bool, body []ast.Stmt) {
+	if parent == nil {
+		return
+	}
+	if hasDefault {
+		parent.HasDefault = true
+	}
+	parent.CaseCount++
+	p := b.fset.Position(casePos)
+	caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: p.Line, Column: p.Column, HasDefault: hasDefault}
+	caseBlock.Blocks = b.buildBlocks(body)
+	parent.Blocks = append(parent.Blocks, caseBlock)
 }
 
 func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []ControlFlowStatement {
@@ -669,6 +647,18 @@ func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
 }
 
 func (b *builder) appendTypeParamDeclarations(parent *Declaration, fields *ast.FieldList) {
+	b.appendFieldDeclarations(parent, fields, KindParameter)
+}
+
+func (b *builder) appendInterfaceMethodDeclarations(parent *Declaration, expr ast.Expr) {
+	iface, ok := expr.(*ast.InterfaceType)
+	if !ok || iface.Methods == nil {
+		return
+	}
+	b.appendFieldDeclarations(parent, iface.Methods, KindFunction)
+}
+
+func (b *builder) appendFieldDeclarations(parent *Declaration, fields *ast.FieldList, kind string) {
 	if fields == nil {
 		return
 	}
@@ -677,22 +667,7 @@ func (b *builder) appendTypeParamDeclarations(parent *Declaration, fields *ast.F
 			if name == nil || name.Name == "_" {
 				continue
 			}
-			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, KindParameter))
-		}
-	}
-}
-
-func (b *builder) appendInterfaceMethodDeclarations(parent *Declaration, expr ast.Expr) {
-	iface, ok := expr.(*ast.InterfaceType)
-	if !ok || iface.Methods == nil {
-		return
-	}
-	for _, field := range iface.Methods.List {
-		for _, name := range field.Names {
-			if name == nil || name.Name == "_" {
-				continue
-			}
-			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, KindFunction))
+			parent.Declarations = append(parent.Declarations, b.newDeclaration(name, kind))
 		}
 	}
 }
