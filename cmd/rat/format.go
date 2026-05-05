@@ -61,9 +61,9 @@ type controlFlowMark struct {
 }
 
 var (
-	controlFlowGreen  = display.Bold + display.Green
-	controlFlowOrange = display.Bold + display.Orange
-	controlFlowReturn = display.Bold + display.HotMagenta
+	controlFlowGreen  = display.Green
+	controlFlowOrange = display.Orange
+	controlFlowReturn = display.Orange
 )
 
 func (r *Renderer) printHeader(f file.File) {
@@ -463,19 +463,9 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		}
 		switch b := block.(type) {
 		case file.IfBlock:
-			style := controlFlowOrange
-			hasElse := false
-			for _, branch := range b.Branches() {
-				if _, ok := branch.(file.ElseBranch); ok {
-					hasElse = true
-					break
-				}
-			}
-			if hasElse {
-				style = controlFlowGreen
-			}
 			for _, branch := range b.Branches() {
 				keyword := "if"
+				style := controlFlowOrange
 				switch typed := branch.(type) {
 				case file.ElseBranch:
 					if typed.IsElse() {
@@ -512,14 +502,16 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 			}
 			mark := newControlFlowMark(block.Location(), b.SwitchKind(), style)
 			*marks = append(*marks, mark)
-			if b.HasDefault() {
-				for _, child := range block.Blocks() {
-					caseBlock, ok := child.(file.CaseBlock)
-					if !ok || !caseBlock.IsDefault() {
-						continue
-					}
-					*marks = append(*marks, newControlFlowMark(child.Location(), "default", style))
+			for _, child := range block.Blocks() {
+				caseBlock, ok := child.(file.CaseBlock)
+				if !ok {
+					continue
 				}
+				if caseBlock.IsDefault() {
+					*marks = append(*marks, newControlFlowMark(child.Location(), "default", style))
+					continue
+				}
+				*marks = append(*marks, newControlFlowMark(child.Location(), "case", controlFlowOrange))
 			}
 		}
 		for _, child := range block.Blocks() {

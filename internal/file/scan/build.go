@@ -13,8 +13,14 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"rat/internal/goplsclient"
+)
+
+var (
+	escapeAnalysisCache sync.Map
+	packageFilesCache   sync.Map
 )
 
 type Result struct {
@@ -171,6 +177,7 @@ func Build(file string) (*Result, error) {
 		file:         file,
 		fset:         fset,
 		info:         info,
+		client:       client,
 		declByObj:    map[types.Object]string{},
 		kindByObj:    map[types.Object]string{},
 		pkgByPath:    map[string]string{},
@@ -189,60 +196,17 @@ func Build(file string) (*Result, error) {
 				Column: pos.Column,
 			})
 		case *ast.CallExpr:
-			var name string
-			var startPos token.Pos
-			if id, ok := node.Fun.(*ast.Ident); ok {
-				name = id.Name
-				startPos = id.Pos()
-			} else if sel, ok := node.Fun.(*ast.SelectorExpr); ok {
-				name = sel.Sel.Name
-				startPos = sel.Sel.Pos()
-			} else {
-				startPos = node.Fun.Pos()
-				endPos := node.Fun.End()
-				posStart := fset.Position(startPos)
-				posEnd := fset.Position(endPos)
-				if posStart.Line == posEnd.Line {
-					name = strings.Repeat("x", posEnd.Column-posStart.Column)
-				} else {
-					name = "call"
-				}
-			}
-
-			pos := fset.Position(startPos)
-			hoverRaw, err := client.Hover(pos.Filename, pos.Line, pos.Column)
-			if err != nil || hoverRaw == "" {
+			name, startPos := indirectCallTarget(node.Fun, fset)
+			if name == "" || startPos == token.NoPos {
 				break
 			}
 
-			var h struct {
-				Contents struct {
-					Value string `json:"value"`
-				} `json:"contents"`
-			}
-			json.Unmarshal([]byte(hoverRaw), &h)
-			val := h.Contents.Value
-
-			isIndirect := false
-			if strings.Contains(val, "```go\nvar ") || strings.Contains(val, "```go\nfield ") || (strings.HasPrefix(val, "```go\ntype ") && strings.Contains(val, "interface")) {
-				isIndirect = true
-			} else if strings.Contains(val, "```go\nfunc (") {
-				loc, ok, err := client.Definition(pos.Filename, pos.Line, pos.Column)
-				if err == nil && ok && loc.File != "" && loc.Line > 0 {
-					targetSrc, err := os.ReadFile(loc.File)
-					if err == nil {
-						lines := strings.Split(string(targetSrc), "\n")
-						if len(lines) >= loc.Line {
-							line := strings.TrimSpace(lines[loc.Line-1])
-							if !strings.HasPrefix(line, "func ") {
-								isIndirect = true
-							}
-						}
-					}
-				}
+			pos := fset.Position(startPos)
+			if !isIndirectCall(node.Fun, info, client, pos) {
+				break
 			}
 
-			if isIndirect && name != "" {
+			if name != "" {
 				res.IndirectCalls = append(res.IndirectCalls, IndirectCall{
 					File:   file,
 					Line:   pos.Line,
@@ -284,6 +248,7 @@ type builder struct {
 	file         string
 	fset         *token.FileSet
 	info         *types.Info
+	client       *goplsclient.Client
 	declByObj    map[types.Object]string
 	kindByObj    map[types.Object]string
 	pkgByPath    map[string]string
@@ -295,6 +260,9 @@ type builder struct {
 
 func getEscapeAnalysis(file string) map[string]bool {
 	dir := filepath.Dir(file)
+	if cached, ok := escapeAnalysisCache.Load(dir); ok {
+		return cloneStringBoolMap(cached.(map[string]bool))
+	}
 	cmd := exec.Command("go", "build", "-gcflags=all=-m=1", "./...")
 	cmd.Dir = dir
 	out, _ := cmd.CombinedOutput()
@@ -323,6 +291,7 @@ func getEscapeAnalysis(file string) map[string]bool {
 			escapes[key] = true
 		}
 	}
+	escapeAnalysisCache.Store(dir, escapes)
 	return escapes
 }
 
@@ -733,12 +702,11 @@ func (b *builder) definitionFor(pos token.Pos) (definitionLocation, bool) {
 	if cached, ok := b.goplsByPos[key]; ok {
 		return cached, cached.ok
 	}
-	client, err := goplsclient.Default()
-	if err != nil {
+	if b.client == nil {
 		b.goplsByPos[key] = definitionLocation{}
 		return definitionLocation{}, false
 	}
-	target, ok, err := client.Definition(position.Filename, position.Line, position.Column)
+	target, ok, err := b.client.Definition(position.Filename, position.Line, position.Column)
 	if err != nil || !ok {
 		b.goplsByPos[key] = definitionLocation{}
 		return definitionLocation{}, false
@@ -772,6 +740,9 @@ func (b *builder) buildImport(imp *ast.ImportSpec) (PackageReference, Package) {
 }
 
 func loadPackageFiles(importPath string) []PackageFile {
+	if cached, ok := packageFilesCache.Load(importPath); ok {
+		return clonePackageFiles(cached.([]PackageFile))
+	}
 	out, err := exec.Command("go", "list", "-f", "{{.Dir}}", importPath).Output()
 	if err != nil {
 		return nil
@@ -813,7 +784,164 @@ func loadPackageFiles(importPath string) []PackageFile {
 		files = append(files, pf)
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].File < files[j].File })
+	packageFilesCache.Store(importPath, clonePackageFiles(files))
 	return files
+}
+
+func indirectCallTarget(fun ast.Expr, fset *token.FileSet) (string, token.Pos) {
+	switch expr := fun.(type) {
+	case *ast.Ident:
+		return expr.Name, expr.Pos()
+	case *ast.SelectorExpr:
+		return expr.Sel.Name, expr.Sel.Pos()
+	default:
+		startPos := fun.Pos()
+		endPos := fun.End()
+		posStart := fset.Position(startPos)
+		posEnd := fset.Position(endPos)
+		if posStart.Line == posEnd.Line && posEnd.Column > posStart.Column {
+			return strings.Repeat("x", posEnd.Column-posStart.Column), startPos
+		}
+		return "call", startPos
+	}
+}
+
+func isIndirectCall(fun ast.Expr, info *types.Info, client *goplsclient.Client, pos token.Position) bool {
+	switch expr := fun.(type) {
+	case *ast.Ident:
+		if indirect, ok := indirectObject(info.Uses[expr]); ok {
+			return indirect
+		}
+		if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+			return indirect
+		}
+		return isIndirectCallByHover(client, pos)
+	case *ast.SelectorExpr:
+		if isPackageQualifier(expr.X, info) {
+			return false
+		}
+		if selection := info.Selections[expr]; selection != nil {
+			if indirect, ok := indirectObject(selection.Obj()); ok && !indirect {
+				if isInterfaceType(selection.Recv()) {
+					if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+						return indirect
+					}
+					return true
+				}
+				return false
+			}
+			if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+				return indirect
+			}
+			return isIndirectCallByHover(client, pos)
+		}
+		if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+			return indirect
+		}
+		return isIndirectCallByHover(client, pos)
+	case *ast.FuncLit:
+		return false
+	case *ast.IndexExpr, *ast.IndexListExpr:
+		return true
+	case *ast.ParenExpr:
+		return isIndirectCall(expr.X, info, client, pos)
+	}
+
+	if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+		return indirect
+	}
+	return isIndirectCallByHover(client, pos)
+}
+
+func indirectObject(obj types.Object) (bool, bool) {
+	switch obj.(type) {
+	case *types.Var:
+		return true, true
+	case *types.Func, *types.Builtin, *types.TypeName:
+		return false, true
+	default:
+		return false, false
+	}
+}
+
+func isPackageQualifier(expr ast.Expr, info *types.Info) bool {
+	id, ok := expr.(*ast.Ident)
+	if !ok {
+		return false
+	}
+	_, ok = info.Uses[id].(*types.PkgName)
+	return ok
+}
+
+func isInterfaceType(t types.Type) bool {
+	if t == nil {
+		return false
+	}
+	_, ok := types.Unalias(t).Underlying().(*types.Interface)
+	return ok
+}
+
+func isIndirectCallByHover(client *goplsclient.Client, pos token.Position) bool {
+	if client == nil {
+		return false
+	}
+	hoverRaw, err := client.Hover(pos.Filename, pos.Line, pos.Column)
+	if err != nil || hoverRaw == "" {
+		return false
+	}
+	var h struct {
+		Contents struct {
+			Value string `json:"value"`
+		} `json:"contents"`
+	}
+	_ = json.Unmarshal([]byte(hoverRaw), &h)
+	val := h.Contents.Value
+	return strings.Contains(val, "```go\nvar ") || strings.Contains(val, "```go\nfield ") || (strings.HasPrefix(val, "```go\ntype ") && strings.Contains(val, "interface"))
+}
+
+func isIndirectCallByDefinition(client *goplsclient.Client, pos token.Position) (bool, bool) {
+	if client == nil {
+		return false, false
+	}
+	loc, ok, err := client.Definition(pos.Filename, pos.Line, pos.Column)
+	if err != nil || !ok || loc.File == "" || loc.Line < 1 {
+		return false, false
+	}
+	targetSrc, err := os.ReadFile(loc.File)
+	if err != nil {
+		return false, false
+	}
+	lines := strings.Split(string(targetSrc), "\n")
+	if len(lines) < loc.Line {
+		return false, false
+	}
+	line := strings.TrimSpace(lines[loc.Line-1])
+	return !strings.HasPrefix(line, "func "), true
+}
+
+func cloneStringBoolMap(src map[string]bool) map[string]bool {
+	if src == nil {
+		return nil
+	}
+	dst := make(map[string]bool, len(src))
+	for k, v := range src {
+		dst[k] = v
+	}
+	return dst
+}
+
+func clonePackageFiles(src []PackageFile) []PackageFile {
+	if src == nil {
+		return nil
+	}
+	dst := make([]PackageFile, len(src))
+	for i, file := range src {
+		dst[i] = file
+		if len(file.Declarations) > 0 {
+			dst[i].Declarations = append([]DeclarationSummary(nil), file.Declarations...)
+		}
+	}
+	return dst
 }
 
 func (b *builder) packageDefinitionForImportPath(importPath string) (definitionLocation, bool) {

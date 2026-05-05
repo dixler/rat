@@ -4,6 +4,6 @@
  [97m4[0m [97m[0m
  [97m5[0m [97mfunc [0m[38;5;226m[7mreassignGlobal[0m[97m() int {[0m
  [97m6[0m [97m    [0m[38;5;120mglobalCount[0m[97m = [0m[38;5;120mglobalCount[0m[97m + 1[0m
- [1m[38;5;198m7[0m [97m    [0m[1m[38;5;198mreturn[0m[97m [0m[38;5;120mglobalCount[0m[97m[0m
+ [38;5;208m7[0m [97m    [0m[38;5;208mreturn[0m[97m [0m[38;5;120mglobalCount[0m[97m[0m
  [97m8[0m [97m}[0m
  [97m9[0m [97m[0m
