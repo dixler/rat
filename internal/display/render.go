@@ -23,6 +23,7 @@ const (
 	Green         Style = "\x1b[32m"
 	Cyan          Style = "\x1b[96m"
 	Blue          Style = "\x1b[94m"
+	DarkBlue      Style = "\x1b[34m"
 	Black         Style = "\x1b[30m"
 	Purple        Style = "\x1b[35m"
 	White         Style = "\x1b[97m"

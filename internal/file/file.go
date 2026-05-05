@@ -72,6 +72,7 @@ type IfBranch interface {
 	Location() Location
 	Step() int
 	Blocks() []Block
+	Statements() []ControlFlowStatement
 }
 
 type ConditionalBranch interface {
@@ -182,9 +183,10 @@ type elseBranch struct {
 }
 
 type ifBranchBase struct {
-	location location
-	step     int
-	blocks   []Block
+	location   location
+	step       int
+	blocks     []Block
+	statements []ControlFlowStatement
 }
 
 type loopBlock struct {
@@ -314,7 +316,10 @@ func (b *ifBlock) Branches() []IfBranch {
 func (b *ifBranchBase) Location() Location { return b.location }
 func (b *ifBranchBase) Step() int          { return b.step }
 func (b *ifBranchBase) Blocks() []Block    { return append([]Block(nil), b.blocks...) }
-func (b *ifBranch) IsElseIf() bool         { return b.elseIf }
+func (b *ifBranchBase) Statements() []ControlFlowStatement {
+	return append([]ControlFlowStatement(nil), b.statements...)
+}
+func (b *ifBranch) IsElseIf() bool { return b.elseIf }
 
 func (b *elseBranch) IsElse() bool        { return true }
 func (b *loopBlock) LoopKind() string     { return b.kind }

@@ -551,6 +551,11 @@ func (b *controlFlowBuilder) appendCaseBlock(parent *ControlFlowBlock, casePos t
 	parent.CaseCount++
 	p := b.fset.Position(casePos)
 	caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: p.Line, Column: p.Column, HasDefault: hasDefault}
+	caseNodes := make([]ast.Node, 0, len(body))
+	for _, stmt := range body {
+		caseNodes = append(caseNodes, stmt)
+	}
+	caseBlock.Statements = b.collectControlFlowStatements(caseNodes...)
 	caseBlock.Blocks = b.buildBlocks(body)
 	parent.Blocks = append(parent.Blocks, caseBlock)
 }

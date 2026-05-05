@@ -194,7 +194,9 @@ func collectIfBranches(raw scan.ControlFlowBlock, dst *ifBlock) {
 	} else {
 		branch = &ifBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep}, elseIf: kind == scan.BlockKindElseIf}
 	}
-	appendControlFlowStatements(&dst.statements, raw.Statements)
+	if base := ifBranchBaseOf(branch); base != nil {
+		appendControlFlowStatements(&base.statements, raw.Statements)
+	}
 	for _, child := range raw.Blocks {
 		if child.Kind == scan.BlockKindElseIf || child.Kind == scan.BlockKindElse {
 			collectIfBranches(child, dst)

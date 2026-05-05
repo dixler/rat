@@ -64,6 +64,7 @@ var (
 	controlFlowGreen  = display.Green
 	controlFlowOrange = display.MutedOrange
 	controlFlowReturn = display.Orange
+	controlFlowBlock  = display.Blue
 )
 
 func (r *Renderer) printHeader(f file.File) {
@@ -220,18 +221,50 @@ func addSpan(out map[int][]display.Span, sourceLines []string, loc file.Location
 		return
 	}
 	start := col - 1
-	if IsDef && line <= len(sourceLines) {
+	if line <= len(sourceLines) {
 		lineText := sourceLines[line-1]
 		if start < 0 {
 			start = 0
 		}
-		if start < len(lineText) && !strings.HasPrefix(lineText[start:], text) {
-			if idx := strings.Index(lineText[start:], text); idx >= 0 {
-				start += idx
+		if start > len(lineText) {
+			start = len(lineText)
+		}
+		if !strings.HasPrefix(lineText[start:], text) {
+			if idx := closestOccurrenceIndex(lineText, text, start); idx >= 0 {
+				start = idx
 			}
 		}
 	}
 	out[line] = append(out[line], display.Span{Start: start, End: start + len(text), Style: Style, IsDef: IsDef})
+}
+
+func closestOccurrenceIndex(line, text string, anchor int) int {
+	if text == "" || line == "" {
+		return -1
+	}
+	best := -1
+	bestDist := 0
+	for i := 0; i+len(text) <= len(line); {
+		idx := strings.Index(line[i:], text)
+		if idx < 0 {
+			break
+		}
+		absIdx := i + idx
+		dist := absInt(absIdx - anchor)
+		if best < 0 || dist < bestDist {
+			best = absIdx
+			bestDist = dist
+		}
+		i = absIdx + 1
+	}
+	return best
+}
+
+func absInt(v int) int {
+	if v < 0 {
+		return -v
+	}
+	return v
 }
 
 func kindStyle(kind file.Kind) display.Style {
@@ -469,18 +502,8 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		switch b := block.(type) {
 		case file.IfBlock:
 			for _, branch := range b.Branches() {
-				keyword := "if"
-				style := controlFlowOrange
-				switch typed := branch.(type) {
-				case file.ElseBranch:
-					if typed.IsElse() {
-						keyword = "else"
-					}
-				case file.ConditionalBranch:
-					if typed.IsElseIf() {
-						keyword = "else if"
-					}
-				}
+				keyword := ifBranchKeyword(branch)
+				style := styleForReturnPresence(ifBranchHasDirectReturn(branch))
 				mark := newControlFlowMark(branch.Location(), keyword, style)
 				*marks = append(*marks, mark)
 			}
@@ -512,26 +535,84 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				if !ok {
 					continue
 				}
+				caseStyle := blockKeywordStyle(child)
 				if caseBlock.IsDefault() {
-					*marks = append(*marks, newControlFlowMark(child.Location(), "default", style))
+					*marks = append(*marks, newControlFlowMark(child.Location(), "default", caseStyle))
 					continue
 				}
-				*marks = append(*marks, newControlFlowMark(child.Location(), "case", controlFlowOrange))
+				*marks = append(*marks, newControlFlowMark(child.Location(), "case", caseStyle))
 			}
 		}
-		for _, child := range block.Blocks() {
-			if child == nil {
-				continue
-			}
-			collectBlockMarks([]file.Block{child}, marks)
-		}
-		for _, stmt := range block.Statements() {
-			if stmt == nil || stmt.Location() == nil || stmt.Kind() != "return" {
-				continue
-			}
-			*marks = append(*marks, newControlFlowMark(stmt.Location(), "return", controlFlowReturn))
+		collectBlockMarks(block.Blocks(), marks)
+		appendReturnMarks(block.Statements(), marks)
+	}
+}
+
+func blockKeywordStyle(block file.Block) display.Style {
+	return styleForReturnPresence(blockHasDirectReturn(block))
+}
+
+func blockHasDirectReturn(block file.Block) bool {
+	if block == nil {
+		return false
+	}
+	return hasReturnInStatements(block.Statements())
+}
+
+func hasReturnInStatements(statements []file.ControlFlowStatement) bool {
+	for _, stmt := range statements {
+		if stmt != nil && stmt.Kind() == "return" {
+			return true
 		}
 	}
+	return false
+}
+
+func appendReturnMarks(statements []file.ControlFlowStatement, marks *[]controlFlowMark) {
+	for _, stmt := range statements {
+		if stmt == nil || stmt.Location() == nil || stmt.Kind() != "return" {
+			continue
+		}
+		*marks = append(*marks, newControlFlowMark(stmt.Location(), "return", controlFlowReturn))
+	}
+}
+
+func ifBranchKeyword(branch file.IfBranch) string {
+	if branch == nil {
+		return "if"
+	}
+	if typed, ok := branch.(file.ElseBranch); ok && typed.IsElse() {
+		return "else"
+	}
+	if typed, ok := branch.(file.ConditionalBranch); ok && typed.IsElseIf() {
+		return "else if"
+	}
+	return "if"
+}
+
+func styleForReturnPresence(hasReturn bool) display.Style {
+	if hasReturn {
+		return controlFlowReturn
+	}
+	return controlFlowBlock
+}
+
+func ifBranchHasDirectReturn(branch file.IfBranch) bool {
+	if branch == nil {
+		return false
+	}
+	if hasReturnInStatements(branch.Statements()) {
+		return true
+	}
+	for _, child := range branch.Blocks() {
+		if child == nil {
+			continue
+		}
+		if hasReturnInStatements(child.Statements()) {
+			return true
+		}
+	}
+	return false
 }
 
 func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
