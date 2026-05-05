@@ -76,7 +76,8 @@ type ControlFlowBlock struct {
 	Blocks     []ControlFlowBlock
 	CaseCount  int
 	HasDefault bool
-	HasBreak   bool
+	MayBreak   bool
+	MayReturn  bool
 }
 
 type Reference struct {
@@ -438,11 +439,15 @@ func (b *controlFlowBuilder) buildBlocks(stmts []ast.Stmt) []ControlFlowBlock {
 
 func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	if labeled, ok := stmt.(*ast.LabeledStmt); ok {
-		block := b.buildBlock(labeled.Stmt)
-		if labeled.Label != nil && block.Kind == BlockKindFor {
-			b.labels[labeled.Label.Name] = &block
+		if labeled.Label != nil {
+			switch s := labeled.Stmt.(type) {
+			case *ast.ForStmt:
+				return b.buildForBlock(s.For, s.Body, labeled.Label.Name)
+			case *ast.RangeStmt:
+				return b.buildForBlock(s.For, s.Body, labeled.Label.Name)
+			}
 		}
-		return block
+		return b.buildBlock(labeled.Stmt)
 	}
 
 	pos := b.fset.Position(stmt.Pos())
@@ -453,9 +458,9 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	case *ast.IfStmt:
 		block = b.buildIfBlock(s)
 	case *ast.ForStmt:
-		block = b.buildForBlock(s.Pos(), s.Body)
+		block = b.buildForBlock(s.Pos(), s.Body, "")
 	case *ast.RangeStmt:
-		block = b.buildForBlock(s.Pos(), s.Body)
+		block = b.buildForBlock(s.Pos(), s.Body, "")
 	case *ast.SwitchStmt:
 		block = b.buildSwitchBlock(s.Pos(), s.Body.List)
 	case *ast.TypeSwitchStmt:
@@ -467,7 +472,6 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	}
 	return block
 }
-
 func (b *controlFlowBuilder) buildIfBlock(stmt *ast.IfStmt) ControlFlowBlock {
 	b.ifChainSeq++
 	chainID := fmt.Sprintf("if-chain-%d", b.ifChainSeq)
@@ -498,15 +502,36 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 	return block
 }
 
-func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt) ControlFlowBlock {
+func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt, label string) ControlFlowBlock {
 	p := b.fset.Position(pos)
 	block := ControlFlowBlock{Kind: BlockKindFor, File: b.file, Line: p.Line, Column: p.Column}
+	if label != "" {
+		b.labels[label] = &block
+		defer delete(b.labels, label)
+	}
 	b.breakStack = append(b.breakStack, &block)
+	defer func() { b.breakStack = b.breakStack[:len(b.breakStack)-1] }()
 	if body != nil {
 		block.Blocks = b.buildBlocks(body.List)
 	}
-	b.breakStack = b.breakStack[:len(b.breakStack)-1]
+	if controlFlowBlockHasStatementKind(block, "return") {
+		block.MayReturn = true
+	}
 	return block
+}
+
+func controlFlowBlockHasStatementKind(block ControlFlowBlock, kind string) bool {
+	for _, stmt := range block.Statements {
+		if stmt.Kind == kind {
+			return true
+		}
+	}
+	for _, child := range block.Blocks {
+		if controlFlowBlockHasStatementKind(child, kind) {
+			return true
+		}
+	}
+	return false
 }
 
 func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, clauses []ast.Stmt) ControlFlowBlock {
@@ -605,7 +630,7 @@ func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
 	if stmt.Label != nil {
 		target := b.labels[stmt.Label.Name]
 		if target != nil && target.Kind == BlockKindFor {
-			target.HasBreak = true
+			target.MayBreak = true
 		}
 		return
 	}
@@ -614,7 +639,7 @@ func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
 	}
 	target := b.breakStack[len(b.breakStack)-1]
 	if target != nil && target.Kind == BlockKindFor {
-		target.HasBreak = true
+		target.MayBreak = true
 	}
 }
 

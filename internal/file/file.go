@@ -88,7 +88,8 @@ type ElseBranch interface {
 type LoopBlock interface {
 	Block
 	LoopKind() string
-	HasBreak() bool
+	MayBreak() bool
+	MayReturn() bool
 }
 
 type SwitchBlock interface {
@@ -191,8 +192,9 @@ type ifBranchBase struct {
 
 type loopBlock struct {
 	blockBase
-	kind     string
-	hasBreak bool
+	kind      string
+	mayBreak  bool
+	mayReturn bool
 }
 
 type switchBlock struct {
@@ -323,7 +325,8 @@ func (b *ifBranch) IsElseIf() bool { return b.elseIf }
 
 func (b *elseBranch) IsElse() bool        { return true }
 func (b *loopBlock) LoopKind() string     { return b.kind }
-func (b *loopBlock) HasBreak() bool       { return b.hasBreak }
+func (b *loopBlock) MayBreak() bool       { return b.mayBreak }
+func (b *loopBlock) MayReturn() bool      { return b.mayReturn }
 func (b *switchBlock) SwitchKind() string { return b.kind }
 func (b *switchBlock) CaseCount() int     { return b.caseCount }
 func (b *switchBlock) HasDefault() bool   { return b.hasDefault }

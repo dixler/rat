@@ -509,20 +509,13 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 			}
 		case file.LoopBlock:
 			style := controlFlowGreen
-			if b.HasBreak() {
+			if b.MayBreak() || b.MayReturn() {
 				style = controlFlowOrange
 			}
 			keyword := b.LoopKind()
 			mark := newControlFlowMark(block.Location(), keyword, style)
 			*marks = append(*marks, mark)
-			if b.HasBreak() {
-				for _, stmt := range block.Statements() {
-					if stmt == nil || stmt.Location() == nil || stmt.Kind() != "break" {
-						continue
-					}
-					*marks = append(*marks, newControlFlowMark(stmt.Location(), "break", controlFlowOrange))
-				}
-			}
+			appendLoopControlMarks(block, marks)
 		case file.SwitchBlock:
 			style := controlFlowOrange
 			if b.HasDefault() {
@@ -613,6 +606,23 @@ func ifBranchHasDirectReturn(branch file.IfBranch) bool {
 		}
 	}
 	return false
+}
+
+func appendLoopControlMarks(block file.Block, marks *[]controlFlowMark) {
+	if block == nil {
+		return
+	}
+	for _, stmt := range block.ControlFlowStatements() {
+		if stmt == nil || stmt.Location() == nil {
+			continue
+		}
+		switch stmt.Kind() {
+		case "break":
+			*marks = append(*marks, newControlFlowMark(stmt.Location(), "break", controlFlowReturn))
+		case "continue":
+			*marks = append(*marks, newControlFlowMark(stmt.Location(), "continue", controlFlowBlock))
+		}
+	}
 }
 
 func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {

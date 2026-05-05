@@ -145,7 +145,7 @@ func buildBlock(raw scan.ControlFlowBlock) Block {
 	case scan.BlockKindElseIf, scan.BlockKindElse:
 		block = &anonymousBlock{blockBase: base}
 	case scan.BlockKindFor:
-		block = &loopBlock{blockBase: base, kind: raw.Kind, hasBreak: raw.HasBreak}
+		block = &loopBlock{blockBase: base, kind: raw.Kind, mayBreak: raw.MayBreak, mayReturn: raw.MayReturn}
 	case scan.BlockKindSwitch, scan.BlockKindSelect:
 		block = &switchBlock{blockBase: base, kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}
 	case scan.BlockKindCase:
