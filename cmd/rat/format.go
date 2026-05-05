@@ -27,7 +27,7 @@ const (
 var kindStyles = map[file.Kind]display.Style{
 	file.KindType:      display.Cyan,
 	file.KindVariable:  display.Orange,
-	file.KindParameter: display.Amber,
+	file.KindParameter: display.VibrantOrange,
 	file.KindFunction:  display.Green,
 	file.KindPackage:   display.Purple,
 	file.KindFile:      display.Orange,
@@ -62,7 +62,7 @@ type controlFlowMark struct {
 
 var (
 	controlFlowGreen  = display.Green
-	controlFlowOrange = display.Orange
+	controlFlowOrange = display.MutedOrange
 	controlFlowReturn = display.Orange
 )
 
