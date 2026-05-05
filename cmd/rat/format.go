@@ -62,8 +62,7 @@ type controlFlowMark struct {
 
 var (
 	controlFlowGreen  = display.Green
-	controlFlowOrange = display.MutedOrange
-	controlFlowReturn = display.Orange
+	controlFlowReturn = display.MutedOrange
 	controlFlowBlock  = display.Blue
 )
 
@@ -510,14 +509,14 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		case file.LoopBlock:
 			style := controlFlowGreen
 			if b.MayBreak() || b.MayReturn() {
-				style = controlFlowOrange
+				style = controlFlowReturn
 			}
 			keyword := b.LoopKind()
 			mark := newControlFlowMark(block.Location(), keyword, style)
 			*marks = append(*marks, mark)
 			appendLoopControlMarks(block, marks)
 		case file.SwitchBlock:
-			style := controlFlowOrange
+			style := controlFlowReturn
 			if b.HasDefault() {
 				style = controlFlowGreen
 			}
