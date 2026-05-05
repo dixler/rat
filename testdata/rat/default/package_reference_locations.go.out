@@ -1,25 +1,25 @@
- [97m 1[0m [97mpackage sample[0m
- [97m 2[0m [97m[0m
- [97m 3[0m [97mimport ([0m
- [97m 4[0m [97m    "[0m[38;5;198mfmt[0m[97m"[0m
- [97m 5[0m [97m[0m
- [97m 6[0m [97m    "rat/internal/[0m[38;5;198mdisplay[0m[97m"[0m
- [97m 7[0m [97m)[0m
- [97m 8[0m [97m[0m
- [97m 9[0m [97mtype [0m[38;5;120m[7mgreeter[0m[97m struct{}[0m
- [97m10[0m [97m[0m
- [97m11[0m [97mfunc (greeter) [0m[38;5;120m[7mmessage[0m[97m() string {[0m
- [38;5;130m12[0m [97m    [0m[38;5;130mreturn[0m[97m "hello"[0m
- [97m13[0m [97m}[0m
- [97m14[0m [97m[0m
- [97m15[0m [97mfunc [0m[38;5;120m[7msamePackageFn[0m[97m() string {[0m
- [38;5;130m16[0m [97m    [0m[38;5;130mreturn[0m[97m "world"[0m
- [97m17[0m [97m}[0m
- [97m18[0m [97m[0m
- [97m19[0m [97mfunc [0m[38;5;120m[7mexercise[0m[97m() {[0m
- [97m20[0m [97m    [0m[38;5;226m[7mg[0m[97m := [0m[38;5;120mgreeter[0m[97m{}[0m
- [97m21[0m [97m    [0m[38;5;183mfmt[0m[97m.[0m[38;5;183mPrintln[0m[97m([0m[38;5;120msamePackageFn[0m[97m())[0m
- [97m22[0m [97m    [0m[38;5;183mfmt[0m[97m.[0m[38;5;183mPrintln[0m[97m([0m[38;5;226mg[0m[97m.[0m[38;5;120mmessage[0m[97m())[0m
- [97m23[0m [97m    [0m[38;5;183mfmt[0m[97m.[0m[38;5;183mPrintln[0m[97m([0m[94mdisplay[0m[97m.[0m[94mBlue[0m[97m.[0m[94mFormat[0m[97m("!"))[0m
- [97m24[0m [97m}[0m
- [97m25[0m [97m[0m
+ [0m 1 [97mpackage sample[0m
+ [0m 2 [97m[0m
+ [0m 3 [97mimport ([0m
+ [0m 4 [97m    "[0m[38;5;183mfmt[0m[97m"[0m
+ [0m 5 [97m[0m
+ [0m 6 [97m    "rat/internal/[0m[38;5;183mdisplay[0m[97m"[0m
+ [0m 7 [97m)[0m
+ [0m 8 [97m[0m
+ [0m 9 [97mtype [0m[38;5;120m[7mgreeter[0m[97m struct{}[0m
+ [0m10 [97m[0m
+ [0m11 [97mfunc (greeter) [0m[38;5;120m[7mmessage[0m[97m() string {[0m
+ [0m12 [97m    [0m[38;5;130mreturn[0m[97m "hello"[0m
+ [0m13 [97m}[0m
+ [0m14 [97m[0m
+ [0m15 [97mfunc [0m[38;5;120m[7msamePackageFn[0m[97m() string {[0m
+ [0m16 [97m    [0m[38;5;130mreturn[0m[97m "world"[0m
+ [0m17 [97m}[0m
+ [0m18 [97m[0m
+ [0m19 [97mfunc [0m[38;5;120m[7mexercise[0m[97m() {[0m
+ [0m20 [97m    [0m[38;5;226m[7mg[0m[97m := [0m[38;5;120mgreeter[0m[97m{}[0m
+ [0m21 [97m    [0m[38;5;183mfmt[0m[97m.[0m[38;5;183mPrintln[0m[97m([0m[38;5;120msamePackageFn[0m[97m())[0m
+ [0m22 [97m    [0m[38;5;183mfmt[0m[97m.[0m[38;5;183mPrintln[0m[97m([0m[38;5;226mg[0m[97m.[0m[38;5;120mmessage[0m[97m())[0m
+ [0m23 [97m    [0m[38;5;183mfmt[0m[97m.[0m[38;5;183mPrintln[0m[97m([0m[94mdisplay[0m[97m.[0m[94mBlue[0m[97m.[0m[94mFormat[0m[97m("!"))[0m
+ [0m24 [97m}[0m
+ [0m25 [97m[0m

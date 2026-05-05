@@ -56,23 +56,18 @@ func RenderSource(src string, spans map[int][]Span, lineNumberStyles map[int]Sty
 	var b strings.Builder
 	lines := strings.Split(src, "\n")
 	lineNumberWidth := len(strconv.Itoa(len(lines)))
-	defaultLineNumberStyle := White
 	for i, line := range lines {
 		lineNo := i + 1
-		lineNumberStyle, ok := lineNumberStyles[i+1]
-		if !ok || lineNumberStyle == "" {
-			lineNumberStyle = defaultLineNumberStyle
-		}
 		marker := ""
 		if lineMarkers != nil {
 			marker = lineMarkers[lineNo]
 		}
 		if marker != "" {
 			pad := strings.Repeat(" ", lineNumberWidth)
-			fmt.Fprintf(&b, " %s %s\n", lineNumberStyle.Format(pad), lineNumberStyle.Format(marker))
+			fmt.Fprintf(&b, " %s%s %s\n", Reset, pad, marker)
 		}
 		lineNumber := fmt.Sprintf("%*d", lineNumberWidth, lineNo)
-		fmt.Fprintf(&b, " %s %s\n", lineNumberStyle.Format(lineNumber), ColorLine(line, spans[lineNo]))
+		fmt.Fprintf(&b, " %s%s %s\n", Reset, lineNumber, ColorLine(line, spans[lineNo]))
 	}
 	return strings.ReplaceAll(b.String(), "\t", strings.Repeat(" ", 4))
 }
