@@ -27,7 +27,7 @@ const (
 var kindStyles = map[file.Kind]display.Style{
 	file.KindType:      display.Cyan,
 	file.KindVariable:  display.Orange,
-	file.KindParameter: display.Orange,
+	file.KindParameter: display.Amber,
 	file.KindFunction:  display.Green,
 	file.KindPackage:   display.Purple,
 	file.KindFile:      display.Orange,
@@ -105,10 +105,10 @@ func treeLabel(d file.Declaration) string {
 }
 
 func declarationStyle(d file.Declaration) display.Style {
-	if isTopLevelDeclaration(d) {
-		return relationStyles[relSameFunction]
+	if usesTopLevelSameFileStyle(d) {
+		return relationStyles[relSameFile]
 	}
-	if isTopLevelStructField(d) {
+	if isTopLevelDeclaration(d) {
 		return relationStyles[relSameFunction]
 	}
 	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
@@ -124,17 +124,23 @@ func isTopLevelDeclaration(d file.Declaration) bool {
 	return d.Parent().Kind() == file.KindFile
 }
 
-func isTopLevelStructField(d file.Declaration) bool {
-	if d == nil || d.Kind() != file.KindVariable {
+func usesTopLevelSameFileStyle(d file.Declaration) bool {
+	if d == nil {
 		return false
 	}
-	for parent := d.Parent(); parent != nil; parent = parent.Parent() {
-		if parent.Kind() == file.KindFunction {
+	if d.Kind() == file.KindFunction && isTopLevelDeclaration(d) {
+		return true
+	}
+	hasTypeAncestor := false
+	for curr := d; curr != nil; curr = curr.Parent() {
+		if curr.Kind() == file.KindFunction {
 			return false
 		}
-		if parent.Kind() == file.KindType {
-			grandparent := parent.Parent()
-			return grandparent != nil && grandparent.Kind() == file.KindFile
+		if curr.Kind() == file.KindType {
+			hasTypeAncestor = true
+		}
+		if curr.Parent() != nil && curr.Parent().Kind() == file.KindFile {
+			return hasTypeAncestor
 		}
 	}
 	return false
@@ -394,9 +400,8 @@ func ParseFormats(f file.File) ParseResult {
 }
 
 func collectPackageReferenceSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
-	root := file.ProjectRoot(f.Name())
 	for _, ref := range f.PackageReferences() {
-		addImportReferenceSpan(out, sourceLines, ref, packageDeclarationStyle(root, ref.Package()))
+		addImportReferenceSpan(out, sourceLines, ref, display.HotMagenta)
 	}
 }
 
@@ -531,6 +536,6 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 
 func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
-		addSpan(out, sourceLines, named.Location(), named.Text(), relationStyles[relSameFunction], true)
+		addSpan(out, sourceLines, named.Location(), named.Text(), relationStyles[relSameFile], true)
 	}
 }
