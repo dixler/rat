@@ -527,9 +527,9 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				if !ok {
 					continue
 				}
-				caseStyle := blockKeywordStyle(child)
+				caseStyle := caseKeywordStyle(caseBlock)
 				if caseBlock.IsDefault() {
-					*marks = append(*marks, newControlFlowMark(child.Location(), "default", caseStyle))
+					*marks = append(*marks, newControlFlowMark(child.Location(), "default", controlFlowGreen))
 					continue
 				}
 				*marks = append(*marks, newControlFlowMark(child.Location(), "case", caseStyle))
@@ -537,11 +537,26 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		}
 		collectBlockMarks(block.Blocks(), marks)
 		appendReturnMarks(block.Statements(), marks)
+		appendFallthroughMarks(block.Statements(), marks)
 	}
 }
 
 func blockKeywordStyle(block file.Block) display.Style {
 	return styleForReturnPresence(blockHasDirectReturn(block))
+}
+
+func caseKeywordStyle(block file.CaseBlock) display.Style {
+	if caseHasFallthrough(block) {
+		return blockKeywordStyle(block)
+	}
+	return controlFlowReturn
+}
+
+func caseHasFallthrough(block file.CaseBlock) bool {
+	if block == nil {
+		return false
+	}
+	return statementsHaveKind(block.Statements(), "fallthrough")
 }
 
 func blockHasDirectReturn(block file.Block) bool {
@@ -552,8 +567,12 @@ func blockHasDirectReturn(block file.Block) bool {
 }
 
 func hasReturnInStatements(statements []file.ControlFlowStatement) bool {
+	return statementsHaveKind(statements, "return")
+}
+
+func statementsHaveKind(statements []file.ControlFlowStatement, kind string) bool {
 	for _, stmt := range statements {
-		if stmt != nil && stmt.Kind() == "return" {
+		if stmt != nil && stmt.Kind() == kind {
 			return true
 		}
 	}
@@ -566,6 +585,15 @@ func appendReturnMarks(statements []file.ControlFlowStatement, marks *[]controlF
 			continue
 		}
 		*marks = append(*marks, newControlFlowMark(stmt.Location(), "return", controlFlowReturn))
+	}
+}
+
+func appendFallthroughMarks(statements []file.ControlFlowStatement, marks *[]controlFlowMark) {
+	for _, stmt := range statements {
+		if stmt == nil || stmt.Location() == nil || stmt.Kind() != "fallthrough" {
+			continue
+		}
+		*marks = append(*marks, newControlFlowMark(stmt.Location(), "fallthrough", controlFlowBlock))
 	}
 }
 
