@@ -66,18 +66,23 @@ type ControlFlowStatement struct {
 }
 
 type ControlFlowBlock struct {
-	Kind       string
-	File       string
-	Line       int
-	Column     int
-	IfChainID  string
-	IfStep     int
-	Statements []ControlFlowStatement
-	Blocks     []ControlFlowBlock
-	CaseCount  int
-	HasDefault bool
-	MayBreak   bool
-	MayReturn  bool
+	Kind                    string
+	File                    string
+	Line                    int
+	Column                  int
+	HasControlFlowStatement bool
+	IfChainID               string
+	IfStep                  int
+	Statements              []ControlFlowStatement
+	Blocks                  []ControlFlowBlock
+	CaseCount               int
+	HasDefault              bool
+	MayBreak                bool
+	MayReturn               bool
+}
+
+func (b ControlFlowBlock) HasTerminalControlFlowStatement() bool {
+	return b.HasControlFlowStatement
 }
 
 type Reference struct {
@@ -470,6 +475,7 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	default:
 		block.Statements = b.collectControlFlowStatements(stmt)
 	}
+	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 func (b *controlFlowBuilder) buildIfBlock(stmt *ast.IfStmt) ControlFlowBlock {
@@ -499,6 +505,7 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 			block.Blocks = append(block.Blocks, b.buildBlock(e))
 		}
 	}
+	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -517,6 +524,7 @@ func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt, l
 	if controlFlowBlockHasStatementKind(block, "return") {
 		block.MayReturn = true
 	}
+	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -534,6 +542,29 @@ func controlFlowBlockHasStatementKind(block ControlFlowBlock, kind string) bool 
 	return false
 }
 
+func controlFlowBlockHasTerminalStatement(block ControlFlowBlock) bool {
+	for _, stmt := range block.Statements {
+		if isTerminalControlFlowKind(stmt.Kind) {
+			return true
+		}
+	}
+	for _, child := range block.Blocks {
+		if controlFlowBlockHasTerminalStatement(child) {
+			return true
+		}
+	}
+	return false
+}
+
+func isTerminalControlFlowKind(kind string) bool {
+	switch kind {
+	case "return", "continue", "break", "goto", "panic":
+		return true
+	default:
+		return false
+	}
+}
+
 func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, clauses []ast.Stmt) ControlFlowBlock {
 	p := b.fset.Position(pos)
 	block := ControlFlowBlock{Kind: BlockKindSwitch, File: b.file, Line: p.Line, Column: p.Column}
@@ -546,6 +577,7 @@ func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, clauses []ast.Stmt)
 		b.appendCaseBlock(&block, clause.Case, clause.List == nil, clause.Body)
 	}
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
+	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -563,6 +595,7 @@ func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowB
 		}
 	}
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
+	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -582,6 +615,7 @@ func (b *controlFlowBuilder) appendCaseBlock(parent *ControlFlowBlock, casePos t
 	}
 	caseBlock.Statements = b.collectControlFlowStatements(caseNodes...)
 	caseBlock.Blocks = b.buildBlocks(body)
+	caseBlock.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(caseBlock)
 	parent.Blocks = append(parent.Blocks, caseBlock)
 }
 

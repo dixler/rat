@@ -60,6 +60,7 @@ type Block interface {
 	Blocks() []Block
 	Statements() []ControlFlowStatement
 	ControlFlowStatements() []ControlFlowStatement
+	HasTerminalControlFlowStatement() bool
 }
 
 type IfBlock interface {
@@ -73,6 +74,7 @@ type IfBranch interface {
 	Step() int
 	Blocks() []Block
 	Statements() []ControlFlowStatement
+	HasTerminalControlFlowStatement() bool
 }
 
 type ConditionalBranch interface {
@@ -163,9 +165,10 @@ type controlFlowStatement struct {
 }
 
 type blockBase struct {
-	location   location
-	blocks     []Block
-	statements []ControlFlowStatement
+	location                        location
+	blocks                          []Block
+	statements                      []ControlFlowStatement
+	hasTerminalControlFlowStatement bool
 }
 
 type ifBlock struct {
@@ -184,10 +187,11 @@ type elseBranch struct {
 }
 
 type ifBranchBase struct {
-	location   location
-	step       int
-	blocks     []Block
-	statements []ControlFlowStatement
+	location                        location
+	step                            int
+	blocks                          []Block
+	statements                      []ControlFlowStatement
+	hasTerminalControlFlowStatement bool
 }
 
 type loopBlock struct {
@@ -310,6 +314,7 @@ func (b *blockBase) ControlFlowStatements() []ControlFlowStatement {
 	}
 	return out
 }
+func (b *blockBase) HasTerminalControlFlowStatement() bool { return b.hasTerminalControlFlowStatement }
 
 func (b *ifBlock) IfChainID() string { return b.ifChainID }
 func (b *ifBlock) Branches() []IfBranch {
@@ -320,6 +325,9 @@ func (b *ifBranchBase) Step() int          { return b.step }
 func (b *ifBranchBase) Blocks() []Block    { return append([]Block(nil), b.blocks...) }
 func (b *ifBranchBase) Statements() []ControlFlowStatement {
 	return append([]ControlFlowStatement(nil), b.statements...)
+}
+func (b *ifBranchBase) HasTerminalControlFlowStatement() bool {
+	return b.hasTerminalControlFlowStatement
 }
 func (b *ifBranch) IsElseIf() bool { return b.elseIf }
 

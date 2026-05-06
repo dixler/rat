@@ -137,7 +137,7 @@ func buildBlocks(raw []scan.ControlFlowBlock) []Block {
 }
 
 func buildBlock(raw scan.ControlFlowBlock) Block {
-	base := blockBase{location: newLocation(raw.File, raw.Line, raw.Column)}
+	base := blockBase{location: newLocation(raw.File, raw.Line, raw.Column), hasTerminalControlFlowStatement: raw.HasTerminalControlFlowStatement()}
 	var block Block
 	switch raw.Kind {
 	case scan.BlockKindIf:
@@ -189,10 +189,11 @@ func collectIfBranches(raw scan.ControlFlowBlock, dst *ifBlock) {
 	}
 	loc := newLocation(raw.File, raw.Line, raw.Column)
 	var branch IfBranch
+	hasTerminal := hasTerminalControlFlowInBranch(raw)
 	if kind == scan.BlockKindElse {
-		branch = &elseBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep}}
+		branch = &elseBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep, hasTerminalControlFlowStatement: hasTerminal}}
 	} else {
-		branch = &ifBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep}, elseIf: kind == scan.BlockKindElseIf}
+		branch = &ifBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep, hasTerminalControlFlowStatement: hasTerminal}, elseIf: kind == scan.BlockKindElseIf}
 	}
 	if base := ifBranchBaseOf(branch); base != nil {
 		appendControlFlowStatements(&base.statements, raw.Statements)
@@ -207,6 +208,24 @@ func collectIfBranches(raw scan.ControlFlowBlock, dst *ifBlock) {
 		}
 	}
 	dst.branches = append(dst.branches, branch)
+}
+
+func hasTerminalControlFlowInBranch(raw scan.ControlFlowBlock) bool {
+	for _, stmt := range raw.Statements {
+		switch stmt.Kind {
+		case "return", "continue", "break", "goto", "panic":
+			return true
+		}
+	}
+	for _, child := range raw.Blocks {
+		if child.Kind == scan.BlockKindElseIf || child.Kind == scan.BlockKindElse {
+			continue
+		}
+		if hasTerminalControlFlowInBranch(child) {
+			return true
+		}
+	}
+	return false
 }
 
 func appendControlFlowStatements(dst *[]ControlFlowStatement, raw []scan.ControlFlowStatement) {

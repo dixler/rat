@@ -502,12 +502,12 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		case file.IfBlock:
 			for _, branch := range b.Branches() {
 				keyword := ifBranchKeyword(branch)
-				style := styleForReturnPresence(ifBranchHasDirectReturn(branch))
+				style := styleForReturnPresence(branch.HasTerminalControlFlowStatement())
 				mark := newControlFlowMark(branch.Location(), keyword, style)
 				*marks = append(*marks, mark)
 			}
 		case file.LoopBlock:
-			style := controlFlowGreen
+			style := controlFlowBlock
 			if b.MayBreak() || b.MayReturn() {
 				style = controlFlowReturn
 			}
@@ -587,24 +587,6 @@ func styleForReturnPresence(hasReturn bool) display.Style {
 		return controlFlowReturn
 	}
 	return controlFlowBlock
-}
-
-func ifBranchHasDirectReturn(branch file.IfBranch) bool {
-	if branch == nil {
-		return false
-	}
-	if hasReturnInStatements(branch.Statements()) {
-		return true
-	}
-	for _, child := range branch.Blocks() {
-		if child == nil {
-			continue
-		}
-		if hasReturnInStatements(child.Statements()) {
-			return true
-		}
-	}
-	return false
 }
 
 func appendLoopControlMarks(block file.Block, marks *[]controlFlowMark) {
