@@ -25,12 +25,12 @@ const (
 )
 
 var kindStyles = map[file.Kind]display.Style{
-	file.KindType:      display.Cyan,
-	file.KindVariable:  display.Orange,
+	file.KindType:      display.LightGreen,
+	file.KindVariable:  display.Yellow,
 	file.KindParameter: display.VibrantOrange,
-	file.KindFunction:  display.Green,
+	file.KindFunction:  display.LightGreen,
 	file.KindPackage:   display.Lavender,
-	file.KindFile:      display.Orange,
+	file.KindFile:      display.Yellow,
 }
 
 var relationStyles = map[relation]display.Style{
