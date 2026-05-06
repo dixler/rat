@@ -473,6 +473,13 @@ func newControlFlowMark(loc file.Location, text string, style display.Style) con
 	}
 }
 
+func styleFromBool(cond bool, whenTrue, whenFalse display.Style) display.Style {
+	if cond {
+		return whenTrue
+	}
+	return whenFalse
+}
+
 func collectDeclarationControlFlowMarks(decl file.Declaration, marks *[]controlFlowMark) {
 	if decl == nil {
 		return
@@ -502,26 +509,17 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		case file.IfBlock:
 			for _, branch := range b.Branches() {
 				keyword := branch.Keyword()
-				style := controlFlowBlock
-				if branch.HasTerminalControlFlowStatement() {
-					style = controlFlowReturn
-				}
+				style := styleFromBool(branch.HasTerminalControlFlowStatement(), controlFlowReturn, controlFlowBlock)
 				mark := newControlFlowMark(branch.Location(), keyword, style)
 				*marks = append(*marks, mark)
 			}
 		case file.LoopBlock:
-			style := controlFlowBlock
-			if b.HasEscapingControlFlow() {
-				style = controlFlowReturn
-			}
+			style := styleFromBool(b.HasEscapingControlFlow(), controlFlowReturn, controlFlowBlock)
 			keyword := b.LoopKind()
 			mark := newControlFlowMark(block.Location(), keyword, style)
 			*marks = append(*marks, mark)
 		case file.SwitchBlock:
-			style := controlFlowReturn
-			if b.IsExhaustive() {
-				style = controlFlowGreen
-			}
+			style := styleFromBool(b.IsExhaustive(), controlFlowGreen, controlFlowReturn)
 			mark := newControlFlowMark(block.Location(), b.SwitchKind(), style)
 			*marks = append(*marks, mark)
 			for _, child := range block.Blocks() {
@@ -529,14 +527,7 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				if !ok {
 					continue
 				}
-				caseStyle := controlFlowReturn
-				if caseBlock.HasFallthrough() {
-					if caseBlock.HasDirectReturn() {
-						caseStyle = controlFlowReturn
-					} else {
-						caseStyle = controlFlowBlock
-					}
-				}
+				caseStyle := styleFromBool(caseBlock.HasFallthrough(), controlFlowBlock, controlFlowReturn)
 				if caseBlock.IsDefault() {
 					*marks = append(*marks, newControlFlowMark(child.Location(), "default", controlFlowGreen))
 					continue
