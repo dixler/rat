@@ -508,31 +508,22 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		switch b := block.(type) {
 		case file.IfBlock:
 			for _, branch := range b.Branches() {
-				keyword := branch.Keyword()
-				style := styleFromBool(branch.HasTerminalControlFlowStatement(), controlFlowReturn, controlFlowBlock)
-				mark := newControlFlowMark(branch.Location(), keyword, style)
-				*marks = append(*marks, mark)
+				*marks = append(*marks, newControlFlowMark(branch.Location(), branch.Keyword(), styleFromBool(branch.HasTerminalControlFlowStatement(), controlFlowReturn, controlFlowBlock)))
 			}
 		case file.LoopBlock:
-			style := styleFromBool(b.HasEscapingControlFlow(), controlFlowReturn, controlFlowBlock)
-			keyword := b.LoopKind()
-			mark := newControlFlowMark(block.Location(), keyword, style)
-			*marks = append(*marks, mark)
+			*marks = append(*marks, newControlFlowMark(block.Location(), b.LoopKind(), styleFromBool(b.HasEscapingControlFlow(), controlFlowReturn, controlFlowBlock)))
 		case file.SwitchBlock:
-			style := styleFromBool(b.IsExhaustive(), controlFlowGreen, controlFlowReturn)
-			mark := newControlFlowMark(block.Location(), b.SwitchKind(), style)
-			*marks = append(*marks, mark)
+			*marks = append(*marks, newControlFlowMark(block.Location(), b.SwitchKind(), styleFromBool(b.IsExhaustive(), controlFlowGreen, controlFlowReturn)))
 			for _, child := range block.Blocks() {
 				caseBlock, ok := child.(file.CaseBlock)
 				if !ok {
 					continue
 				}
-				caseStyle := styleFromBool(caseBlock.HasFallthrough(), controlFlowBlock, controlFlowReturn)
+				mark := newControlFlowMark(child.Location(), "case", styleFromBool(caseBlock.HasFallthrough(), controlFlowBlock, controlFlowReturn))
 				if caseBlock.IsDefault() {
-					*marks = append(*marks, newControlFlowMark(child.Location(), "default", controlFlowGreen))
-					continue
+					mark = newControlFlowMark(child.Location(), "default", controlFlowGreen)
 				}
-				*marks = append(*marks, newControlFlowMark(child.Location(), "case", caseStyle))
+				*marks = append(*marks, mark)
 			}
 		}
 		collectBlockMarks(block.Blocks(), marks)
