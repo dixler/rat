@@ -61,6 +61,9 @@ type Block interface {
 	Statements() []ControlFlowStatement
 	ControlFlowStatements() []ControlFlowStatement
 	HasTerminalControlFlowStatement() bool
+	HasStatementKind(kind string) bool
+	HasDirectReturn() bool
+	HasFallthrough() bool
 }
 
 type IfBlock interface {
@@ -75,6 +78,7 @@ type IfBranch interface {
 	Blocks() []Block
 	Statements() []ControlFlowStatement
 	HasTerminalControlFlowStatement() bool
+	Keyword() string
 }
 
 type ConditionalBranch interface {
@@ -92,6 +96,7 @@ type LoopBlock interface {
 	LoopKind() string
 	MayBreak() bool
 	MayReturn() bool
+	HasEscapingControlFlow() bool
 }
 
 type SwitchBlock interface {
@@ -99,6 +104,7 @@ type SwitchBlock interface {
 	SwitchKind() string
 	CaseCount() int
 	HasDefault() bool
+	IsExhaustive() bool
 }
 
 type CaseBlock interface {
@@ -315,6 +321,16 @@ func (b *blockBase) ControlFlowStatements() []ControlFlowStatement {
 	return out
 }
 func (b *blockBase) HasTerminalControlFlowStatement() bool { return b.hasTerminalControlFlowStatement }
+func (b *blockBase) HasStatementKind(kind string) bool {
+	for _, stmt := range b.statements {
+		if stmt != nil && stmt.Kind() == kind {
+			return true
+		}
+	}
+	return false
+}
+func (b *blockBase) HasDirectReturn() bool { return b.HasStatementKind("return") }
+func (b *blockBase) HasFallthrough() bool  { return b.HasStatementKind("fallthrough") }
 
 func (b *ifBlock) IfChainID() string { return b.ifChainID }
 func (b *ifBlock) Branches() []IfBranch {
@@ -329,16 +345,26 @@ func (b *ifBranchBase) Statements() []ControlFlowStatement {
 func (b *ifBranchBase) HasTerminalControlFlowStatement() bool {
 	return b.hasTerminalControlFlowStatement
 }
-func (b *ifBranch) IsElseIf() bool { return b.elseIf }
+func (b *ifBranchBase) Keyword() string { return "if" }
+func (b *ifBranch) IsElseIf() bool      { return b.elseIf }
+func (b *ifBranch) Keyword() string {
+	if b.elseIf {
+		return "else if"
+	}
+	return "if"
+}
 
-func (b *elseBranch) IsElse() bool        { return true }
-func (b *loopBlock) LoopKind() string     { return b.kind }
-func (b *loopBlock) MayBreak() bool       { return b.mayBreak }
-func (b *loopBlock) MayReturn() bool      { return b.mayReturn }
-func (b *switchBlock) SwitchKind() string { return b.kind }
-func (b *switchBlock) CaseCount() int     { return b.caseCount }
-func (b *switchBlock) HasDefault() bool   { return b.hasDefault }
-func (b *caseBlock) IsDefault() bool      { return b.isDefault }
+func (b *elseBranch) IsElse() bool                { return true }
+func (b *elseBranch) Keyword() string             { return "else" }
+func (b *loopBlock) LoopKind() string             { return b.kind }
+func (b *loopBlock) MayBreak() bool               { return b.mayBreak }
+func (b *loopBlock) MayReturn() bool              { return b.mayReturn }
+func (b *loopBlock) HasEscapingControlFlow() bool { return b.mayBreak || b.mayReturn }
+func (b *switchBlock) SwitchKind() string         { return b.kind }
+func (b *switchBlock) CaseCount() int             { return b.caseCount }
+func (b *switchBlock) HasDefault() bool           { return b.hasDefault }
+func (b *switchBlock) IsExhaustive() bool         { return b.hasDefault }
+func (b *caseBlock) IsDefault() bool              { return b.isDefault }
 
 func (r *reference) Parent() Declaration      { return r.parent }
 func (r *reference) Declaration() Declaration { return r.declaration }

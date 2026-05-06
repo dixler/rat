@@ -501,23 +501,25 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		switch b := block.(type) {
 		case file.IfBlock:
 			for _, branch := range b.Branches() {
-				keyword := ifBranchKeyword(branch)
-				style := styleForReturnPresence(branch.HasTerminalControlFlowStatement())
+				keyword := branch.Keyword()
+				style := controlFlowBlock
+				if branch.HasTerminalControlFlowStatement() {
+					style = controlFlowReturn
+				}
 				mark := newControlFlowMark(branch.Location(), keyword, style)
 				*marks = append(*marks, mark)
 			}
 		case file.LoopBlock:
 			style := controlFlowBlock
-			if b.MayBreak() || b.MayReturn() {
+			if b.HasEscapingControlFlow() {
 				style = controlFlowReturn
 			}
 			keyword := b.LoopKind()
 			mark := newControlFlowMark(block.Location(), keyword, style)
 			*marks = append(*marks, mark)
-			appendLoopControlMarks(block, marks)
 		case file.SwitchBlock:
 			style := controlFlowReturn
-			if b.HasDefault() {
+			if b.IsExhaustive() {
 				style = controlFlowGreen
 			}
 			mark := newControlFlowMark(block.Location(), b.SwitchKind(), style)
@@ -527,7 +529,14 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				if !ok {
 					continue
 				}
-				caseStyle := caseKeywordStyle(caseBlock)
+				caseStyle := controlFlowReturn
+				if caseBlock.HasFallthrough() {
+					if caseBlock.HasDirectReturn() {
+						caseStyle = controlFlowReturn
+					} else {
+						caseStyle = controlFlowBlock
+					}
+				}
 				if caseBlock.IsDefault() {
 					*marks = append(*marks, newControlFlowMark(child.Location(), "default", controlFlowGreen))
 					continue
@@ -536,100 +545,27 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 			}
 		}
 		collectBlockMarks(block.Blocks(), marks)
-		appendReturnMarks(block.Statements(), marks)
-		appendFallthroughMarks(block.Statements(), marks)
-	}
-}
-
-func blockKeywordStyle(block file.Block) display.Style {
-	return styleForReturnPresence(blockHasDirectReturn(block))
-}
-
-func caseKeywordStyle(block file.CaseBlock) display.Style {
-	if caseHasFallthrough(block) {
-		return blockKeywordStyle(block)
-	}
-	return controlFlowReturn
-}
-
-func caseHasFallthrough(block file.CaseBlock) bool {
-	if block == nil {
-		return false
-	}
-	return statementsHaveKind(block.Statements(), "fallthrough")
-}
-
-func blockHasDirectReturn(block file.Block) bool {
-	if block == nil {
-		return false
-	}
-	return hasReturnInStatements(block.Statements())
-}
-
-func hasReturnInStatements(statements []file.ControlFlowStatement) bool {
-	return statementsHaveKind(statements, "return")
-}
-
-func statementsHaveKind(statements []file.ControlFlowStatement, kind string) bool {
-	for _, stmt := range statements {
-		if stmt != nil && stmt.Kind() == kind {
-			return true
+		for _, stmt := range block.Statements() {
+			if stmt == nil || stmt.Location() == nil {
+				continue
+			}
+			switch stmt.Kind() {
+			case "return":
+				*marks = append(*marks, newControlFlowMark(stmt.Location(), "return", controlFlowReturn))
+			case "fallthrough":
+				*marks = append(*marks, newControlFlowMark(stmt.Location(), "fallthrough", controlFlowBlock))
+			}
 		}
-	}
-	return false
-}
-
-func appendReturnMarks(statements []file.ControlFlowStatement, marks *[]controlFlowMark) {
-	for _, stmt := range statements {
-		if stmt == nil || stmt.Location() == nil || stmt.Kind() != "return" {
-			continue
-		}
-		*marks = append(*marks, newControlFlowMark(stmt.Location(), "return", controlFlowReturn))
-	}
-}
-
-func appendFallthroughMarks(statements []file.ControlFlowStatement, marks *[]controlFlowMark) {
-	for _, stmt := range statements {
-		if stmt == nil || stmt.Location() == nil || stmt.Kind() != "fallthrough" {
-			continue
-		}
-		*marks = append(*marks, newControlFlowMark(stmt.Location(), "fallthrough", controlFlowBlock))
-	}
-}
-
-func ifBranchKeyword(branch file.IfBranch) string {
-	if branch == nil {
-		return "if"
-	}
-	if typed, ok := branch.(file.ElseBranch); ok && typed.IsElse() {
-		return "else"
-	}
-	if typed, ok := branch.(file.ConditionalBranch); ok && typed.IsElseIf() {
-		return "else if"
-	}
-	return "if"
-}
-
-func styleForReturnPresence(hasReturn bool) display.Style {
-	if hasReturn {
-		return controlFlowReturn
-	}
-	return controlFlowBlock
-}
-
-func appendLoopControlMarks(block file.Block, marks *[]controlFlowMark) {
-	if block == nil {
-		return
-	}
-	for _, stmt := range block.ControlFlowStatements() {
-		if stmt == nil || stmt.Location() == nil {
-			continue
-		}
-		switch stmt.Kind() {
-		case "break":
-			*marks = append(*marks, newControlFlowMark(stmt.Location(), "break", controlFlowReturn))
-		case "continue":
-			*marks = append(*marks, newControlFlowMark(stmt.Location(), "continue", controlFlowBlock))
+		for _, stmt := range block.ControlFlowStatements() {
+			if stmt == nil || stmt.Location() == nil {
+				continue
+			}
+			switch stmt.Kind() {
+			case "break":
+				*marks = append(*marks, newControlFlowMark(stmt.Location(), "break", controlFlowReturn))
+			case "continue":
+				*marks = append(*marks, newControlFlowMark(stmt.Location(), "continue", controlFlowBlock))
+			}
 		}
 	}
 }
