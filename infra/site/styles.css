@@ -1,0 +1,85 @@
+:root {
+  --bg: #0b1220;
+  --panel: #111b2f;
+  --ink: #e5e7eb;
+  --muted: #94a3b8;
+  --accent: #f59e0b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: radial-gradient(circle at 20% 10%, #1f2937, var(--bg));
+  font-family: "Source Code Pro", "JetBrains Mono", monospace;
+}
+
+.app-shell {
+  width: min(1100px, 96vw);
+  margin: 2rem auto;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  border: 1px solid #334155;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+.subtitle {
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+input,
+button {
+  font: inherit;
+}
+
+input {
+  flex: 1;
+  padding: 0.65rem 0.75rem;
+  background: #0f172a;
+  color: var(--ink);
+  border: 1px solid #475569;
+  border-radius: 8px;
+}
+
+button {
+  padding: 0.65rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #111827;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#status {
+  min-height: 1.25rem;
+  color: var(--muted);
+}
+
+.code-output {
+  background: #050b18;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 1rem;
+  overflow: auto;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .row {
+    flex-direction: column;
+  }
+}

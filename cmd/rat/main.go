@@ -5,29 +5,46 @@ import (
 	"fmt"
 	"os"
 
+	"rat/internal/ansihtml"
 	"rat/internal/display"
 	"rat/internal/file"
 )
 
-func ProcessPipeline(filepath string) (string, error) {
+type OutputMode string
+
+const (
+	ModeANSI OutputMode = "ansi"
+	ModeHTML OutputMode = "html"
+)
+
+func ProcessPipeline(filepath string, mode OutputMode) (string, error) {
 	f, err := file.Analyze(filepath)
 	if err != nil {
 		return "", err
 	}
 
 	parsed := ParseFormats(f)
-	return display.RenderSource(f.Source(), parsed.SourceSpans, parsed.LineSpans, parsed.LineMarkers), nil
+	ansi := display.RenderSource(f.Source(), parsed.SourceSpans, parsed.LineSpans, parsed.LineMarkers)
+	if mode == ModeHTML {
+		return ansihtml.Convert(ansi), nil
+	}
+	return ansi, nil
 }
 
 func main() {
+	mode := flag.String("format", string(ModeANSI), "output format: ansi or html")
 	flag.Parse()
 
 	if len(flag.Args()) != 1 {
-		die("usage: rat <file.go>")
+		die("usage: rat [-format ansi|html] <file.go>")
+	}
+	outputMode := OutputMode(*mode)
+	if outputMode != ModeANSI && outputMode != ModeHTML {
+		die("invalid format: expected ansi or html")
 	}
 
 	path := flag.Args()[0]
-	out, err := ProcessPipeline(path)
+	out, err := ProcessPipeline(path, outputMode)
 	if err != nil {
 		die(err.Error())
 	}

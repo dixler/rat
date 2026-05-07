@@ -28,7 +28,7 @@ func TestRenderFixtures(t *testing.T) {
 		t.Run(rel, func(t *testing.T) {
 			t.Parallel()
 
-			out, err := ProcessPipeline(sourcePath)
+			out, err := ProcessPipeline(sourcePath, ModeANSI)
 			require.NoError(t, err)
 
 			normalized := normalizeOutput(out, sourcePath, rel)

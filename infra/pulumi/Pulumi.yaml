@@ -1,0 +1,6 @@
+name: rat-highlight-site
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+description: Deploys static site, Lambda API, and S3 hosting for RAT highlighter.
