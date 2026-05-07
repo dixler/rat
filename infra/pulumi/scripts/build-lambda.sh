@@ -10,7 +10,8 @@ rm -f "$BUILD_DIR/bootstrap" "$BUILD_DIR/rat" "$DIST_DIR/highlight-lambda.zip"
 
 GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o "$BUILD_DIR/bootstrap" "$ROOT_DIR/cmd/highlight-lambda"
 GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o "$BUILD_DIR/rat" "$ROOT_DIR/cmd/rat"
+GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o "$BUILD_DIR/gopls" golang.org/x/tools/gopls
 
-(cd "$BUILD_DIR" && zip -q "$DIST_DIR/highlight-lambda.zip" bootstrap rat)
+(cd "$BUILD_DIR" && zip -q "$DIST_DIR/highlight-lambda.zip" bootstrap rat gopls)
 
 echo "Built $DIST_DIR/highlight-lambda.zip"

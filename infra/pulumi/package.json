@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:lambda": "bash ./scripts/build-lambda.sh",
     "build": "tsc",
     "preview": "pulumi preview",
-    "up": "pulumi up"
+    "up": "npm run build:lambda && pulumi up"
   },
   "devDependencies": {
     "typescript": "^5.7.3",

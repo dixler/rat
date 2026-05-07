@@ -44,7 +44,11 @@ func Default() (*Client, error) {
 }
 
 func start() (*Client, error) {
-	cmd := exec.Command("gopls", "serve")
+	goplsBin, err := resolveGoplsBinary()
+	if err != nil {
+		return nil, err
+	}
+	cmd := exec.Command(goplsBin, "serve")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
@@ -64,6 +68,20 @@ func start() (*Client, error) {
 		return nil, err
 	}
 	return c, nil
+}
+
+func resolveGoplsBinary() (string, error) {
+	if custom := strings.TrimSpace(os.Getenv("GOPLS_BIN")); custom != "" {
+		return custom, nil
+	}
+	if _, err := os.Stat("./gopls"); err == nil {
+		return "./gopls", nil
+	}
+	path, err := exec.LookPath("gopls")
+	if err != nil {
+		return "", fmt.Errorf("gopls not found; set GOPLS_BIN or include gopls in PATH")
+	}
+	return path, nil
 }
 
 func (c *Client) initialize() error {
