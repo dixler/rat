@@ -75,10 +75,17 @@ button {
   padding: 1rem;
   overflow: auto;
   line-height: 1.4;
-  white-space: pre-wrap;
+  white-space: pre;
 }
 
 @media (max-width: 640px) {
+  .app-shell {
+    width: 100vw;
+    margin: 0;
+    padding: 0.5rem;
+    border-radius: 0;
+  }
+
   .row {
     flex-direction: column;
   }
