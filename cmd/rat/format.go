@@ -405,6 +405,7 @@ func ParseFormats(f file.File) ParseResult {
 		LineMarkers: map[int]string{},
 	}
 	sourceLines := strings.Split(f.Source(), "\n")
+	collectCommentSpans(result.SourceSpans, sourceLines, f)
 	addTopLevelStructFieldDeclarationSpans(result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(result.SourceSpans, sourceLines, f)
 
@@ -555,5 +556,39 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
 		addSpan(out, sourceLines, named.Location(), named.Text(), relationStyles[relSameFile], true)
+	}
+}
+
+func collectCommentSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
+	for _, comment := range f.Comments() {
+		start := comment.Start()
+		end := comment.End()
+		if start == nil || end == nil {
+			continue
+		}
+		for line := start.Line(); line <= end.Line(); line++ {
+			if line < 1 || line > len(sourceLines) {
+				continue
+			}
+			lineText := sourceLines[line-1]
+			spanStart := 0
+			if line == start.Line() {
+				spanStart = max(start.Column()-1, 0)
+			}
+			spanEnd := len(lineText)
+			if line == end.Line() {
+				spanEnd = max(end.Column()-1, 0)
+			}
+			if spanStart > len(lineText) {
+				spanStart = len(lineText)
+			}
+			if spanEnd > len(lineText) {
+				spanEnd = len(lineText)
+			}
+			if spanEnd <= spanStart {
+				continue
+			}
+			out[line] = append(out[line], display.Span{Start: spanStart, End: spanEnd, Style: display.Gray, IsDef: false})
+		}
 	}
 }

@@ -30,6 +30,14 @@ type Result struct {
 	Packages          []Package
 	Returns           []Return
 	IndirectCalls     []IndirectCall
+	Comments          []Comment
+}
+
+type Comment struct {
+	StartLine   int
+	StartColumn int
+	EndLine     int
+	EndColumn   int
 }
 
 type IndirectCall struct {
@@ -244,6 +252,24 @@ func Build(file string) (*Result, error) {
 		}
 		res.PackageReferences = append(res.PackageReferences, pkgRef)
 		res.Packages = append(res.Packages, pkgDecl)
+	}
+	for _, group := range parsed.Comments {
+		for _, comment := range group.List {
+			if comment == nil {
+				continue
+			}
+			start := fset.Position(comment.Pos())
+			end := fset.Position(comment.End())
+			if start.Line < 1 || end.Line < 1 {
+				continue
+			}
+			res.Comments = append(res.Comments, Comment{
+				StartLine:   start.Line,
+				StartColumn: start.Column,
+				EndLine:     end.Line,
+				EndColumn:   end.Column,
+			})
+		}
 	}
 	sortDeclarations(res.Declarations)
 	sort.Slice(res.PackageReferences, func(i, j int) bool { return res.PackageReferences[i].Text < res.PackageReferences[j].Text })

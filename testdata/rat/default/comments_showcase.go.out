@@ -1,0 +1,23 @@
+ [0m 1 [97mpackage defaultfixtures[0m
+ [0m 2 [97m[0m
+ [0m 3 [97mimport "[0m[38;5;183mfmt[0m[97m"[0m
+ [0m 4 [97m[0m
+ [0m 5 [97m[0m[90m// top-level line comment should be gray[0m[97m[0m
+ [0m 6 [97mfunc [0m[38;5;120m[7mcommentsShowcase[0m[97m() {[0m
+ [0m 7 [97m    [0m[90m/* block comment before code should be gray */[0m[97m[0m
+ [0m 8 [97m    [0m[38;5;226m[7mx[0m[97m := 1 + [0m[90m/* inline block comment in middle of expression */[0m[97m 2[0m
+ [0m 9 [97m    [0m[38;5;226m[7my[0m[97m := [0m[38;5;226mx[0m[97m [0m[90m/* trailing block comment at end of code */[0m[97m[0m
+ [0m10 [97m    [0m[38;5;226m[7mz[0m[97m := [0m[38;5;226my[0m[97m [0m[90m// trailing line comment at end of code[0m[97m[0m
+ [0m11 [97m[0m
+ [0m12 [97m    [0m[90m/*[0m[97m[0m
+ [0m13 [97m[0m[90m        multiline block comment should be gray on each line[0m[97m[0m
+ [0m14 [97m[0m[90m        and preserve span boundaries correctly[0m[97m[0m
+ [0m15 [97m[0m[90m    */[0m[97m[0m
+ [0m16 [97m[0m
+ [0m17 [97m    [0m[38;5;226m[7mstr1[0m[97m := "literal with /* not a comment */ inside"[0m
+ [0m18 [97m    [0m[38;5;226m[7mstr2[0m[97m := "literal with // not a comment either"[0m
+ [0m19 [97m    [0m[38;5;226m[7mstr3[0m[97m := `raw string with /* and // still not comments`[0m
+ [0m20 [97m[0m
+ [0m21 [97m    [0m[38;5;183mfmt[0m[97m.Println([0m[38;5;226mx[0m[97m, [0m[38;5;226my[0m[97m, [0m[38;5;226mz[0m[97m, [0m[38;5;226mstr1[0m[97m, [0m[38;5;226mstr2[0m[97m, [0m[38;5;226mstr3[0m[97m) [0m[90m// ending line comment[0m[97m[0m
+ [0m22 [97m}[0m
+ [0m23 [97m[0m

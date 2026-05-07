@@ -7,7 +7,7 @@ import (
 	"rat/internal/file/scan"
 )
 
-func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaration, []Location, []IndirectCall, error) {
+func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaration, []Location, []IndirectCall, []Comment, error) {
 	root := &declaration{name: filepath.Base(raw.File), kind: KindFile, location: newLocation(raw.File, 1, 1)}
 	declMap := map[string]*declaration{"file": root}
 
@@ -31,7 +31,7 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 	for _, p := range raw.PackageReferences {
 		parent, ok := declMap[p.ParentID]
 		if !ok {
-			return nil, nil, nil, nil, nil, fmt.Errorf("missing package parent %q", p.ParentID)
+			return nil, nil, nil, nil, nil, nil, fmt.Errorf("missing package parent %q", p.ParentID)
 		}
 		pkgRef := &packageReference{reference: &reference{
 			parent:   parent,
@@ -55,7 +55,15 @@ func buildTree(raw *scan.Result) (*declaration, []PackageReference, []Declaratio
 		})
 	}
 
-	return root, pkgRefs, decls, returns, indirectCalls, nil
+	var comments []Comment
+	for _, c := range raw.Comments {
+		comments = append(comments, commentSpan{
+			start: newLocation(raw.File, c.StartLine, c.StartColumn),
+			end:   newLocation(raw.File, c.EndLine, c.EndColumn),
+		})
+	}
+
+	return root, pkgRefs, decls, returns, indirectCalls, comments, nil
 }
 
 func toDeclaration(src scan.Declaration, parent Declaration, declMap map[string]*declaration) *declaration {

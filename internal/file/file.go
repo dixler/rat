@@ -128,6 +128,11 @@ type NamedLocation interface {
 	Text() string
 }
 
+type Comment interface {
+	Start() Location
+	End() Location
+}
+
 type File interface {
 	Name() string
 	Source() string
@@ -136,6 +141,7 @@ type File interface {
 	Declarations() []Declaration
 	Returns() []Location
 	IndirectCalls() []IndirectCall
+	Comments() []Comment
 }
 
 type file struct {
@@ -146,6 +152,7 @@ type file struct {
 	decls         []Declaration
 	returns       []Location
 	indirectCalls []IndirectCall
+	comments      []Comment
 }
 
 type location struct {
@@ -248,6 +255,11 @@ type namedLocation struct {
 	text     string
 }
 
+type commentSpan struct {
+	start location
+	end   location
+}
+
 func Analyze(name string) (File, error) {
 	return New(name)
 }
@@ -266,7 +278,7 @@ func New(name string) (File, error) {
 		return nil, err
 	}
 	f := &file{name: abs, source: string(src)}
-	root, pkgRefs, decls, returns, indirectCalls, err := buildTree(raw)
+	root, pkgRefs, decls, returns, indirectCalls, comments, err := buildTree(raw)
 	if err != nil {
 		return nil, fmt.Errorf("build file tree: %w", err)
 	}
@@ -275,6 +287,7 @@ func New(name string) (File, error) {
 	f.decls = decls
 	f.returns = returns
 	f.indirectCalls = indirectCalls
+	f.comments = comments
 	return f, nil
 }
 
@@ -287,6 +300,7 @@ func (f *file) PackageReferences() []PackageReference {
 func (f *file) Declarations() []Declaration   { return append([]Declaration(nil), f.decls...) }
 func (f *file) Returns() []Location           { return append([]Location(nil), f.returns...) }
 func (f *file) IndirectCalls() []IndirectCall { return append([]IndirectCall(nil), f.indirectCalls...) }
+func (f *file) Comments() []Comment           { return append([]Comment(nil), f.comments...) }
 
 func (l location) File() string { return l.file }
 func (l location) Line() int    { return l.line }
@@ -381,6 +395,9 @@ func (p *packageDeclaration) Files() []Declaration { return append([]Declaration
 
 func (n namedLocation) Location() Location { return n.location }
 func (n namedLocation) Text() string       { return n.text }
+
+func (c commentSpan) Start() Location { return c.start }
+func (c commentSpan) End() Location   { return c.end }
 
 func TopLevelNamedFields(f File) []NamedLocation {
 	if f == nil {
