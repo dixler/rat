@@ -106,14 +106,14 @@ func treeLabel(d file.Declaration) string {
 
 func declarationStyle(d file.Declaration) display.Style {
 	var sty display.BasicStyle
-	if d == nil {
-		sty = relationStyles[relSameFile]
-	} else if usesTopLevelSameFileStyle(d) {
+	if usesTopLevelSameFileStyle(d) {
 		sty = relationStyles[relSameFile]
 	} else if isTopLevelDeclaration(d) {
 		sty = relationStyles[relSameFunction]
-	} else if d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
+	} else if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
 		sty = relationStyles[relSameFunction]
+	} else if d == nil {
+		sty = relationStyles[relSameFile]
 	} else {
 		sty = kindStyle(d.Kind())
 	}

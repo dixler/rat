@@ -11,15 +11,15 @@
  [0m11 [97m        {[0m[38;5;120mName[0m[97m: "admin", [0m[38;5;120mPort[0m[97m: [0m[38;5;215mport[0m[97m + 1},[0m
  [0m12 [97m    }[0m
  [0m13 [97m    [0m[38;5;226m[7manon[0m[97m := struct {[0m
- [0m14 [97m        [0m[38;5;120m[7mLabel[0m[97m string[0m
- [0m15 [97m        [0m[38;5;120m[7mPort[0m[97m  int[0m
+ [0m14 [97m        Label string[0m
+ [0m15 [97m        Port  int[0m
  [0m16 [97m    }{[0m[38;5;120mLabel[0m[97m: "edge", [0m[38;5;120mPort[0m[97m: [0m[38;5;215mport[0m[97m}[0m
  [0m17 [97m    [0m[38;5;226m[7manonPtr[0m[97m := &struct {[0m
- [0m18 [97m        [0m[38;5;120m[7mLabel[0m[97m string[0m
- [0m19 [97m        [0m[38;5;120m[7mPort[0m[97m  int[0m
+ [0m18 [97m        Label string[0m
+ [0m19 [97m        Port  int[0m
  [0m20 [97m    }{[0m[38;5;120mLabel[0m[97m: [0m[38;5;226manon[0m[97m.[0m[38;5;120mLabel[0m[97m, [0m[38;5;120mPort[0m[97m: [0m[38;5;226manon[0m[97m.[0m[38;5;120mPort[0m[97m}[0m
  [0m21 [97m    [0m[38;5;226m[7mtyped[0m[97m := []struct {[0m
- [0m22 [97m        [0m[38;5;120m[7mPrimary[0m[97m [0m[38;5;120mConfig[0m[97m[0m
+ [0m22 [97m        Primary [0m[38;5;120mConfig[0m[97m[0m
  [0m23 [97m    }{[0m
  [0m24 [97m        {[0m[38;5;120mPrimary[0m[97m: [0m[38;5;120mConfig[0m[97m{[0m[38;5;120mName[0m[97m: [0m[38;5;226mdefaults[0m[97m[0].[0m[38;5;120mName[0m[97m, [0m[38;5;120mPort[0m[97m: [0m[38;5;226mdefaults[0m[97m[0].[0m[38;5;120mPort[0m[97m}},[0m
  [0m25 [97m    }[0m
