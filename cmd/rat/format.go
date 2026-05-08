@@ -24,7 +24,7 @@ const (
 	relExternal     relation = "external"
 )
 
-var kindStyles = map[file.Kind]display.Style{
+var kindStyles = map[file.Kind]display.BasicStyle{
 	file.KindType:      display.LightGreen,
 	file.KindVariable:  display.Yellow,
 	file.KindParameter: display.VibrantOrange,
@@ -33,7 +33,7 @@ var kindStyles = map[file.Kind]display.Style{
 	file.KindFile:      display.Yellow,
 }
 
-var relationStyles = map[relation]display.Style{
+var relationStyles = map[relation]display.BasicStyle{
 	relSameFunction: display.Yellow,
 	relSameFile:     display.LightGreen,
 	relSamePackage:  display.Cyan,
@@ -105,16 +105,19 @@ func treeLabel(d file.Declaration) string {
 }
 
 func declarationStyle(d file.Declaration) display.Style {
-	if usesTopLevelSameFileStyle(d) {
-		return relationStyles[relSameFile]
+	var sty display.BasicStyle
+	if d == nil {
+		sty = relationStyles[relSameFile]
+	} else if usesTopLevelSameFileStyle(d) {
+		sty = relationStyles[relSameFile]
+	} else if isTopLevelDeclaration(d) {
+		sty = relationStyles[relSameFunction]
+	} else if d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
+		sty = relationStyles[relSameFunction]
+	} else {
+		sty = kindStyle(d.Kind())
 	}
-	if isTopLevelDeclaration(d) {
-		return relationStyles[relSameFunction]
-	}
-	if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
-		return relationStyles[relSameFunction]
-	}
-	return kindStyle(d.Kind())
+	return sty.Invert()
 }
 
 func isTopLevelDeclaration(d file.Declaration) bool {
@@ -199,10 +202,10 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 }
 
 func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
-	addSpan(out, sourceLines, decl.Location(), decl.Name(), declarationStyle(decl), true)
+	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declarationStyle(decl), IsDef: true})
 	for _, ref := range decl.References() {
 		if sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind()); ok {
-			addSpan(out, sourceLines, ref.Location(), ref.Text(), sty, false)
+			addSpan(out, sourceLines, ref.Location(), ref.Text(), display.Span{Style: sty})
 		}
 	}
 	for _, child := range decl.Declarations() {
@@ -210,7 +213,7 @@ func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLine
 	}
 }
 
-func addSpan(out map[int][]display.Span, sourceLines []string, loc file.Location, text string, Style display.Style, IsDef bool) {
+func addSpan(out map[int][]display.Span, sourceLines []string, loc file.Location, text string, span display.Span) {
 	if loc == nil || text == "" {
 		return
 	}
@@ -234,7 +237,9 @@ func addSpan(out map[int][]display.Span, sourceLines []string, loc file.Location
 			}
 		}
 	}
-	out[line] = append(out[line], display.Span{Start: start, End: start + len(text), Style: Style, IsDef: IsDef})
+	span.Start = start
+	span.End = start + len(text)
+	out[line] = append(out[line], span)
 }
 
 func closestOccurrenceIndex(line, text string, anchor int) int {
@@ -266,7 +271,7 @@ func absInt(v int) int {
 	return v
 }
 
-func kindStyle(kind file.Kind) display.Style {
+func kindStyle(kind file.Kind) display.BasicStyle {
 	if sty, ok := kindStyles[kind]; ok {
 		return sty
 	}
@@ -311,14 +316,14 @@ func relationshipStyle(root string, parent, target file.Declaration, kind file.K
 		if kind == file.KindPackage {
 			return relationStyles[relExternal], true
 		}
-		return "", false
+		return display.BasicStyle(""), false
 	}
 	if kind == file.KindPackage {
 		return packageDeclarationStyle(root, target), true
 	}
 	path := filepath.Clean(target.Location().File())
 	if path == "" || strings.Contains(path, "/src/builtin") {
-		return "", false
+		return display.BasicStyle(""), false
 	}
 	if sameFunction(parent, target) {
 		return relationStyles[relSameFunction], true
@@ -423,7 +428,7 @@ func ParseFormats(f file.File) ParseResult {
 			continue
 		}
 		result.LineSpans[mark.loc.Line()] = mark.lineStyle
-		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, mark.textStyle, false)
+		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, display.Span{Style: mark.textStyle})
 	}
 
 	for line := range result.SourceSpans {
@@ -509,7 +514,10 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		switch b := block.(type) {
 		case file.IfBlock:
 			for _, branch := range b.Branches() {
-				*marks = append(*marks, newControlFlowMark(branch.Location(), branch.Keyword(), styleFromBool(branch.HasTerminalControlFlowStatement(), controlFlowReturn, controlFlowBlock)))
+				*marks = append(*marks, newControlFlowMark(branch.Location(), branch.Keyword(), styleFromBool(
+					branch.HasTerminalControlFlowStatement(),
+					controlFlowReturn,
+					controlFlowBlock)))
 			}
 		case file.LoopBlock:
 			*marks = append(*marks, newControlFlowMark(block.Location(), b.LoopKind(), styleFromBool(b.HasEscapingControlFlow(), controlFlowReturn, controlFlowBlock)))
@@ -555,7 +563,7 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 
 func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
-		addSpan(out, sourceLines, named.Location(), named.Text(), relationStyles[relSameFile], true)
+		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: declarationStyle(nil), IsDef: true})
 	}
 }
 
@@ -575,12 +583,12 @@ func collectCommentSpans(out map[int][]display.Span, sourceLines []string, f fil
 			if line == start.Line() {
 				spanStart = max(start.Column()-1, 0)
 			}
+			if spanStart > len(lineText) {
+				spanStart = len(lineText)
+			}
 			spanEnd := len(lineText)
 			if line == end.Line() {
 				spanEnd = max(end.Column()-1, 0)
-			}
-			if spanStart > len(lineText) {
-				spanStart = len(lineText)
 			}
 			if spanEnd > len(lineText) {
 				spanEnd = len(lineText)
