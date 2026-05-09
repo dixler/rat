@@ -17,14 +17,14 @@ type Renderer struct {
 type relation string
 
 const (
-	relSameFunction relation = "same-function"
-	relSameFile     relation = "same-file"
-	relSamePackage  relation = "same-package"
-	relSameProject  relation = "same-project"
-	relExternal     relation = "external"
+	_relSameFunction relation = "same-function"
+	_relSameFile     relation = "same-file"
+	_relSamePackage  relation = "same-package"
+	_relSameProject  relation = "same-project"
+	_relExternal     relation = "external"
 )
 
-var kindStyles = map[file.Kind]display.BasicStyle{
+var _kindStyles = map[file.Kind]display.BasicStyle{
 	file.KindType:      display.LightGreen,
 	file.KindVariable:  display.Yellow,
 	file.KindParameter: display.VibrantOrange,
@@ -33,12 +33,12 @@ var kindStyles = map[file.Kind]display.BasicStyle{
 	file.KindFile:      display.Yellow,
 }
 
-var relationStyles = map[relation]display.BasicStyle{
-	relSameFunction: display.Yellow,
-	relSameFile:     display.LightGreen,
-	relSamePackage:  display.Cyan,
-	relSameProject:  display.Blue,
-	relExternal:     display.Lavender,
+var _relationStyles = map[relation]display.BasicStyle{
+	_relSameFunction: display.Yellow,
+	_relSameFile:     display.LightGreen,
+	_relSamePackage:  display.Cyan,
+	_relSameProject:  display.Blue,
+	_relExternal:     display.Lavender,
 }
 
 type refGroup struct {
@@ -61,9 +61,9 @@ type controlFlowMark struct {
 }
 
 var (
-	controlFlowGreen  = display.Green
-	controlFlowReturn = display.MutedOrange
-	controlFlowBlock  = display.Blue
+	_controlFlowGreen  = display.Green
+	_controlFlowReturn = display.MutedOrange
+	_controlFlowBlock  = display.Blue
 )
 
 func (r *Renderer) printHeader(f file.File) {
@@ -107,13 +107,13 @@ func treeLabel(d file.Declaration) string {
 func declarationStyle(d file.Declaration) display.Style {
 	var sty display.BasicStyle
 	if usesTopLevelSameFileStyle(d) {
-		sty = relationStyles[relSameFile]
+		sty = _relationStyles[_relSameFile]
 	} else if isTopLevelDeclaration(d) {
-		sty = relationStyles[relSameFunction]
+		sty = _relationStyles[_relSameFunction]
 	} else if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
-		sty = relationStyles[relSameFunction]
+		sty = _relationStyles[_relSameFunction]
 	} else if d == nil {
-		sty = relationStyles[relSameFile]
+		sty = _relationStyles[_relSameFile]
 	} else {
 		sty = kindStyle(d.Kind())
 	}
@@ -272,10 +272,10 @@ func absInt(v int) int {
 }
 
 func kindStyle(kind file.Kind) display.BasicStyle {
-	if sty, ok := kindStyles[kind]; ok {
+	if sty, ok := _kindStyles[kind]; ok {
 		return sty
 	}
-	return kindStyles[file.KindVariable]
+	return _kindStyles[file.KindVariable]
 }
 
 func groupReferences(root string, decl file.Declaration) []refGroup {
@@ -314,7 +314,7 @@ func relationshipStyle(root string, parent, target file.Declaration, kind file.K
 	}
 	if target == nil || target.Location() == nil {
 		if kind == file.KindPackage {
-			return relationStyles[relExternal], true
+			return _relationStyles[_relExternal], true
 		}
 		return display.BasicStyle(""), false
 	}
@@ -326,35 +326,35 @@ func relationshipStyle(root string, parent, target file.Declaration, kind file.K
 		return display.BasicStyle(""), false
 	}
 	if sameFunction(parent, target) {
-		return relationStyles[relSameFunction], true
+		return _relationStyles[_relSameFunction], true
 	}
 	if sameFile(parent, target) {
-		return relationStyles[relSameFile], true
+		return _relationStyles[_relSameFile], true
 	}
 	if samePackage(parent, target) {
-		return relationStyles[relSamePackage], true
+		return _relationStyles[_relSamePackage], true
 	}
 	if sameProject(root, parent, target) {
-		return relationStyles[relSameProject], true
+		return _relationStyles[_relSameProject], true
 	}
-	return relationStyles[relExternal], true
+	return _relationStyles[_relExternal], true
 }
 
 func packageDeclarationStyle(root string, target interface{ Location() file.Location }) display.Style {
 	if target == nil || target.Location() == nil {
-		return relationStyles[relExternal]
+		return _relationStyles[_relExternal]
 	}
 	targetFile := filepath.Clean(target.Location().File())
 	if targetFile == "" {
-		return relationStyles[relExternal]
+		return _relationStyles[_relExternal]
 	}
 	if root != "" {
 		cleanRoot := filepath.Clean(root)
 		if strings.HasPrefix(targetFile, cleanRoot+string(filepath.Separator)) {
-			return relationStyles[relSameProject]
+			return _relationStyles[_relSameProject]
 		}
 	}
-	return relationStyles[relExternal]
+	return _relationStyles[_relExternal]
 }
 
 func sameFunction(left, right file.Declaration) bool {
@@ -508,55 +508,57 @@ func collectFunctionControlFlowMarks(decl file.Declaration, marks *[]controlFlow
 
 func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 	for _, block := range blocks {
-		if block == nil || block.Location() == nil {
-			continue
-		}
 		switch b := block.(type) {
 		case file.IfBlock:
 			for _, branch := range b.Branches() {
-				*marks = append(*marks, newControlFlowMark(branch.Location(), branch.Keyword(), styleFromBool(
-					branch.HasTerminalControlFlowStatement(),
-					controlFlowReturn,
-					controlFlowBlock)))
+				*marks = append(*marks, newControlFlowMark(
+					branch.Location(),
+					branch.Keyword(),
+					styleFromBool(branch.HasTerminalControlFlowStatement(), _controlFlowReturn, _controlFlowBlock)))
 			}
 		case file.LoopBlock:
-			*marks = append(*marks, newControlFlowMark(block.Location(), b.LoopKind(), styleFromBool(b.HasEscapingControlFlow(), controlFlowReturn, controlFlowBlock)))
+			*marks = append(*marks, newControlFlowMark(
+				block.Location(),
+				b.LoopKind(),
+				styleFromBool(b.HasEscapingControlFlow(), _controlFlowReturn, _controlFlowBlock)))
 		case file.SwitchBlock:
-			*marks = append(*marks, newControlFlowMark(block.Location(), b.SwitchKind(), styleFromBool(b.IsExhaustive(), controlFlowGreen, controlFlowReturn)))
-			for _, child := range block.Blocks() {
+			*marks = append(*marks, newControlFlowMark(b.Location(), b.SwitchKind(), styleFromBool(b.IsExhaustive(), _controlFlowGreen, _controlFlowReturn)))
+			for _, child := range b.Blocks() {
 				caseBlock, ok := child.(file.CaseBlock)
 				if !ok {
 					continue
 				}
-				mark := newControlFlowMark(child.Location(), "case", styleFromBool(caseBlock.HasFallthrough(), controlFlowBlock, controlFlowReturn))
+				keyword, style := "case", styleFromBool(caseBlock.HasFallthrough(), _controlFlowBlock, _controlFlowReturn)
 				if caseBlock.IsDefault() {
-					mark = newControlFlowMark(child.Location(), "default", controlFlowGreen)
+					keyword, style = "default", _controlFlowGreen
 				}
-				*marks = append(*marks, mark)
+				*marks = append(*marks, newControlFlowMark(child.Location(), keyword, style))
 			}
 		}
 		collectBlockMarks(block.Blocks(), marks)
 		for _, stmt := range block.Statements() {
-			if stmt == nil || stmt.Location() == nil {
-				continue
-			}
+			var style display.Style
 			switch stmt.Kind() {
 			case "return":
-				*marks = append(*marks, newControlFlowMark(stmt.Location(), "return", controlFlowReturn))
+				style = _controlFlowReturn
 			case "fallthrough":
-				*marks = append(*marks, newControlFlowMark(stmt.Location(), "fallthrough", controlFlowBlock))
-			}
-		}
-		for _, stmt := range block.ControlFlowStatements() {
-			if stmt == nil || stmt.Location() == nil {
+				style = _controlFlowBlock
+			default:
 				continue
 			}
+			*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
+		}
+		for _, stmt := range block.ControlFlowStatements() {
+			var style display.Style
 			switch stmt.Kind() {
 			case "break":
-				*marks = append(*marks, newControlFlowMark(stmt.Location(), "break", controlFlowReturn))
+				style = _controlFlowReturn
 			case "continue":
-				*marks = append(*marks, newControlFlowMark(stmt.Location(), "continue", controlFlowBlock))
+				style = _controlFlowBlock
+			default:
+				continue
 			}
+			*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
 		}
 	}
 }
