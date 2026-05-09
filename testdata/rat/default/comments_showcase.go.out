@@ -18,6 +18,6 @@
  [0m18 [97m    [0m[38;5;226m[7mstr2[0m[97m := "literal with // not a comment either"[0m
  [0m19 [97m    [0m[38;5;226m[7mstr3[0m[97m := `raw string with /* and // still not comments`[0m
  [0m20 [97m[0m
- [0m21 [97m    [0m[38;5;183mfmt[0m[97m.Println([0m[38;5;226mx[0m[97m, [0m[38;5;226my[0m[97m, [0m[38;5;226mz[0m[97m, [0m[38;5;226mstr1[0m[97m, [0m[38;5;226mstr2[0m[97m, [0m[38;5;226mstr3[0m[97m) [0m[90m// ending line comment[0m[97m[0m
+ [0m21 [97m    [0m[38;5;183mfmt[0m[97m.[0m[38;5;183mPrintln[0m[97m([0m[38;5;226mx[0m[97m, [0m[38;5;226my[0m[97m, [0m[38;5;226mz[0m[97m, [0m[38;5;226mstr1[0m[97m, [0m[38;5;226mstr2[0m[97m, [0m[38;5;226mstr3[0m[97m) [0m[90m// ending line comment[0m[97m[0m
  [0m22 [97m}[0m
  [0m23 [97m[0m

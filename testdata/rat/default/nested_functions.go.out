@@ -1,8 +1,8 @@
  [0m 1 [97mpackage sample[0m
  [0m 2 [97m[0m
- [0m 3 [97mfunc [0m[38;5;120m[7mnested[0m[97m([0m[38;5;215m[7mseed[0m[97m int) int {[0m
- [0m 4 [97m    [0m[38;5;226m[7madder[0m[97m := func(seed int) int {[0m
- [0m 5 [97m        [0m[38;5;226m[7minner[0m[97m := func(delta int) int {[0m
+ [0m 3 [97mfunc [0m[38;5;120m[7mnested[0m[97m([0m[38;5;215m[7mseed[0m[97m [0m[97mint[0m[97m) [0m[97mint[0m[97m {[0m
+ [0m 4 [97m    [0m[38;5;226m[7madder[0m[97m := func(seed [0m[97mint[0m[97m) [0m[97mint[0m[97m {[0m
+ [0m 5 [97m        [0m[38;5;226m[7minner[0m[97m := func(delta [0m[97mint[0m[97m) [0m[97mint[0m[97m {[0m
  [0m 6 [97m            return [0m[38;5;120mseed[0m[97m + [0m[38;5;120mdelta[0m[97m[0m
  [0m 7 [97m        }[0m
  [0m 8 [97m        return [0m[38;5;198mi[0m[97m[0m[38;5;198mn[0m[97m[0m[38;5;198mn[0m[97m[0m[38;5;198me[0m[97m[0m[38;5;198mr[0m[97m(2)[0m

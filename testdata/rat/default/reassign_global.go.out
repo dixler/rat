@@ -2,7 +2,7 @@
  [0m2 [97m[0m
  [0m3 [97mvar [0m[38;5;226m[7mglobalCount[0m[97m = 1[0m
  [0m4 [97m[0m
- [0m5 [97mfunc [0m[38;5;120m[7mreassignGlobal[0m[97m() int {[0m
+ [0m5 [97mfunc [0m[38;5;120m[7mreassignGlobal[0m[97m() [0m[97mint[0m[97m {[0m
  [0m6 [97m    [0m[38;5;120mglobalCount[0m[97m = [0m[38;5;120mglobalCount[0m[97m + 1[0m
  [0m7 [97m    [0m[38;5;130mreturn[0m[97m [0m[38;5;120mglobalCount[0m[97m[0m
  [0m8 [97m}[0m

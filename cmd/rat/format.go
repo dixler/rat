@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -73,10 +74,7 @@ func (r *Renderer) printTree(root string, d file.Declaration, depth int) {
 	for _, group := range groupReferences(root, d) {
 		fmt.Fprintf(&r.b, "%s  %s %s\n", indent, group.Style.Format(group.decl.Name()), locStyle.Format(fmt.Sprintf("%s:%d:%d", group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column())))
 		for _, ref := range group.refs {
-			sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
-			if !ok {
-				continue
-			}
+			sty := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
 			fmt.Fprintf(&r.b, "%s    %s\n", indent, sty.Format(fmt.Sprintf("%s:%d:%d", ref.Location().File(), ref.Location().Line(), ref.Location().Column())))
 		}
 	}
@@ -197,9 +195,7 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
 	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declarationStyle(decl), Priority: 1})
 	for _, ref := range decl.References() {
-		if sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind()); ok {
-			addSpan(out, sourceLines, ref.Location(), ref.Text(), display.Span{Style: sty})
-		}
+		addSpan(out, sourceLines, ref.Location(), ref.Text(), display.Span{Style: relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())})
 	}
 	for _, child := range decl.Declarations() {
 		collectDeclarationSpans(root, out, sourceLines, child)
@@ -268,19 +264,19 @@ func kindStyle(kind file.Kind) display.BasicStyle {
 	if sty, ok := _kindStyles[kind]; ok {
 		return sty
 	}
-	return _kindStyles[file.KindVariable]
+	panic(fmt.Sprintf("kind %s has no style", kind))
 }
 
 func groupReferences(root string, decl file.Declaration) []refGroup {
 	byKey := map[string]*refGroup{}
 	for _, ref := range decl.References() {
-		sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
-		if !ok || ref.Declaration() == nil {
+		if ref.Declaration() == nil {
 			continue
 		}
 		target := ref.Declaration()
 		key := locationKey(target.Location())
 		if byKey[key] == nil {
+			sty := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
 			byKey[key] = &refGroup{decl: target, Style: sty}
 		}
 		byKey[key].refs = append(byKey[key].refs, ref)
@@ -301,36 +297,30 @@ func groupReferences(root string, decl file.Declaration) []refGroup {
 	return out
 }
 
-func relationshipStyle(root string, parent, target file.Declaration, kind file.Kind) (display.Style, bool) {
-	if kind == file.KindParameter {
-		return kindStyle(kind), true
-	}
-	if target == nil || target.Location() == nil {
-		if kind == file.KindPackage {
-			return _relationStyles[_relExternal], true
+func relationshipStyle(root string, parent, target file.Declaration, kind file.Kind) display.Style {
+	switch kind {
+	case file.KindParameter:
+		return kindStyle(file.KindParameter)
+	case file.KindPackage:
+		return packageDeclarationStyle(root, target)
+	default:
+		switch {
+		case target == nil || target.Location() == nil:
+			return _relationStyles[_relExternal]
+		case isBuiltin(target):
+			return display.White
+		case sameFunction(parent, target):
+			return _relationStyles[_relSameFunction]
+		case sameFile(parent, target):
+			return _relationStyles[_relSameFile]
+		case samePackage(parent, target):
+			return _relationStyles[_relSamePackage]
+		case sameProject(root, parent, target):
+			return _relationStyles[_relSameProject]
+		default:
+			return _relationStyles[_relExternal]
 		}
-		return display.BasicStyle(""), false
 	}
-	if kind == file.KindPackage {
-		return packageDeclarationStyle(root, target), true
-	}
-	path := filepath.Clean(target.Location().File())
-	if path == "" || strings.Contains(path, "/src/builtin") {
-		return display.BasicStyle(""), false
-	}
-	if sameFunction(parent, target) {
-		return _relationStyles[_relSameFunction], true
-	}
-	if sameFile(parent, target) {
-		return _relationStyles[_relSameFile], true
-	}
-	if samePackage(parent, target) {
-		return _relationStyles[_relSamePackage], true
-	}
-	if sameProject(root, parent, target) {
-		return _relationStyles[_relSameProject], true
-	}
-	return _relationStyles[_relExternal], true
 }
 
 func packageDeclarationStyle(root string, target interface{ Location() file.Location }) display.Style {
@@ -348,6 +338,11 @@ func packageDeclarationStyle(root string, target interface{ Location() file.Loca
 		}
 	}
 	return _relationStyles[_relExternal]
+}
+
+func isBuiltin(target file.Declaration) bool {
+	p := path.Clean(target.Location().File())
+	return p == "" || strings.Contains(p, "/src/builtin")
 }
 
 func sameFunction(left, right file.Declaration) bool {
