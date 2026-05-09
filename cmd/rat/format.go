@@ -60,12 +60,6 @@ type controlFlowMark struct {
 	lineStyle display.Style
 }
 
-var (
-	_controlFlowGreen  = display.Green
-	_controlFlowReturn = display.MutedOrange
-	_controlFlowBlock  = display.Blue
-)
-
 func (r *Renderer) printHeader(f file.File) {
 	headerStyle := display.Bold
 	fmt.Fprintf(&r.b, "%s\n", headerStyle.Format(f.Name()))
@@ -105,19 +99,18 @@ func treeLabel(d file.Declaration) string {
 }
 
 func declarationStyle(d file.Declaration) display.Style {
-	var sty display.BasicStyle
-	if usesTopLevelSameFileStyle(d) {
-		sty = _relationStyles[_relSameFile]
-	} else if isTopLevelDeclaration(d) {
-		sty = _relationStyles[_relSameFunction]
-	} else if d != nil && d.Kind() == file.KindVariable && enclosingFunction(d) != nil {
-		sty = _relationStyles[_relSameFunction]
-	} else if d == nil {
-		sty = _relationStyles[_relSameFile]
-	} else {
-		sty = kindStyle(d.Kind())
+	switch {
+	case d == nil:
+		return _relationStyles[_relSameFile].Invert()
+	case usesTopLevelSameFileStyle(d):
+		return _relationStyles[_relSameFile].Invert()
+	case isTopLevelDeclaration(d):
+		return _relationStyles[_relSameFunction].Invert()
+	case enclosingFunction(d) != nil && d.Kind() == file.KindVariable:
+		return _relationStyles[_relSameFunction].Invert()
+	default:
+		return kindStyle(d.Kind()).Invert()
 	}
-	return sty.Invert()
 }
 
 func isTopLevelDeclaration(d file.Declaration) bool {
@@ -479,13 +472,6 @@ func newControlFlowMark(loc file.Location, text string, style display.Style) con
 	}
 }
 
-func styleFromBool(cond bool, whenTrue, whenFalse display.Style) display.Style {
-	if cond {
-		return whenTrue
-	}
-	return whenFalse
-}
-
 func collectDeclarationControlFlowMarks(decl file.Declaration, marks *[]controlFlowMark) {
 	if decl == nil {
 		return
@@ -507,58 +493,83 @@ func collectFunctionControlFlowMarks(decl file.Declaration, marks *[]controlFlow
 }
 
 func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
+
+	plain := display.MutedOrange
+	blue := display.Blue
+	exhaustive := display.Green
+
 	for _, block := range blocks {
 		switch b := block.(type) {
 		case file.IfBlock:
 			for _, branch := range b.Branches() {
-				*marks = append(*marks, newControlFlowMark(
-					branch.Location(),
-					branch.Keyword(),
-					styleFromBool(branch.HasTerminalControlFlowStatement(), _controlFlowReturn, _controlFlowBlock)))
+				addBranchMark := func(style display.Style) {
+					*marks = append(*marks, newControlFlowMark(branch.Location(), branch.Keyword(), style))
+				}
+				switch {
+				case branch.HasTerminalControlFlowStatement():
+					addBranchMark(plain)
+				default:
+					addBranchMark(blue)
+				}
 			}
 		case file.LoopBlock:
-			*marks = append(*marks, newControlFlowMark(
-				block.Location(),
-				b.LoopKind(),
-				styleFromBool(b.HasEscapingControlFlow(), _controlFlowReturn, _controlFlowBlock)))
+			addLoopMark := func(style display.Style) {
+				*marks = append(*marks, newControlFlowMark(block.Location(), b.LoopKind(), style))
+			}
+			switch {
+			case b.HasEscapingControlFlow():
+				addLoopMark(plain)
+			default:
+				addLoopMark(blue)
+			}
 		case file.SwitchBlock:
-			*marks = append(*marks, newControlFlowMark(b.Location(), b.SwitchKind(), styleFromBool(b.IsExhaustive(), _controlFlowGreen, _controlFlowReturn)))
+			addSwitchMark := func(style display.Style) {
+				*marks = append(*marks, newControlFlowMark(b.Location(), b.SwitchKind(), style))
+			}
+			switch {
+			case b.IsExhaustive():
+				addSwitchMark(exhaustive)
+			default:
+				addSwitchMark(plain)
+			}
 			for _, child := range b.Blocks() {
-				caseBlock, ok := child.(file.CaseBlock)
-				if !ok {
-					continue
+				if caseBlock, ok := child.(file.CaseBlock); ok {
+					addCaseMark := func(keyword string, style display.Style) {
+						*marks = append(*marks, newControlFlowMark(child.Location(), keyword, style))
+					}
+					switch {
+					case caseBlock.IsDefault():
+						addCaseMark("default", exhaustive)
+					case caseBlock.HasFallthrough():
+						addCaseMark("case", display.Blue)
+					default:
+						addCaseMark("case", plain)
+					}
 				}
-				keyword, style := "case", styleFromBool(caseBlock.HasFallthrough(), _controlFlowBlock, _controlFlowReturn)
-				if caseBlock.IsDefault() {
-					keyword, style = "default", _controlFlowGreen
-				}
-				*marks = append(*marks, newControlFlowMark(child.Location(), keyword, style))
 			}
 		}
 		collectBlockMarks(block.Blocks(), marks)
 		for _, stmt := range block.Statements() {
-			var style display.Style
+			addMark := func(style display.Style) {
+				*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
+			}
 			switch stmt.Kind() {
 			case "return":
-				style = _controlFlowReturn
+				addMark(plain)
 			case "fallthrough":
-				style = _controlFlowBlock
-			default:
-				continue
+				addMark(blue)
 			}
-			*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
 		}
 		for _, stmt := range block.ControlFlowStatements() {
-			var style display.Style
+			addMark := func(style display.Style) {
+				*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
+			}
 			switch stmt.Kind() {
 			case "break":
-				style = _controlFlowReturn
+				addMark(plain)
 			case "continue":
-				style = _controlFlowBlock
-			default:
-				continue
+				addMark(blue)
 			}
-			*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
 		}
 	}
 }
@@ -577,28 +588,35 @@ func collectCommentSpans(out map[int][]display.Span, sourceLines []string, f fil
 			continue
 		}
 		for line := start.Line(); line <= end.Line(); line++ {
+			getStart := func(lineText string) int {
+				spanStart := 0
+				if line == start.Line() {
+					spanStart = max(start.Column()-1, 0)
+				}
+				if spanStart > len(lineText) {
+					spanStart = len(lineText)
+				}
+				return spanStart
+			}
+			getEnd := func(lineText string) int {
+				spanEnd := len(lineText)
+				if line == end.Line() {
+					spanEnd = max(end.Column()-1, 0)
+				}
+				if spanEnd > len(lineText) {
+					spanEnd = len(lineText)
+				}
+				return spanEnd
+			}
 			if line < 1 || line > len(sourceLines) {
 				continue
 			}
 			lineText := sourceLines[line-1]
-			spanStart := 0
-			if line == start.Line() {
-				spanStart = max(start.Column()-1, 0)
-			}
-			if spanStart > len(lineText) {
-				spanStart = len(lineText)
-			}
-			spanEnd := len(lineText)
-			if line == end.Line() {
-				spanEnd = max(end.Column()-1, 0)
-			}
-			if spanEnd > len(lineText) {
-				spanEnd = len(lineText)
-			}
-			if spanEnd <= spanStart {
+			start, end := getStart(lineText), getEnd(lineText)
+			if end <= start {
 				continue
 			}
-			out[line] = append(out[line], display.Span{Start: spanStart, End: spanEnd, Style: display.Gray})
+			out[line] = append(out[line], display.Span{Start: start, End: end, Style: display.Gray})
 		}
 	}
 }
