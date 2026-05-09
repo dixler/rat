@@ -374,6 +374,7 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	decl := b.newDeclaration(fn.Name, KindFunction)
 	if fn.Recv != nil {
 		b.appendFieldDeclarations(&decl, fn.Recv, KindParameter)
+		b.collectReferences(fn.Recv, &decl)
 	}
 	if fn.Type != nil {
 		b.appendFieldDeclarations(&decl, fn.Type.TypeParams, KindParameter)
