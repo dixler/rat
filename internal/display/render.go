@@ -50,10 +50,10 @@ func (s BasicStyle) Invert() BasicStyle {
 }
 
 type Span struct {
-	Start int
-	End   int
-	Style Style
-	IsDef bool
+	Start    int
+	End      int
+	Style    Style
+	Priority int
 }
 
 func RenderSource(src string, spans map[int][]Span, lineNumberStyles map[int]Style, lineMarkers map[int]string) string {

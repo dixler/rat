@@ -170,9 +170,10 @@ func sortSpans(spans []display.Span) {
 		if spans[i].Start != spans[j].Start {
 			return spans[i].Start < spans[j].Start
 		}
-		if spans[i].IsDef != spans[j].IsDef {
-			return spans[i].IsDef
+		if spans[i].Priority != spans[j].Priority {
+			return spans[i].Priority > spans[j].Priority
 		}
+
 		return spans[i].End < spans[j].End
 	})
 }
@@ -196,13 +197,12 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 			Start: col - 1 + i,
 			End:   col - 1 + i + 1,
 			Style: charStyle,
-			IsDef: false,
 		})
 	}
 }
 
 func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
-	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declarationStyle(decl), IsDef: true})
+	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declarationStyle(decl), Priority: 1})
 	for _, ref := range decl.References() {
 		if sty, ok := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind()); ok {
 			addSpan(out, sourceLines, ref.Location(), ref.Text(), display.Span{Style: sty})
@@ -453,7 +453,7 @@ func addImportReferenceSpan(out map[int][]display.Span, sourceLines []string, re
 	if start < 0 {
 		return
 	}
-	out[loc.Line()] = append(out[loc.Line()], display.Span{Start: start, End: start + len(ref.Text()), Style: style, IsDef: false})
+	out[loc.Line()] = append(out[loc.Line()], display.Span{Start: start, End: start + len(ref.Text()), Style: style})
 }
 
 func collectControlFlowMarks(f file.File) []controlFlowMark {
@@ -563,7 +563,7 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 
 func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
-		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: declarationStyle(nil), IsDef: true})
+		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: declarationStyle(nil), Priority: 1})
 	}
 }
 
@@ -596,7 +596,7 @@ func collectCommentSpans(out map[int][]display.Span, sourceLines []string, f fil
 			if spanEnd <= spanStart {
 				continue
 			}
-			out[line] = append(out[line], display.Span{Start: spanStart, End: spanEnd, Style: display.Gray, IsDef: false})
+			out[line] = append(out[line], display.Span{Start: spanStart, End: spanEnd, Style: display.Gray})
 		}
 	}
 }
