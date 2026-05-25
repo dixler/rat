@@ -1,15 +1,22 @@
 const vscode = require('vscode');
 const cp = require('child_process');
 
+const RESET = mk('editor.foreground', {
+  backgroundColor: new vscode.ThemeColor('editor.background'),
+  fontStyle: 'normal',
+  fontWeight: 'normal',
+  textDecoration: 'none'
+});
+
 const STYLE = {
-  keyword: mk('charts.blue'),
-  type: mk('terminal.ansiGreen'),
-  variable: mk('charts.yellow'),
-  parameter: mk('charts.orange'),
-  project: mk('charts.blue'),
-  samepkg: mk('terminal.ansiCyan'),
-  external: mk('terminal.ansiMagenta'),
-  indirect: mk('terminal.ansiMagenta', { fontWeight: '700' })
+  keyword: mk('charts.blue', { fontStyle: 'normal', fontWeight: 'normal', textDecoration: 'none' }),
+  type: mk('terminal.ansiGreen', { fontStyle: 'normal', fontWeight: 'normal', textDecoration: 'none' }),
+  variable: mk('charts.yellow', { fontStyle: 'normal', fontWeight: 'normal', textDecoration: 'none' }),
+  parameter: mk('charts.orange', { fontStyle: 'normal', fontWeight: 'normal', textDecoration: 'none' }),
+  project: mk('charts.blue', { fontStyle: 'normal', fontWeight: 'normal', textDecoration: 'none' }),
+  samepkg: mk('terminal.ansiCyan', { fontStyle: 'normal', fontWeight: 'normal', textDecoration: 'none' }),
+  external: mk('terminal.ansiMagenta', { fontStyle: 'normal', fontWeight: 'normal', textDecoration: 'none' }),
+  indirect: mk('terminal.ansiMagenta', { fontStyle: 'normal', fontWeight: '700', textDecoration: 'none' })
 };
 
 let serverProc;
@@ -48,14 +55,21 @@ async function decorate(editor) {
   const url = c.get('serverUrl', 'http://localhost:8081');
 
   const buckets = Object.fromEntries(Object.keys(STYLE).map((k) => [k, []]));
+  const reset = [];
   for (const s of await fetchSpans(editor.document, url)) {
     if (!STYLE[s.kind]) continue;
-    buckets[s.kind].push(new vscode.Range(new vscode.Position((s.line || 1) - 1, s.start || 0), new vscode.Position((s.line || 1) - 1, s.end || 0)));
+    const range = new vscode.Range(new vscode.Position((s.line || 1) - 1, s.start || 0), new vscode.Position((s.line || 1) - 1, s.end || 0));
+    reset.push(range);
+    buckets[s.kind].push(range);
   }
+  editor.setDecorations(RESET, reset);
   for (const [k, ranges] of Object.entries(buckets)) editor.setDecorations(STYLE[k], ranges);
 }
 
-function clear(editor) { Object.values(STYLE).forEach((s) => editor.setDecorations(s, [])); }
+function clear(editor) {
+  editor.setDecorations(RESET, []);
+  Object.values(STYLE).forEach((s) => editor.setDecorations(s, []));
+}
 
 function activate(context) {
   startServerIfNeeded();
@@ -80,5 +94,9 @@ function activate(context) {
   refresh();
 }
 
-function deactivate() { stopServer(); Object.values(STYLE).forEach((s) => s.dispose()); }
+function deactivate() {
+  stopServer();
+  RESET.dispose();
+  Object.values(STYLE).forEach((s) => s.dispose());
+}
 module.exports = { activate, deactivate };
