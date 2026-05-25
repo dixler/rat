@@ -8,6 +8,13 @@
   "categories": ["Other"],
   "activationEvents": ["onStartupFinished", "onCommand:textSemanticHighlight.toggle"],
   "main": "./extension.js",
+  "repository": "https://github.com/dixler/rat",
+  "devDependencies": {
+    "@vscode/vsce": "3.9.1"
+  },
+  "scripts": {
+    "build": "vsce package"
+  },
   "contributes": {
     "commands": [{ "command": "textSemanticHighlight.toggle", "title": "Text Semantic Highlight: Toggle" }],
     "configuration": {
