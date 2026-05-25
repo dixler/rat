@@ -3,38 +3,7 @@ const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const PALETTE = {
-  hotMagenta: { foreground: 'terminal.ansiMagenta', background: 'rgba(255, 0, 255, 0.22)', fontWeight: '700' },
-  orange: { foreground: 'charts.orange', background: 'rgba(255, 165, 0, 0.22)' },
-  yellow: { foreground: 'charts.yellow', background: 'rgba(255, 215, 0, 0.22)' },
-  green: { foreground: 'terminal.ansiGreen', background: 'rgba(35, 209, 139, 0.22)' },
-  cyan: { foreground: 'terminal.ansiCyan', background: 'rgba(0, 255, 255, 0.2)' },
-  blue: { foreground: 'charts.blue', background: 'rgba(88, 166, 255, 0.22)' },
-  lavender: { foreground: 'terminal.ansiMagenta', background: 'rgba(255, 0, 255, 0.2)' },
-  white: { foreground: 'editor.foreground', background: 'rgba(255, 255, 255, 0.18)' }
-};
-
-const ANSI_COLOR_CODES = {
-  '38;5;198': 'hotMagenta',
-  '38;5;215': 'orange',
-  '38;5;226': 'yellow',
-  '38;5;120': 'green',
-  '96': 'cyan',
-  '94': 'blue',
-  '38;5;183': 'lavender',
-  '32': 'green',
-  '38;5;130': 'orange',
-  '38;5;208': 'orange',
-  '97': 'white',
-  '48;5;198': 'hotMagenta',
-  '48;5;215': 'orange',
-  '48;5;226': 'yellow',
-  '48;5;120': 'green',
-  '48;5;183': 'lavender',
-  '48;5;130': 'orange',
-  '48;5;208': 'orange',
-  '48;5;15': 'white'
-};
+const DEFAULT_FOREGROUND = '#ffffff';
 
 const FOREGROUND_STYLE = new Map();
 const BACKGROUND_STYLE = new Map();
@@ -56,13 +25,84 @@ function logOnce(key, message, extra) {
 
 function mk({ color, ...extra }) {
   return vscode.window.createTextEditorDecorationType({
-    ...(color ? { color: new vscode.ThemeColor(color) } : {}),
+    ...(color ? { color } : {}),
     ...extra
   });
 }
 
-function mkDeclaration(backgroundColor) {
-  return vscode.window.createTextEditorDecorationType({ backgroundColor, borderRadius: '2px' });
+function cubeValue(v) {
+  if (v === 0) return 0;
+  return 55 + v * 40;
+}
+
+function xterm256(idx) {
+  const clamped = Math.max(0, Math.min(255, idx));
+  if (clamped < 16) {
+    return [
+      '#000000', '#800000', '#008000', '#808000', '#000080', '#800080', '#008080', '#c0c0c0',
+      '#808080', '#ff0000', '#00ff00', '#ffff00', '#0000ff', '#ff00ff', '#00ffff', '#ffffff'
+    ][clamped];
+  }
+  if (clamped <= 231) {
+    const n = clamped - 16;
+    const r = Math.floor(n / 36);
+    const g = Math.floor((n % 36) / 6);
+    const b = n % 6;
+    return `#${cubeValue(r).toString(16).padStart(2, '0')}${cubeValue(g).toString(16).padStart(2, '0')}${cubeValue(b).toString(16).padStart(2, '0')}`;
+  }
+  const v = 8 + (clamped - 232) * 10;
+  return `#${v.toString(16).padStart(2, '0')}${v.toString(16).padStart(2, '0')}${v.toString(16).padStart(2, '0')}`;
+}
+
+function ansiBasicColor(i) {
+  return ['#000000', '#b22222', '#2e8b57', '#b8860b', '#1d4ed8', '#8b5cf6', '#0891b2', '#d1d5db'][i] || undefined;
+}
+
+function ansiBrightColor(i) {
+  return ['#6b7280', '#ef4444', '#22c55e', '#fde047', '#60a5fa', '#c084fc', '#67e8f9', '#ffffff'][i] || undefined;
+}
+
+function ansiColor(code) {
+  if (!code) return undefined;
+  if (code.startsWith('38;5;') || code.startsWith('48;5;')) {
+    const idx = Number(code.split(';')[2]);
+    return Number.isInteger(idx) ? xterm256(idx) : undefined;
+  }
+
+  const value = Number(code);
+  if (!Number.isInteger(value)) return undefined;
+  if (value >= 30 && value <= 37) return ansiBasicColor(value - 30);
+  if (value >= 90 && value <= 97) return ansiBrightColor(value - 90);
+  if (value >= 40 && value <= 47) return ansiBasicColor(value - 40);
+  if (value >= 100 && value <= 107) return ansiBrightColor(value - 100);
+  return undefined;
+}
+
+function parseHexByte(v) {
+  const n = Number.parseInt(v, 16);
+  return Number.isNaN(n) ? undefined : n;
+}
+
+function contrastTextColor(hex) {
+  if (typeof hex !== 'string' || hex.length !== 7 || !hex.startsWith('#')) return DEFAULT_FOREGROUND;
+  const r = parseHexByte(hex.slice(1, 3));
+  const g = parseHexByte(hex.slice(3, 5));
+  const b = parseHexByte(hex.slice(5, 7));
+  if (![r, g, b].every(Number.isInteger)) return DEFAULT_FOREGROUND;
+  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+  return luma >= 140 ? '#000000' : '#ffffff';
+}
+
+function resolvedAnsiColors(parsed) {
+  let foreground = ansiColor(parsed?.fg);
+  let background = ansiColor(parsed?.bg);
+
+  if (parsed?.inverse) {
+    [foreground, background] = [background, foreground];
+    if (background) foreground = contrastTextColor(background);
+  }
+
+  return { foreground, background };
 }
 
 function parseAnsiStyle(style) {
@@ -117,11 +157,6 @@ function parseAnsiStyle(style) {
   return parsed;
 }
 
-function paletteSpec(code) {
-  const palette = ANSI_COLOR_CODES[code];
-  return palette ? PALETTE[palette] : undefined;
-}
-
 function normalizeSpan(span) {
   if (typeof span?.style === 'string' && span.style) {
     return { parsed: parseAnsiStyle(span.style), source: 'style', raw: span.style, priority: Number.isInteger(span.priority) ? span.priority : 0 };
@@ -131,16 +166,14 @@ function normalizeSpan(span) {
 }
 
 function foregroundSpecFromAnsi(parsed) {
-  const spec = paletteSpec(parsed?.fg);
-  if (!spec) return undefined;
-  const { foreground, fontWeight, fontStyle, textDecoration } = spec;
+  const { foreground: color } = resolvedAnsiColors(parsed);
+  if (parsed?.bg || parsed?.inverse) return undefined;
+  if (!color) return undefined;
   return {
-    ...(foreground ? { color: foreground } : {}),
+    color,
     ...(parsed?.fontWeight ? { fontWeight: parsed.fontWeight } : {}),
-    ...(fontWeight ? { fontWeight } : {}),
-    ...(fontStyle ? { fontStyle } : {}),
     ...(parsed?.textDecoration ? { textDecoration: parsed.textDecoration } : {}),
-    ...(textDecoration ? { textDecoration } : {})
+    fontStyle: 'normal'
   };
 }
 
@@ -152,15 +185,7 @@ function foregroundDecoration(specKey, spec) {
 }
 
 function backgroundColorFromAnsi(parsed) {
-  const bgSpec = paletteSpec(parsed?.bg);
-  if (bgSpec?.background) return bgSpec.background;
-
-  if (parsed?.inverse) {
-    const fgSpec = paletteSpec(parsed.fg);
-    return fgSpec?.background;
-  }
-
-  return undefined;
+  return resolvedAnsiColors(parsed).background;
 }
 
 function spanUsesBackground(parsed) {
@@ -169,9 +194,19 @@ function spanUsesBackground(parsed) {
 
 function backgroundDecoration(specKey, spec) {
   const backgroundColor = backgroundColorFromAnsi(spec);
+  const { foreground } = resolvedAnsiColors(spec);
 
   if (!backgroundColor) return undefined;
-  if (!BACKGROUND_STYLE.has(specKey)) BACKGROUND_STYLE.set(specKey, mkDeclaration(backgroundColor));
+  if (!BACKGROUND_STYLE.has(specKey)) {
+    BACKGROUND_STYLE.set(specKey, mk({
+      backgroundColor,
+      borderRadius: '2px',
+      color: foreground || contrastTextColor(backgroundColor),
+      ...(spec?.fontWeight ? { fontWeight: spec.fontWeight } : {}),
+      ...(spec?.textDecoration ? { textDecoration: spec.textDecoration } : {}),
+      fontStyle: 'normal'
+    }));
+  }
   return BACKGROUND_STYLE.get(specKey);
 }
 
@@ -254,7 +289,6 @@ async function decorate(editor) {
     return clear(editor);
   }
   const url = c.get('serverUrl', 'http://localhost:8081');
-
   const buckets = new Map();
   const declarationBuckets = new Map();
   const spans = await fetchSpans(editor.document, url);
