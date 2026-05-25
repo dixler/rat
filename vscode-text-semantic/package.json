@@ -1,0 +1,26 @@
+{
+  "name": "text-semantic-highlight",
+  "displayName": "Text Semantic Highlight",
+  "description": "Apply rat semantic highlights from a local rat HTTP server.",
+  "version": "0.0.4",
+  "publisher": "local",
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished", "onCommand:textSemanticHighlight.toggle"],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [{ "command": "textSemanticHighlight.toggle", "title": "Text Semantic Highlight: Toggle" }],
+    "configuration": {
+      "title": "Text Semantic Highlight",
+      "properties": {
+        "textSemanticHighlight.enabled": { "type": "boolean", "default": true },
+        "textSemanticHighlight.serverUrl": { "type": "string", "default": "http://localhost:8081" },
+        "textSemanticHighlight.languages": { "type": "array", "items": { "type": "string" }, "default": ["go"] },
+        "textSemanticHighlight.autoStartServer": { "type": "boolean", "default": true },
+        "textSemanticHighlight.serverCommand": { "type": "string", "default": "go" },
+        "textSemanticHighlight.serverArgs": { "type": "array", "items": { "type": "string" }, "default": ["run", "./cmd/rat", "--serve", "--addr", ":8081"] },
+        "textSemanticHighlight.serverCwd": { "type": "string", "default": "${workspaceFolder}" }
+      }
+    }
+  }
+}

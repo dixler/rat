@@ -32,8 +32,15 @@ func ProcessPipeline(filepath string, mode OutputMode) (string, error) {
 }
 
 func main() {
+	serve := flag.Bool("serve", false, "run HTTP server")
+	addr := flag.String("addr", ":8081", "server listen addr")
 	mode := flag.String("format", string(ModeANSI), "output format: ansi or html")
 	flag.Parse()
+
+	if *serve {
+		runServer(*addr)
+		return
+	}
 
 	if len(flag.Args()) != 1 {
 		die("usage: rat [-format ansi|html] <file.go>")

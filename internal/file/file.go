@@ -57,6 +57,8 @@ type ControlFlowStatement interface {
 
 type Block interface {
 	Location() Location
+	OpenBrace() Location
+	CloseBrace() Location
 	Blocks() []Block
 	Statements() []ControlFlowStatement
 	ControlFlowStatements() []ControlFlowStatement
@@ -74,6 +76,8 @@ type IfBlock interface {
 
 type IfBranch interface {
 	Location() Location
+	OpenBrace() Location
+	CloseBrace() Location
 	Step() int
 	Blocks() []Block
 	Statements() []ControlFlowStatement
@@ -179,6 +183,8 @@ type controlFlowStatement struct {
 
 type blockBase struct {
 	location                        location
+	openBrace                       *location
+	closeBrace                      *location
 	blocks                          []Block
 	statements                      []ControlFlowStatement
 	hasTerminalControlFlowStatement bool
@@ -201,6 +207,8 @@ type elseBranch struct {
 
 type ifBranchBase struct {
 	location                        location
+	openBrace                       *location
+	closeBrace                      *location
 	step                            int
 	blocks                          []Block
 	statements                      []ControlFlowStatement
@@ -321,6 +329,18 @@ func (s *controlFlowStatement) Kind() string       { return s.kind }
 func (s *controlFlowStatement) Location() Location { return s.location }
 
 func (b *blockBase) Location() Location { return b.location }
+func (b *blockBase) OpenBrace() Location {
+	if b == nil {
+		return nil
+	}
+	return b.openBrace
+}
+func (b *blockBase) CloseBrace() Location {
+	if b == nil {
+		return nil
+	}
+	return b.closeBrace
+}
 func (b *blockBase) Blocks() []Block {
 	return append([]Block(nil), b.blocks...)
 }
@@ -351,6 +371,18 @@ func (b *ifBlock) Branches() []IfBranch {
 	return append([]IfBranch(nil), b.branches...)
 }
 func (b *ifBranchBase) Location() Location { return b.location }
+func (b *ifBranchBase) OpenBrace() Location {
+	if b == nil {
+		return nil
+	}
+	return b.openBrace
+}
+func (b *ifBranchBase) CloseBrace() Location {
+	if b == nil {
+		return nil
+	}
+	return b.closeBrace
+}
 func (b *ifBranchBase) Step() int          { return b.step }
 func (b *ifBranchBase) Blocks() []Block    { return append([]Block(nil), b.blocks...) }
 func (b *ifBranchBase) Statements() []ControlFlowStatement {
