@@ -499,6 +499,7 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 			for _, branch := range b.Branches() {
 				addBranchMark := func(style display.Style) {
 					*marks = append(*marks, newControlFlowMark(branch.Location(), branch.Keyword(), style))
+					appendBraceMarks(marks, branch.OpenBrace(), branch.CloseBrace(), style)
 				}
 				switch {
 				case branch.HasTerminalControlFlowStatement():
@@ -510,6 +511,7 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		case file.LoopBlock:
 			addLoopMark := func(style display.Style) {
 				*marks = append(*marks, newControlFlowMark(block.Location(), b.LoopKind(), style))
+				appendBraceMarks(marks, block.OpenBrace(), block.CloseBrace(), style)
 			}
 			switch {
 			case b.HasEscapingControlFlow():
@@ -520,6 +522,7 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 		case file.SwitchBlock:
 			addSwitchMark := func(style display.Style) {
 				*marks = append(*marks, newControlFlowMark(b.Location(), b.SwitchKind(), style))
+				appendBraceMarks(marks, block.OpenBrace(), block.CloseBrace(), style)
 			}
 			switch {
 			case b.IsExhaustive():
@@ -566,6 +569,18 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				addMark(blue)
 			}
 		}
+	}
+}
+
+func appendBraceMarks(marks *[]controlFlowMark, open, close file.Location, style display.Style) {
+	if marks == nil || style == nil {
+		return
+	}
+	if open != nil {
+		*marks = append(*marks, newControlFlowMark(open, "{", style))
+	}
+	if close != nil {
+		*marks = append(*marks, newControlFlowMark(close, "}", style))
 	}
 }
 

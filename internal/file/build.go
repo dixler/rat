@@ -146,6 +146,14 @@ func buildBlocks(raw []scan.ControlFlowBlock) []Block {
 
 func buildBlock(raw scan.ControlFlowBlock) Block {
 	base := blockBase{location: newLocation(raw.File, raw.Line, raw.Column), hasTerminalControlFlowStatement: raw.HasTerminalControlFlowStatement()}
+	if raw.OpenBraceLine > 0 && raw.OpenBraceColumn > 0 {
+		open := newLocation(raw.File, raw.OpenBraceLine, raw.OpenBraceColumn)
+		base.openBrace = &open
+	}
+	if raw.CloseBraceLine > 0 && raw.CloseBraceColumn > 0 {
+		close := newLocation(raw.File, raw.CloseBraceLine, raw.CloseBraceColumn)
+		base.closeBrace = &close
+	}
 	var block Block
 	switch raw.Kind {
 	case scan.BlockKindIf:
@@ -204,6 +212,14 @@ func collectIfBranches(raw scan.ControlFlowBlock, dst *ifBlock) {
 		branch = &ifBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep, hasTerminalControlFlowStatement: hasTerminal}, elseIf: kind == scan.BlockKindElseIf}
 	}
 	if base := ifBranchBaseOf(branch); base != nil {
+		if raw.OpenBraceLine > 0 && raw.OpenBraceColumn > 0 {
+			open := newLocation(raw.File, raw.OpenBraceLine, raw.OpenBraceColumn)
+			base.openBrace = &open
+		}
+		if raw.CloseBraceLine > 0 && raw.CloseBraceColumn > 0 {
+			close := newLocation(raw.File, raw.CloseBraceLine, raw.CloseBraceColumn)
+			base.closeBrace = &close
+		}
 		appendControlFlowStatements(&base.statements, raw.Statements)
 	}
 	for _, child := range raw.Blocks {

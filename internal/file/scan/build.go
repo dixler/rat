@@ -78,6 +78,10 @@ type ControlFlowBlock struct {
 	File                    string
 	Line                    int
 	Column                  int
+	OpenBraceLine           int
+	OpenBraceColumn         int
+	CloseBraceLine          int
+	CloseBraceColumn        int
 	HasControlFlowStatement bool
 	IfChainID               string
 	IfStep                  int
@@ -494,9 +498,9 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	case *ast.RangeStmt:
 		block = b.buildForBlock(s.Pos(), s.Body, "")
 	case *ast.SwitchStmt:
-		block = b.buildSwitchBlock(s.Pos(), s.Body.List)
+		block = b.buildSwitchBlock(s.Pos(), s.Body)
 	case *ast.TypeSwitchStmt:
-		block = b.buildSwitchBlock(s.Pos(), s.Body.List)
+		block = b.buildSwitchBlock(s.Pos(), s.Body)
 	case *ast.SelectStmt:
 		block = b.buildSelectBlock(s)
 	default:
@@ -516,6 +520,7 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 	block := ControlFlowBlock{Kind: kind, File: b.file, Line: pos.Line, Column: pos.Column, IfChainID: chainID, IfStep: step}
 	block.Statements = b.collectControlFlowStatements(stmt.Init, stmt.Cond)
 	if stmt.Body != nil {
+		setBlockBracesFromStmt(b.fset, &block, stmt.Body)
 		block.Blocks = append(block.Blocks, b.buildBlocks(stmt.Body.List)...)
 	}
 	if stmt.Else != nil {
@@ -526,6 +531,7 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 		case *ast.BlockStmt:
 			elseLoc := b.fset.Position(elsePos)
 			elseBlock := ControlFlowBlock{Kind: BlockKindElse, File: b.file, Line: elseLoc.Line, Column: elseLoc.Column, IfChainID: chainID, IfStep: step + 1}
+			setBlockBracesFromStmt(b.fset, &elseBlock, e)
 			elseBlock.Blocks = b.buildBlocks(e.List)
 			block.Blocks = append(block.Blocks, elseBlock)
 		default:
@@ -546,6 +552,7 @@ func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt, l
 	b.breakStack = append(b.breakStack, &block)
 	defer func() { b.breakStack = b.breakStack[:len(b.breakStack)-1] }()
 	if body != nil {
+		setBlockBracesFromStmt(b.fset, &block, body)
 		block.Blocks = b.buildBlocks(body.List)
 	}
 	if controlFlowBlockHasStatementKind(block, "return") {
@@ -592,11 +599,12 @@ func isTerminalControlFlowKind(kind string) bool {
 	}
 }
 
-func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, clauses []ast.Stmt) ControlFlowBlock {
+func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, body *ast.BlockStmt) ControlFlowBlock {
 	p := b.fset.Position(pos)
 	block := ControlFlowBlock{Kind: BlockKindSwitch, File: b.file, Line: p.Line, Column: p.Column}
+	setBlockBracesFromStmt(b.fset, &block, body)
 	b.breakStack = append(b.breakStack, &block)
-	for _, stmt := range clauses {
+	for _, stmt := range body.List {
 		clause, ok := stmt.(*ast.CaseClause)
 		if !ok {
 			continue
@@ -611,6 +619,7 @@ func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, clauses []ast.Stmt)
 func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowBlock {
 	p := b.fset.Position(stmt.Select)
 	block := ControlFlowBlock{Kind: BlockKindSelect, File: b.file, Line: p.Line, Column: p.Column}
+	setBlockBracesFromStmt(b.fset, &block, stmt.Body)
 	b.breakStack = append(b.breakStack, &block)
 	if stmt.Body != nil {
 		for _, entry := range stmt.Body.List {
@@ -624,6 +633,18 @@ func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowB
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
 	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
+}
+
+func setBlockBracesFromStmt(fset *token.FileSet, block *ControlFlowBlock, body *ast.BlockStmt) {
+	if fset == nil || block == nil || body == nil {
+		return
+	}
+	open := fset.Position(body.Lbrace)
+	close := fset.Position(body.Rbrace)
+	block.OpenBraceLine = open.Line
+	block.OpenBraceColumn = open.Column
+	block.CloseBraceLine = close.Line
+	block.CloseBraceColumn = close.Column
 }
 
 func (b *controlFlowBuilder) appendCaseBlock(parent *ControlFlowBlock, casePos token.Pos, hasDefault bool, body []ast.Stmt) {
