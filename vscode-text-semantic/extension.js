@@ -4,9 +4,11 @@ const fs = require('fs');
 const path = require('path');
 
 const DEFAULT_FOREGROUND = '#ffffff';
+const EDITOR_FOREGROUND = new vscode.ThemeColor('editor.foreground');
 
 const FOREGROUND_STYLE = new Map();
 const BACKGROUND_STYLE = new Map();
+const BASE_FOREGROUND_STYLE = mk({ color: EDITOR_FOREGROUND });
 const output = vscode.window.createOutputChannel('Text Semantic Highlight');
 const seenLogs = new Set();
 
@@ -210,6 +212,43 @@ function backgroundDecoration(specKey, spec) {
   return BACKGROUND_STYLE.get(specKey);
 }
 
+function addCoveredRange(coveredByLine, range) {
+  const line = range.start.line;
+  if (line !== range.end.line || range.end.character <= range.start.character) return;
+  if (!coveredByLine.has(line)) coveredByLine.set(line, []);
+  coveredByLine.get(line).push([range.start.character, range.end.character]);
+}
+
+function uncoveredRanges(doc, coveredByLine) {
+  const ranges = [];
+
+  for (let line = 0; line < doc.lineCount; line++) {
+    const lineLength = doc.lineAt(line).text.length;
+    if (lineLength === 0) continue;
+
+    const intervals = coveredByLine.get(line);
+    if (!intervals || intervals.length === 0) {
+      ranges.push(new vscode.Range(line, 0, line, lineLength));
+      continue;
+    }
+
+    intervals.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    let cursor = 0;
+
+    for (const [rawStart, rawEnd] of intervals) {
+      const start = Math.max(0, Math.min(lineLength, rawStart));
+      const end = Math.max(start, Math.min(lineLength, rawEnd));
+      if (start > cursor) ranges.push(new vscode.Range(line, cursor, line, start));
+      if (end > cursor) cursor = end;
+      if (cursor >= lineLength) break;
+    }
+
+    if (cursor < lineLength) ranges.push(new vscode.Range(line, cursor, line, lineLength));
+  }
+
+  return ranges;
+}
+
 function cfg() { return vscode.workspace.getConfiguration('textSemanticHighlight'); }
 
 function resolveServerCwd() {
@@ -291,6 +330,7 @@ async function decorate(editor) {
   const url = c.get('serverUrl', 'http://localhost:8081');
   const buckets = new Map();
   const declarationBuckets = new Map();
+  const coveredByLine = new Map();
   const spans = await fetchSpans(editor.document, url);
   for (const s of spans) {
     const range = new vscode.Range(new vscode.Position((s.line || 1) - 1, s.start || 0), new vscode.Position((s.line || 1) - 1, s.end || 0));
@@ -303,6 +343,7 @@ async function decorate(editor) {
       logOnce(`unrecognized:${JSON.stringify(Object.keys(s || {}).sort())}:${normalized.raw}`, 'unrecognized span payload', { keys: Object.keys(s || {}), span: s });
       continue;
     }
+    addCoveredRange(coveredByLine, range);
     if (useBackground) {
       if (!declarationBuckets.has(decoration)) declarationBuckets.set(decoration, []);
       declarationBuckets.get(decoration).push(range);
@@ -311,14 +352,18 @@ async function decorate(editor) {
     if (!buckets.has(decoration)) buckets.set(decoration, []);
     buckets.get(decoration).push(range);
   }
+  const baseRanges = uncoveredRanges(editor.document, coveredByLine);
+  editor.setDecorations(BASE_FOREGROUND_STYLE, []);
   FOREGROUND_STYLE.forEach((decoration) => editor.setDecorations(decoration, []));
   BACKGROUND_STYLE.forEach((decoration) => editor.setDecorations(decoration, []));
+  editor.setDecorations(BASE_FOREGROUND_STYLE, baseRanges);
   for (const [decoration, ranges] of buckets.entries()) editor.setDecorations(decoration, ranges);
   for (const [decoration, ranges] of declarationBuckets.entries()) editor.setDecorations(decoration, ranges);
-  log('applied decorations', { spans: spans.length, foregroundBuckets: buckets.size, backgroundBuckets: declarationBuckets.size });
+  log('applied decorations', { spans: spans.length, baseRanges: baseRanges.length, foregroundBuckets: buckets.size, backgroundBuckets: declarationBuckets.size });
 }
 
 function clear(editor) {
+  editor.setDecorations(BASE_FOREGROUND_STYLE, []);
   FOREGROUND_STYLE.forEach((decoration) => editor.setDecorations(decoration, []));
   BACKGROUND_STYLE.forEach((decoration) => editor.setDecorations(decoration, []));
 }
@@ -372,6 +417,7 @@ function activate(context) {
 function deactivate() {
   log('deactivating extension');
   stopServer();
+  BASE_FOREGROUND_STYLE.dispose();
   FOREGROUND_STYLE.forEach((decoration) => decoration.dispose());
   BACKGROUND_STYLE.forEach((decoration) => decoration.dispose());
   output.dispose();
