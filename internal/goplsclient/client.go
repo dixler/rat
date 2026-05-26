@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"rat/internal/goplsbin"
 )
 
 type Location struct {
@@ -74,12 +76,15 @@ func resolveGoplsBinary() (string, error) {
 	if custom := strings.TrimSpace(os.Getenv("GOPLS_BIN")); custom != "" {
 		return custom, nil
 	}
+	if path, err := goplsbin.Path(); err == nil {
+		return path, nil
+	}
 	if _, err := os.Stat("./gopls"); err == nil {
 		return "./gopls", nil
 	}
 	path, err := exec.LookPath("gopls")
 	if err != nil {
-		return "", fmt.Errorf("gopls not found; set GOPLS_BIN or include gopls in PATH")
+		return "", fmt.Errorf("gopls not found; set GOPLS_BIN, build the embedded gopls artifact, or include gopls in PATH")
 	}
 	return path, nil
 }

@@ -276,8 +276,8 @@ function startServerIfNeeded() {
     log('auto-start disabled');
     return;
   }
-  const cmd = cfg().get('serverCommand', 'go');
-  const args = cfg().get('serverArgs', ['run', './cmd/rat', '--serve', '--addr', ':8081']);
+  const cmd = cfg().get('serverCommand', 'rat');
+  const args = cfg().get('serverArgs', ['--serve', '--addr', ':8081']);
   const cwd = resolveServerCwd();
   log('starting server', { cmd, args, cwd });
   serverProc = cp.spawn(cmd, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
