@@ -6,9 +6,11 @@ This extension fetches semantic spans from a `rat` HTTP server and decorates tho
 
 By default, the extension starts the server process automatically:
 
-- command: `go`
-- args: `run ./cmd/rat --serve --addr :8081`
+- command: `rat`
+- args: `--serve --addr :8081`
 - cwd: `${workspaceFolder}`
+
+For extension development inside this repository, set the command to `go` and the args to `run ./cmd/rat --serve --addr :8081`.
 
 Config keys:
 

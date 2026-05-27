@@ -24,8 +24,8 @@
         "textSemanticHighlight.serverUrl": { "type": "string", "default": "http://localhost:8081" },
         "textSemanticHighlight.languages": { "type": "array", "items": { "type": "string" }, "default": ["go"] },
         "textSemanticHighlight.autoStartServer": { "type": "boolean", "default": true },
-        "textSemanticHighlight.serverCommand": { "type": "string", "default": "go" },
-        "textSemanticHighlight.serverArgs": { "type": "array", "items": { "type": "string" }, "default": ["run", "./cmd/rat", "--serve", "--addr", ":8081"] },
+        "textSemanticHighlight.serverCommand": { "type": "string", "default": "rat" },
+        "textSemanticHighlight.serverArgs": { "type": "array", "items": { "type": "string" }, "default": ["--serve", "--addr", ":8081"] },
         "textSemanticHighlight.serverCwd": { "type": "string", "default": "${workspaceFolder}" }
       }
     }
