@@ -1,3 +1,3 @@
 /rat
 cmd/rat/rat
-internal/goplsbin/**
+internal/goplsbin/gopls
