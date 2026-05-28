@@ -45,6 +45,8 @@ Reference colors are based on the relationship between the place where a name is
 
 Declarations use an inverted/background style. That makes definitions stand out from references.
 
+Struct instantiation colors fields using the above key, but the distance is between the struct type declaration location and the field's type declaration location.
+
 Examples:
 
 - A local variable used later in the same function is yellow.
