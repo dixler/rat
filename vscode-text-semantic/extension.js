@@ -9,6 +9,7 @@ const seenLogs = new Set();
 
 let serverProc;
 let activeDecorations = [];
+let uncoveredForegroundDecoration;
 
 function log(message, extra) {
   const suffix = extra === undefined ? '' : ` ${typeof extra === 'string' ? extra : JSON.stringify(extra)}`;
@@ -87,8 +88,15 @@ function contrastTextColor(hex) {
   const g = parseHexByte(hex.slice(3, 5));
   const b = parseHexByte(hex.slice(5, 7));
   if (![r, g, b].every(Number.isInteger)) return DEFAULT_FOREGROUND;
-  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
-  return luma >= 140 ? '#000000' : '#ffffff';
+
+  const toLinear = (channel) => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+  const contrastWithBlack = (luminance + 0.05) / 0.05;
+  const contrastWithWhite = 1.05 / (luminance + 0.05);
+  return contrastWithBlack >= contrastWithWhite ? '#000000' : '#ffffff';
 }
 
 function resolvedAnsiColors(parsed) {
@@ -191,13 +199,12 @@ function spanUsesBackground(parsed) {
 
 function backgroundDecoration(spec) {
   const backgroundColor = backgroundColorFromAnsi(spec);
-  const { foreground } = resolvedAnsiColors(spec);
 
   if (!backgroundColor) return undefined;
   return mk({
     backgroundColor,
     borderRadius: '2px',
-    color: foreground || contrastTextColor(backgroundColor),
+    color: contrastTextColor(backgroundColor),
     ...(spec?.fontWeight ? { fontWeight: spec.fontWeight } : {}),
     ...(spec?.textDecoration ? { textDecoration: spec.textDecoration } : {}),
     fontStyle: 'normal'
@@ -285,6 +292,7 @@ async function decorate(editor) {
   const url = c.get('serverUrl', 'http://localhost:8081');
   clear(editor);
   const spans = await fetchSpans(editor.document, url);
+  applyUncoveredForeground(editor, spans);
   for (const s of spans) {
     const range = new vscode.Range(new vscode.Position((s.line || 1) - 1, s.start || 0), new vscode.Position((s.line || 1) - 1, s.end || 0));
     const normalized = normalizeSpan(s);
@@ -302,11 +310,57 @@ async function decorate(editor) {
 }
 
 function clear(editor) {
+  clearUncoveredForeground(editor);
   for (const decoration of activeDecorations) {
     editor?.setDecorations(decoration, []);
     decoration.dispose();
   }
   activeDecorations = [];
+}
+
+function clearUncoveredForeground(editor) {
+  if (!uncoveredForegroundDecoration) return;
+  editor?.setDecorations(uncoveredForegroundDecoration, []);
+  uncoveredForegroundDecoration.dispose();
+  uncoveredForegroundDecoration = undefined;
+}
+
+function spanRange(doc, span) {
+  const lineIndex = (span?.line || 1) - 1;
+  if (lineIndex < 0 || lineIndex >= doc.lineCount) return undefined;
+  const line = doc.lineAt(lineIndex);
+  const start = Math.max(0, Math.min(line.range.end.character, span?.start || 0));
+  const end = Math.max(start, Math.min(line.range.end.character, span?.end || 0));
+  if (start === end) return undefined;
+  return { lineIndex, start, end };
+}
+
+function uncoveredRanges(doc, spans) {
+  const ranges = [];
+  for (let i = 0; i < doc.lineCount; i++) {
+    const line = doc.lineAt(i);
+    const covered = spans
+      .map((span) => spanRange(doc, span))
+      .filter((range) => range?.lineIndex === i)
+      .sort((a, b) => a.start - b.start || a.end - b.end);
+    let cursor = 0;
+    for (const range of covered) {
+      if (range.start > cursor) {
+        ranges.push(new vscode.Range(new vscode.Position(i, cursor), new vscode.Position(i, range.start)));
+      }
+      cursor = Math.max(cursor, range.end);
+    }
+    if (cursor < line.range.end.character) {
+      ranges.push(new vscode.Range(new vscode.Position(i, cursor), line.range.end));
+    }
+  }
+  return ranges;
+}
+
+function applyUncoveredForeground(editor, spans) {
+  const ranges = uncoveredRanges(editor.document, spans);
+  uncoveredForegroundDecoration = mk({ color: DEFAULT_FOREGROUND, fontStyle: 'normal' });
+  editor.setDecorations(uncoveredForegroundDecoration, ranges);
 }
 
 function activate(context) {
