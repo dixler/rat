@@ -20,12 +20,12 @@ Use these colors:
 - Variable: yellow
 - Parameter: vibrant orange
 - Function: light green
-- Package/import symbol: lavender
+- Package/import symbol: purple
 - Same-function reference: yellow
 - Same-file reference: light green
 - Same-package reference: cyan
 - Same-project reference: blue
-- External reference: lavender
+- External reference: purple
 - Indirect call target: hot magenta
 
 ## Definition vs Reference Appearance

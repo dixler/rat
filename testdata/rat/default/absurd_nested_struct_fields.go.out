@@ -1,15 +1,15 @@
  [0m 1 [97mpackage sample[0m
  [0m 2 [97m[0m
  [0m 3 [97mtype [0m[38;5;120m[7mabsurd[0m[97m struct {[0m
- [0m 4 [97m    [0m[38;5;120m[7mouter[0m[97m  [0m[97mint[0m[97m[0m
- [0m 5 [97m    [0m[38;5;120m[7mnested[0m[97m struct {[0m
- [0m 6 [97m        [0m[38;5;120m[7minner[0m[97m  [0m[97mint[0m[97m[0m
- [0m 7 [97m        [0m[38;5;120m[7mdeeper[0m[97m struct {[0m
- [0m 8 [97m            [0m[38;5;120m[7mcore[0m[97m [0m[97mint[0m[97m[0m
+ [0m 4 [97m    [0m[97m[7mouter[0m[97m  [0m[97mint[0m[97m[0m
+ [0m 5 [97m    [0m[97m[7mnested[0m[97m struct {[0m
+ [0m 6 [97m        [0m[97m[7minner[0m[97m  [0m[97mint[0m[97m[0m
+ [0m 7 [97m        [0m[97m[7mdeeper[0m[97m struct {[0m
+ [0m 8 [97m            [0m[97m[7mcore[0m[97m [0m[97mint[0m[97m[0m
  [0m 9 [97m        }[0m
  [0m10 [97m    }[0m
- [0m11 [97m    [0m[38;5;120m[7mbuild[0m[97m func(seed [0m[97mint[0m[97m) struct {[0m
- [0m12 [97m        [0m[38;5;120m[7mresult[0m[97m [0m[97mint[0m[97m[0m
+ [0m11 [97m    [0m[97m[7mbuild[0m[97m func(seed [0m[97mint[0m[97m) struct {[0m
+ [0m12 [97m        [0m[97m[7mresult[0m[97m [0m[97mint[0m[97m[0m
  [0m13 [97m    }[0m
  [0m14 [97m}[0m
  [0m15 [97m[0m
