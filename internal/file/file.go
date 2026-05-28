@@ -130,6 +130,10 @@ type PackageDeclaration interface {
 type NamedLocation interface {
 	Location() Location
 	Text() string
+	DeclarationLocation() Location
+	DeclarationLocations() []Location
+	DistanceLocation() Location
+	Inline() bool
 }
 
 type Comment interface {
@@ -154,6 +158,7 @@ type file struct {
 	root          *declaration
 	packageRefs   []PackageReference
 	decls         []Declaration
+	namedFields   []NamedLocation
 	returns       []Location
 	indirectCalls []IndirectCall
 	comments      []Comment
@@ -259,8 +264,12 @@ type packageDeclaration struct {
 }
 
 type namedLocation struct {
-	location location
-	text     string
+	location             location
+	text                 string
+	inline               bool
+	distanceLocation     *location
+	declarationLocation  *location
+	declarationLocations []Location
 }
 
 type commentSpan struct {
@@ -293,6 +302,7 @@ func New(name string) (File, error) {
 	f.root = root
 	f.packageRefs = pkgRefs
 	f.decls = decls
+	f.namedFields = buildNamedFields(raw.NamedFields)
 	f.returns = returns
 	f.indirectCalls = indirectCalls
 	f.comments = comments
@@ -383,8 +393,8 @@ func (b *ifBranchBase) CloseBrace() Location {
 	}
 	return b.closeBrace
 }
-func (b *ifBranchBase) Step() int          { return b.step }
-func (b *ifBranchBase) Blocks() []Block    { return append([]Block(nil), b.blocks...) }
+func (b *ifBranchBase) Step() int       { return b.step }
+func (b *ifBranchBase) Blocks() []Block { return append([]Block(nil), b.blocks...) }
 func (b *ifBranchBase) Statements() []ControlFlowStatement {
 	return append([]ControlFlowStatement(nil), b.statements...)
 }
@@ -427,6 +437,22 @@ func (p *packageDeclaration) Files() []Declaration { return append([]Declaration
 
 func (n namedLocation) Location() Location { return n.location }
 func (n namedLocation) Text() string       { return n.text }
+func (n namedLocation) DeclarationLocation() Location {
+	if n.declarationLocation == nil {
+		return nil
+	}
+	return *n.declarationLocation
+}
+func (n namedLocation) DeclarationLocations() []Location {
+	return append([]Location(nil), n.declarationLocations...)
+}
+func (n namedLocation) DistanceLocation() Location {
+	if n.distanceLocation == nil {
+		return nil
+	}
+	return *n.distanceLocation
+}
+func (n namedLocation) Inline() bool { return n.inline }
 
 func (c commentSpan) Start() Location { return c.start }
 func (c commentSpan) End() Location   { return c.end }
@@ -435,13 +461,48 @@ func TopLevelNamedFields(f File) []NamedLocation {
 	if f == nil {
 		return nil
 	}
+	if built, ok := f.(*file); ok {
+		return append([]NamedLocation(nil), built.namedFields...)
+	}
 
 	var out []NamedLocation
 	for _, field := range scan.TopLevelNamedFields(f.Name(), f.Source()) {
-		out = append(out, namedLocation{location: location{file: field.File, line: field.Line, column: field.Column}, text: field.Text})
+		out = append(out, buildNamedField(field))
 	}
 
 	return out
+}
+
+func buildNamedFields(fields []scan.NamedField) []NamedLocation {
+	out := make([]NamedLocation, 0, len(fields))
+	for _, field := range fields {
+		out = append(out, buildNamedField(field))
+	}
+	return out
+}
+
+func buildNamedField(field scan.NamedField) NamedLocation {
+	named := namedLocation{location: location{file: field.File, line: field.Line, column: field.Column}, text: field.Text, inline: field.Inline}
+	if field.DistanceLine > 0 && field.DistanceColumn > 0 {
+		loc := location{file: field.DistanceFile, line: field.DistanceLine, column: field.DistanceColumn}
+		named.distanceLocation = &loc
+	}
+	for _, decl := range field.TypeDeclarations {
+		if decl.Line < 1 || decl.Column < 1 {
+			continue
+		}
+		loc := location{file: decl.File, line: decl.Line, column: decl.Column}
+		named.declarationLocations = append(named.declarationLocations, loc)
+	}
+	if len(named.declarationLocations) > 0 {
+		loc := named.declarationLocations[0].(location)
+		named.declarationLocation = &loc
+	} else if field.DeclarationLine > 0 && field.DeclarationColumn > 0 {
+		loc := location{file: field.DeclarationFile, line: field.DeclarationLine, column: field.DeclarationColumn}
+		named.declarationLocation = &loc
+		named.declarationLocations = append(named.declarationLocations, loc)
+	}
+	return named
 }
 
 type indirectCall struct {

@@ -30,7 +30,7 @@ var _kindStyles = map[file.Kind]display.BasicStyle{
 	file.KindVariable:  display.Yellow,
 	file.KindParameter: display.VibrantOrange,
 	file.KindFunction:  display.LightGreen,
-	file.KindPackage:   display.Lavender,
+	file.KindPackage:   display.Purple,
 	file.KindFile:      display.Yellow,
 }
 
@@ -39,7 +39,7 @@ var _relationStyles = map[relation]display.BasicStyle{
 	_relSameFile:     display.LightGreen,
 	_relSamePackage:  display.Cyan,
 	_relSameProject:  display.Blue,
-	_relExternal:     display.Lavender,
+	_relExternal:     display.Purple,
 }
 
 type refGroup struct {
@@ -398,15 +398,15 @@ func ParseFormats(f file.File) ParseResult {
 		LineMarkers: map[int]string{},
 	}
 	sourceLines := strings.Split(f.Source(), "\n")
+	root := file.ProjectRoot(f.Name())
 	collectCommentSpans(result.SourceSpans, sourceLines, f)
-	addTopLevelStructFieldDeclarationSpans(result.SourceSpans, sourceLines, f)
+	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(result.SourceSpans, sourceLines, f)
 
 	for _, call := range f.IndirectCalls() {
 		collectIndirectCallSpans(result.SourceSpans, call)
 	}
 
-	root := file.ProjectRoot(f.Name())
 	for _, decl := range f.Declarations() {
 		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl)
 	}
@@ -427,7 +427,7 @@ func ParseFormats(f file.File) ParseResult {
 
 func collectPackageReferenceSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, ref := range f.PackageReferences() {
-		addImportReferenceSpan(out, sourceLines, ref, display.Lavender)
+		addImportReferenceSpan(out, sourceLines, ref, display.Purple.Invert())
 	}
 }
 
@@ -584,10 +584,104 @@ func appendBraceMarks(marks *[]controlFlowMark, open, close file.Location, style
 	}
 }
 
-func addTopLevelStructFieldDeclarationSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
+func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
-		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: declarationStyle(nil), Priority: 1})
+		distanceLoc := named.DistanceLocation()
+		if distanceLoc == nil {
+			distanceLoc = named.Location()
+		}
+		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: fieldTypeDistanceStyle(root, distanceLoc, named.DeclarationLocations(), !named.Inline()), Priority: 1})
 	}
+}
+
+func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Location, invert bool) display.Style {
+	rank := fieldTypeDistanceBuiltin
+	if source == nil {
+		rank = fieldTypeDistanceExternal
+	} else {
+		for _, target := range targets {
+			rank = max(rank, fieldTypeDistanceRank(root, source, target))
+		}
+	}
+
+	switch rank {
+	case fieldTypeDistanceBuiltin:
+		return fieldStyle(display.White, invert)
+	case fieldTypeDistanceSameFile:
+		return fieldStyle(_relationStyles[_relSameFile], invert)
+	case fieldTypeDistanceSamePackage:
+		return fieldStyle(_relationStyles[_relSamePackage], invert)
+	case fieldTypeDistanceSameProject:
+		return fieldStyle(_relationStyles[_relSameProject], invert)
+	default:
+		return fieldStyle(display.Purple, invert)
+	}
+}
+
+func fieldStyle(style display.BasicStyle, invert bool) display.Style {
+	if invert {
+		return style.Invert()
+	}
+	return style
+}
+
+type fieldTypeDistance int
+
+const (
+	fieldTypeDistanceBuiltin fieldTypeDistance = iota
+	fieldTypeDistanceSameFile
+	fieldTypeDistanceSamePackage
+	fieldTypeDistanceSameProject
+	fieldTypeDistanceExternal
+)
+
+func fieldTypeDistanceRank(root string, source, target file.Location) fieldTypeDistance {
+	switch {
+	case target == nil:
+		return fieldTypeDistanceExternal
+	case isBuiltinLocation(target):
+		return fieldTypeDistanceBuiltin
+	case sameFileLocation(source, target):
+		return fieldTypeDistanceSameFile
+	case samePackageLocation(source, target):
+		return fieldTypeDistanceSamePackage
+	case sameProjectLocation(root, source, target):
+		return fieldTypeDistanceSameProject
+	default:
+		return fieldTypeDistanceExternal
+	}
+}
+
+func isBuiltinLocation(loc file.Location) bool {
+	if loc == nil {
+		return false
+	}
+	p := path.Clean(loc.File())
+	return p == "" || strings.Contains(p, "/src/builtin")
+}
+
+func sameFileLocation(left, right file.Location) bool {
+	if left == nil || right == nil {
+		return false
+	}
+	return filepath.Clean(left.File()) == filepath.Clean(right.File())
+}
+
+func samePackageLocation(left, right file.Location) bool {
+	if sameFileLocation(left, right) || left == nil || right == nil {
+		return false
+	}
+	return filepath.Dir(filepath.Clean(left.File())) == filepath.Dir(filepath.Clean(right.File()))
+}
+
+func sameProjectLocation(root string, left, right file.Location) bool {
+	if root == "" || left == nil || right == nil {
+		return false
+	}
+	lfile := filepath.Clean(left.File())
+	rfile := filepath.Clean(right.File())
+	root = filepath.Clean(root)
+	return strings.HasPrefix(lfile, root+string(filepath.Separator)) && strings.HasPrefix(rfile, root+string(filepath.Separator))
 }
 
 func collectCommentSpans(out map[int][]display.Span, sourceLines []string, f file.File) {

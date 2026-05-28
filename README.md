@@ -40,7 +40,7 @@ Reference colors are based on the relationship between the place where a name is
 - Green: same file, outside the current function.
 - Light blue: same package, different file.
 - Blue: same project/repository, different package.
-- Lavender/purple: external dependency or unknown target.
+- Purple: external dependency or unknown target.
 - White: Go built-in. (or I just didn't color it yet).
 
 Declarations use an inverted/background style. That makes definitions stand out from references.
@@ -50,7 +50,7 @@ Examples:
 - A local variable used later in the same function is yellow.
 - A package-level identifier in the same file is green.
 - A symbol imported from another package in your module is blue.
-- A symbol from a different repository is lavender/purple.
+- A symbol from a different repository is purple.
 
 ## Block Coloring
 
