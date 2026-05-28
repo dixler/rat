@@ -1,4 +1,4 @@
-package main
+package highlight
 
 import (
 	"fmt"
@@ -10,10 +10,6 @@ import (
 	"rat/internal/display"
 	"rat/internal/file"
 )
-
-type Renderer struct {
-	b strings.Builder
-}
 
 type relation string
 
@@ -42,13 +38,8 @@ var _relationStyles = map[relation]display.BasicStyle{
 	_relExternal:     display.Lavender,
 }
 
-type refGroup struct {
-	decl  file.Declaration
-	Style display.Style
-	refs  []file.Reference
-}
-
 type ParseResult struct {
+	Source      string
 	SourceSpans map[int][]display.Span
 	LineSpans   map[int]display.Style
 	LineMarkers map[int]string
@@ -59,41 +50,6 @@ type controlFlowMark struct {
 	text      string
 	textStyle display.Style
 	lineStyle display.Style
-}
-
-func (r *Renderer) printHeader(f file.File) {
-	headerStyle := display.Bold
-	fmt.Fprintf(&r.b, "%s\n", headerStyle.Format(f.Name()))
-}
-
-func (r *Renderer) printTree(root string, d file.Declaration, depth int) {
-	indent := strings.Repeat("  ", depth)
-	declStyle := declarationStyle(d)
-	locStyle := display.Gray
-	fmt.Fprintf(&r.b, "%s%s %s\n", indent, declStyle.Format(treeLabel(d)), locStyle.Format(fmt.Sprintf("%s:%d:%d", d.Location().File(), d.Location().Line(), d.Location().Column())))
-	for _, group := range groupReferences(root, d) {
-		fmt.Fprintf(&r.b, "%s  %s %s\n", indent, group.Style.Format(group.decl.Name()), locStyle.Format(fmt.Sprintf("%s:%d:%d", group.decl.Location().File(), group.decl.Location().Line(), group.decl.Location().Column())))
-		for _, ref := range group.refs {
-			sty := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
-			fmt.Fprintf(&r.b, "%s    %s\n", indent, sty.Format(fmt.Sprintf("%s:%d:%d", ref.Location().File(), ref.Location().Line(), ref.Location().Column())))
-		}
-	}
-	for _, child := range d.Declarations() {
-		if d.Kind() == file.KindFunction && child.Kind() == file.KindVariable {
-			continue
-		}
-		r.printTree(root, child, depth+1)
-	}
-}
-
-func treeLabel(d file.Declaration) string {
-	if d == nil {
-		return ""
-	}
-	if d.Kind() == file.KindFile {
-		return string(d.Kind())
-	}
-	return d.Name()
 }
 
 func declarationStyle(d file.Declaration) display.Style {
@@ -138,22 +94,6 @@ func usesTopLevelSameFileStyle(d file.Declaration) bool {
 		}
 	}
 	return false
-}
-
-func (r *Renderer) printImports(refs []file.PackageReference) {
-	if len(refs) == 0 {
-		return
-	}
-	headerStyle := display.Bold
-	fmt.Fprintf(&r.b, "%s\n", headerStyle.Format("Imports"))
-	root := ""
-	if refs[0].Location() != nil {
-		root = file.ProjectRoot(refs[0].Location().File())
-	}
-	for _, ref := range refs {
-		importStyle := packageDeclarationStyle(root, ref.Package())
-		fmt.Fprintf(&r.b, "- %s -> %s\n", importStyle.Format(ref.Text()), ref.Package().Name())
-	}
 }
 
 func sortSpans(spans []display.Span) {
@@ -267,36 +207,6 @@ func kindStyle(kind file.Kind) display.BasicStyle {
 	panic(fmt.Sprintf("kind %s has no style", kind))
 }
 
-func groupReferences(root string, decl file.Declaration) []refGroup {
-	byKey := map[string]*refGroup{}
-	for _, ref := range decl.References() {
-		if ref.Declaration() == nil {
-			continue
-		}
-		target := ref.Declaration()
-		key := locationKey(target.Location())
-		if byKey[key] == nil {
-			sty := relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())
-			byKey[key] = &refGroup{decl: target, Style: sty}
-		}
-		byKey[key].refs = append(byKey[key].refs, ref)
-	}
-	keys := make([]string, 0, len(byKey))
-	for key := range byKey {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	out := make([]refGroup, 0, len(keys))
-	for _, key := range keys {
-		group := byKey[key]
-		sort.Slice(group.refs, func(i, j int) bool {
-			return locationKey(group.refs[i].Location()) < locationKey(group.refs[j].Location())
-		})
-		out = append(out, *group)
-	}
-	return out
-}
-
 func relationshipStyle(root string, parent, target file.Declaration, kind file.Kind) display.Style {
 	switch kind {
 	case file.KindParameter:
@@ -391,8 +301,17 @@ func locationKey(loc file.Location) string {
 	return fmt.Sprintf("%s:%d:%d", filepath.Clean(loc.File()), loc.Line(), loc.Column())
 }
 
+func Analyze(path string) (ParseResult, error) {
+	f, err := file.Analyze(path)
+	if err != nil {
+		return ParseResult{}, err
+	}
+	return ParseFormats(f), nil
+}
+
 func ParseFormats(f file.File) ParseResult {
 	result := ParseResult{
+		Source:      f.Source(),
 		SourceSpans: map[int][]display.Span{},
 		LineSpans:   map[int]display.Style{},
 		LineMarkers: map[int]string{},
@@ -421,6 +340,11 @@ func ParseFormats(f file.File) ParseResult {
 
 	for line := range result.SourceSpans {
 		sortSpans(result.SourceSpans[line])
+		if line < 1 || line > len(sourceLines) {
+			delete(result.SourceSpans, line)
+			continue
+		}
+		result.SourceSpans[line] = display.FlattenSpans(sourceLines[line-1], result.SourceSpans[line])
 	}
 	return result
 }

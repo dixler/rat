@@ -7,22 +7,15 @@ import (
 	"strings"
 
 	"rat/internal/display"
-	"rat/internal/file"
+	"rat/internal/highlight"
 )
 
 type apiRequest struct {
 	Path string `json:"path"`
 }
-type apiSpan struct {
-	Line     int    `json:"line"`
-	Start    int    `json:"start"`
-	End      int    `json:"end"`
-	Style    string `json:"style"`
-	Priority int    `json:"priority,omitempty"`
-}
 type apiResponse struct {
-	Spans []apiSpan `json:"spans,omitempty"`
-	Error string    `json:"error,omitempty"`
+	Spans []display.Span `json:"spans,omitempty"`
+	Error string         `json:"error,omitempty"`
 }
 
 func runServer(addr string) {
@@ -56,18 +49,20 @@ func runServer(addr string) {
 	_ = http.ListenAndServe(addr, nil)
 }
 
-func buildSpans(path string) ([]apiSpan, error) {
-	f, err := file.Analyze(path)
+func buildSpans(path string) ([]display.Span, error) {
+	program, err := highlight.Analyze(path)
 	if err != nil {
 		return nil, err
 	}
-	parsed := ParseFormats(f)
-	out := make([]apiSpan, 0)
-	for line, spans := range parsed.SourceSpans {
-		for _, s := range spans {
-			if style := spanStyle(s.Style); style != "" {
-				out = append(out, apiSpan{Line: line, Start: s.Start, End: s.End, Style: style, Priority: s.Priority})
-			}
+	return apiSpans(program.SourceSpans), nil
+}
+
+func apiSpans(sourceSpans map[int][]display.Span) []display.Span {
+	out := make([]display.Span, 0)
+	for line, spans := range sourceSpans {
+		for _, span := range spans {
+			span.Line = line
+			out = append(out, span)
 		}
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -82,13 +77,5 @@ func buildSpans(path string) ([]apiSpan, error) {
 		}
 		return out[i].End < out[j].End
 	})
-	return out, nil
-}
-
-func spanStyle(st display.Style) string {
-	s, ok := st.(display.BasicStyle)
-	if !ok {
-		return ""
-	}
-	return string(s)
+	return out
 }

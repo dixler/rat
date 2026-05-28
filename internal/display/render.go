@@ -50,10 +50,11 @@ func (s BasicStyle) Invert() BasicStyle {
 }
 
 type Span struct {
-	Start    int
-	End      int
-	Style    Style
-	Priority int
+	Line     int   `json:"line,omitempty"`
+	Start    int   `json:"start"`
+	End      int   `json:"end"`
+	Style    Style `json:"style"`
+	Priority int   `json:"priority,omitempty"`
 }
 
 func RenderSource(src string, spans map[int][]Span, lineNumberStyles map[int]Style, lineMarkers map[int]string) string {
@@ -86,6 +87,21 @@ func colorLine(line string, spans []Span) string {
 	}
 	var b strings.Builder
 	idx := 0
+	for _, s := range FlattenSpans(line, spans) {
+		b.WriteString(defaultStyle.Format(line[idx:s.Start]))
+		b.WriteString(s.Style.Format(line[s.Start:s.End]))
+		idx = s.End
+	}
+	b.WriteString(defaultStyle.Format(line[idx:]))
+	return b.String()
+}
+
+func FlattenSpans(line string, spans []Span) []Span {
+	if len(spans) == 0 {
+		return nil
+	}
+	out := make([]Span, 0, len(spans))
+	idx := 0
 	for _, s := range spans {
 		if s.Start < idx || s.Start >= len(line) {
 			continue
@@ -96,10 +112,8 @@ func colorLine(line string, spans []Span) string {
 		if s.End <= s.Start {
 			continue
 		}
-		b.WriteString(defaultStyle.Format(line[idx:s.Start]))
-		b.WriteString(s.Style.Format(line[s.Start:s.End]))
+		out = append(out, s)
 		idx = s.End
 	}
-	b.WriteString(defaultStyle.Format(line[idx:]))
-	return b.String()
+	return out
 }

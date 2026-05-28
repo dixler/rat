@@ -7,7 +7,7 @@ import (
 
 	"rat/internal/ansihtml"
 	"rat/internal/display"
-	"rat/internal/file"
+	"rat/internal/highlight"
 )
 
 type OutputMode string
@@ -18,13 +18,12 @@ const (
 )
 
 func ProcessPipeline(filepath string, mode OutputMode) (string, error) {
-	f, err := file.Analyze(filepath)
+	program, err := highlight.Analyze(filepath)
 	if err != nil {
 		return "", err
 	}
 
-	parsed := ParseFormats(f)
-	ansi := display.RenderSource(f.Source(), parsed.SourceSpans, parsed.LineSpans, parsed.LineMarkers)
+	ansi := display.RenderSource(program.Source, program.SourceSpans, program.LineSpans, program.LineMarkers)
 	if mode == ModeHTML {
 		return ansihtml.Convert(ansi), nil
 	}
