@@ -1004,11 +1004,11 @@ func underlyingStruct(t types.Type) (*types.Struct, bool) {
 	if t == nil {
 		return nil, false
 	}
-	if ptr, ok := t.(*types.Pointer); ok {
-		t = ptr.Elem()
-	}
-	if named, ok := t.(*types.Named); ok {
-		t = named.Underlying()
+	switch e := t.(type) {
+	case *types.Pointer:
+		t = e.Elem()
+	case *types.Named:
+		t = e.Underlying()
 	}
 	st, ok := t.(*types.Struct)
 	return st, ok

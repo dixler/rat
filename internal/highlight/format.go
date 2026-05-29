@@ -122,14 +122,12 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 		return
 	}
 
-	for i := 0; i < len(text); i++ {
-		charStyle := display.HotMagenta
-		out[line] = append(out[line], display.Span{
-			Start: col - 1 + i,
-			End:   col - 1 + i + 1,
-			Style: charStyle,
-		})
-	}
+	out[line] = append(out[line], display.Span{
+		Start:    col - 1,
+		End:      col - 1 + len(text),
+		Style:    display.HotMagenta,
+		Priority: 2,
+	})
 }
 
 func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
@@ -306,7 +304,35 @@ func Analyze(path string) (ParseResult, error) {
 	if err != nil {
 		return ParseResult{}, err
 	}
-	return ParseFormats(f), nil
+	res := ParseFormats(f)
+	lines := strings.Split(res.Source, "\n")
+	for i, line := range lines {
+		lineNo := i + 1
+		res.SourceSpans[lineNo] = FlattenSpans(line, res.SourceSpans[lineNo])
+	}
+	return res, nil
+}
+
+func FlattenSpans(line string, spans []display.Span) []display.Span {
+	if len(spans) == 0 {
+		return nil
+	}
+	out := make([]display.Span, 0, len(spans))
+	idx := 0
+	for _, s := range spans {
+		if s.Start < idx || s.Start >= len(line) {
+			continue
+		}
+		if s.End > len(line) {
+			s.End = len(line)
+		}
+		if s.End <= s.Start {
+			continue
+		}
+		out = append(out, s)
+		idx = s.End
+	}
+	return out
 }
 
 func ParseFormats(f file.File) ParseResult {

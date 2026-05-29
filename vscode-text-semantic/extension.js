@@ -293,6 +293,7 @@ async function decorate(editor) {
   clear(editor);
   const spans = await fetchSpans(editor.document, url);
   applyUncoveredForeground(editor, spans);
+  log(JSON.stringify(spans, null, 2))
   for (const s of spans) {
     const range = new vscode.Range(new vscode.Position((s.line || 1) - 1, s.start || 0), new vscode.Position((s.line || 1) - 1, s.end || 0));
     const normalized = normalizeSpan(s);
