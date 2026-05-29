@@ -41,7 +41,7 @@
  [0m41 [97m}[0m
  [0m42 [97m[0m
  [0m43 [97mfunc [0m[38;5;120m[7mnamedDemo[0m[97m() [0m[38;5;120mDemo[0m[97m {[0m
- [0m44 [97m    [0m[38;5;130mreturn[0m[97m [0m[38;5;120mDemo[0m[97m{[0m
+ [0m44 [97m    [0m[94mreturn[0m[97m [0m[38;5;120mDemo[0m[97m{[0m
  [0m45 [97m        [0m[38;5;120mSameFile[0m[97m:    [0m[38;5;120mSameFileType[0m[97m{},[0m
  [0m46 [97m        [0m[96mSamePackage[0m[97m: [0m[96mSamePackageType[0m[97m{},[0m
  [0m47 [97m        [0m[94mSameProject[0m[97m: [0m[94mother[0m[97m.[0m[94mProjectType[0m[97m{},[0m
@@ -53,7 +53,7 @@
  [0m53 [97m}[0m
  [0m54 [97m[0m
  [0m55 [97mfunc [0m[38;5;120m[7mexternalStructDemo[0m[97m() [0m[35mhttp[0m[97m.[0m[35mServer[0m[97m {[0m
- [0m56 [97m    [0m[38;5;130mreturn[0m[97m [0m[35mhttp[0m[97m.[0m[35mServer[0m[97m{[0m
+ [0m56 [97m    [0m[94mreturn[0m[97m [0m[35mhttp[0m[97m.[0m[35mServer[0m[97m{[0m
  [0m57 [97m        [0m[97mAddr[0m[97m:        ":8080",[0m
  [0m58 [97m        [0m[38;5;120mHandler[0m[97m:     [0m[35mhttp[0m[97m.[0m[35mDefaultServeMux[0m[97m,[0m
  [0m59 [97m        [0m[35mReadTimeout[0m[97m: [0m[35mtime[0m[97m.[0m[35mSecond[0m[97m,[0m

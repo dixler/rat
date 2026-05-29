@@ -97,7 +97,7 @@ Its communication clauses are displayed as cases:
 
 ### Other Control Flow
 
-- `return`: brown.
+- `return`: brown when returning a non-`nil` error, blue otherwise.
 - `break`: brown.
 - `continue`: blue.
 - `fallthrough`: blue.

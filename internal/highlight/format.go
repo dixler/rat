@@ -477,7 +477,11 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 			}
 			switch stmt.Kind() {
 			case "return":
-				addMark(plain)
+				if stmt.ReturnsError() {
+					addMark(plain)
+				} else {
+					addMark(blue)
+				}
 			case "fallthrough":
 				addMark(blue)
 			}

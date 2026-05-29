@@ -68,10 +68,11 @@ type Declaration struct {
 }
 
 type ControlFlowStatement struct {
-	Kind   string
-	File   string
-	Line   int
-	Column int
+	Kind         string
+	File         string
+	Line         int
+	Column       int
+	ReturnsError bool
 }
 
 type ControlFlowBlock struct {
@@ -207,10 +208,12 @@ func Build(file string) (*Result, error) {
 	}
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
+	returnErrors := collectReturnErrorClassifications(parsed, info)
 	b := builder{
 		file:         file,
 		fset:         fset,
 		info:         info,
+		returnErrors: returnErrors,
 		client:       client,
 		declByObj:    map[types.Object]string{},
 		kindByObj:    map[types.Object]string{},
@@ -301,6 +304,7 @@ type builder struct {
 	file         string
 	fset         *token.FileSet
 	info         *types.Info
+	returnErrors map[token.Pos]bool
 	client       *goplsclient.Client
 	declByObj    map[types.Object]string
 	kindByObj    map[types.Object]string
@@ -309,6 +313,134 @@ type builder struct {
 	goplsByPos   map[string]definitionLocation
 	escapes      map[string]bool
 	seq          int
+}
+
+func collectReturnErrorClassifications(parsed *ast.File, info *types.Info) map[token.Pos]bool {
+	out := map[token.Pos]bool{}
+	if parsed == nil || info == nil {
+		return out
+	}
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case nil:
+			return true
+		case *ast.FuncDecl:
+			if node.Body != nil {
+				if obj, ok := info.Defs[node.Name].(*types.Func); ok {
+					if sig, ok := obj.Type().(*types.Signature); ok {
+						collectReturnErrorClassificationsInBody(node.Body, sig, info, out)
+					}
+				}
+			}
+			return false
+		case *ast.FuncLit:
+			if tv, ok := info.Types[node]; ok {
+				if sig, ok := tv.Type.(*types.Signature); ok {
+					collectReturnErrorClassificationsInBody(node.Body, sig, info, out)
+				}
+			}
+			return false
+		}
+		return true
+	})
+	return out
+}
+
+func collectReturnErrorClassificationsInBody(body *ast.BlockStmt, sig *types.Signature, info *types.Info, out map[token.Pos]bool) {
+	if body == nil || sig == nil {
+		return
+	}
+	ast.Inspect(body, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case nil:
+			return true
+		case *ast.ReturnStmt:
+			out[node.Return] = returnStmtReturnsError(node, sig, info)
+		case *ast.FuncLit:
+			if tv, ok := info.Types[node]; ok {
+				if nestedSig, ok := tv.Type.(*types.Signature); ok {
+					collectReturnErrorClassificationsInBody(node.Body, nestedSig, info, out)
+				}
+			}
+			return false
+		}
+		return true
+	})
+}
+
+func returnStmtReturnsError(stmt *ast.ReturnStmt, sig *types.Signature, info *types.Info) bool {
+	results := sig.Results()
+	if stmt == nil || results == nil || results.Len() == 0 {
+		return false
+	}
+	if len(stmt.Results) == 0 {
+		return tupleHasError(results)
+	}
+
+	resultIndex := 0
+	for _, expr := range stmt.Results {
+		exprTypes := returnExprTypes(expr, info)
+		if len(exprTypes) == 0 {
+			exprTypes = []types.Type{nil}
+		}
+		for range exprTypes {
+			if resultIndex >= results.Len() {
+				break
+			}
+			if isErrorType(results.At(resultIndex).Type()) && !isNilExpr(expr) {
+				return true
+			}
+			resultIndex++
+		}
+	}
+	return false
+}
+
+func returnExprTypes(expr ast.Expr, info *types.Info) []types.Type {
+	if expr == nil || info == nil {
+		return nil
+	}
+	tv, ok := info.Types[expr]
+	if !ok || tv.Type == nil {
+		return nil
+	}
+	if tuple, ok := tv.Type.(*types.Tuple); ok {
+		out := make([]types.Type, 0, tuple.Len())
+		for i := 0; i < tuple.Len(); i++ {
+			out = append(out, tuple.At(i).Type())
+		}
+		return out
+	}
+	return []types.Type{tv.Type}
+}
+
+func tupleHasError(tuple *types.Tuple) bool {
+	if tuple == nil {
+		return false
+	}
+	for i := 0; i < tuple.Len(); i++ {
+		if isErrorType(tuple.At(i).Type()) {
+			return true
+		}
+	}
+	return false
+}
+
+func isErrorType(t types.Type) bool {
+	errObj := types.Universe.Lookup("error")
+	if errObj == nil || t == nil {
+		return false
+	}
+	errIface, ok := errObj.Type().Underlying().(*types.Interface)
+	if !ok {
+		return false
+	}
+	return types.Implements(t, errIface)
+}
+
+func isNilExpr(expr ast.Expr) bool {
+	id, ok := expr.(*ast.Ident)
+	return ok && id.Name == "nil"
 }
 
 func getEscapeAnalysis(file string) map[string]bool {
@@ -470,15 +602,16 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 }
 
 type controlFlowBuilder struct {
-	fset       *token.FileSet
-	file       string
-	labels     map[string]*ControlFlowBlock
-	breakStack []*ControlFlowBlock
-	ifChainSeq int
+	fset         *token.FileSet
+	file         string
+	returnErrors map[token.Pos]bool
+	labels       map[string]*ControlFlowBlock
+	breakStack   []*ControlFlowBlock
+	ifChainSeq   int
 }
 
 func (b *builder) buildControlFlowBlocks(stmts []ast.Stmt) []ControlFlowBlock {
-	cfb := controlFlowBuilder{fset: b.fset, file: b.file, labels: map[string]*ControlFlowBlock{}}
+	cfb := controlFlowBuilder{fset: b.fset, file: b.file, returnErrors: b.returnErrors, labels: map[string]*ControlFlowBlock{}}
 	return cfb.buildBlocks(stmts)
 }
 
@@ -700,7 +833,7 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 			switch s := n.(type) {
 			case *ast.ReturnStmt:
 				p := b.fset.Position(s.Return)
-				out = append(out, ControlFlowStatement{Kind: "return", File: b.file, Line: p.Line, Column: p.Column})
+				out = append(out, ControlFlowStatement{Kind: "return", File: b.file, Line: p.Line, Column: p.Column, ReturnsError: b.returnErrors[s.Return]})
 			case *ast.BranchStmt:
 				if s.Tok == token.BREAK {
 					b.markBreakTarget(s)

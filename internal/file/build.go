@@ -254,7 +254,7 @@ func hasTerminalControlFlowInBranch(raw scan.ControlFlowBlock) bool {
 
 func appendControlFlowStatements(dst *[]ControlFlowStatement, raw []scan.ControlFlowStatement) {
 	for _, stmt := range raw {
-		*dst = append(*dst, &controlFlowStatement{kind: stmt.Kind, location: newLocation(stmt.File, stmt.Line, stmt.Column)})
+		*dst = append(*dst, &controlFlowStatement{kind: stmt.Kind, location: newLocation(stmt.File, stmt.Line, stmt.Column), returnsError: stmt.ReturnsError})
 	}
 }
 

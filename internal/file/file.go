@@ -53,6 +53,7 @@ type Declaration interface {
 type ControlFlowStatement interface {
 	Kind() string
 	Location() Location
+	ReturnsError() bool
 }
 
 type Block interface {
@@ -182,8 +183,9 @@ type declaration struct {
 }
 
 type controlFlowStatement struct {
-	kind     string
-	location location
+	kind         string
+	location     location
+	returnsError bool
 }
 
 type blockBase struct {
@@ -337,6 +339,7 @@ func (d *declaration) Escapes() bool       { return d.escapes }
 
 func (s *controlFlowStatement) Kind() string       { return s.kind }
 func (s *controlFlowStatement) Location() Location { return s.location }
+func (s *controlFlowStatement) ReturnsError() bool { return s.returnsError }
 
 func (b *blockBase) Location() Location { return b.location }
 func (b *blockBase) OpenBrace() Location {
