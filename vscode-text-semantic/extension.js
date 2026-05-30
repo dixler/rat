@@ -5,9 +5,7 @@ const fs = require('fs');
 const output = vscode.window.createOutputChannel('Text Semantic Highlight');
 
 let serverProc;
-let decorationTypes = [];
-let refreshTimer;
-let refreshGeneration = 0;
+const decorationStates = new Map();
 
 function log(message, extra) {
   const suffix = extra === undefined ? '' : ` ${typeof extra === 'string' ? extra : JSON.stringify(extra)}`;
@@ -184,12 +182,53 @@ function stopServer() {
   serverProc = undefined;
 }
 
-function clear(editor) {
-  for (const decorationType of decorationTypes) {
-    editor?.setDecorations(decorationType, []);
-    decorationType.dispose();
+function documentKey(document) {
+  return document.uri.toString();
+}
+
+function stateFor(document) {
+  const key = documentKey(document);
+  let state = decorationStates.get(key);
+  if (!state) {
+    state = { decorations: [], generation: 0, timer: undefined, signature: undefined };
+    decorationStates.set(key, state);
   }
-  decorationTypes = [];
+  return state;
+}
+
+function visibleEditorsFor(document) {
+  return vscode.window.visibleTextEditors.filter((editor) => editor.document === document);
+}
+
+function applyDecorations(document, decorations) {
+  for (const editor of visibleEditorsFor(document)) {
+    for (const decoration of decorations) {
+      editor.setDecorations(decoration.type, decoration.ranges);
+    }
+  }
+}
+
+function clearDocument(document) {
+  const key = documentKey(document);
+  const state = decorationStates.get(key);
+  if (!state) return;
+
+  clearTimeout(state.timer);
+  for (const decoration of state.decorations) {
+    decoration.type.dispose();
+  }
+  decorationStates.delete(key);
+}
+
+function clearAll() {
+  for (const key of [...decorationStates.keys()]) {
+    const state = decorationStates.get(key);
+    clearTimeout(state?.timer);
+    for (const decoration of state?.decorations || []) {
+      decoration.type.dispose();
+    }
+    decorationStates.delete(key);
+  }
 }
 
 function isSupportedDocument(document) {
@@ -224,6 +263,17 @@ async function fetchSpans(document) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body.error || `${response.status} ${response.statusText}`);
   return normalizeSpans(body);
+}
+
+function refreshSignature(document) {
+  const configuration = cfg();
+  return JSON.stringify({
+    enabled: configuration.get('enabled', true),
+    languages: configuration.get('languages', ['go']),
+    serverUrl: configuration.get('serverUrl', 'http://localhost:8081'),
+    fileName: document.fileName,
+    version: document.version
+  });
 }
 
 function spanRange(document, span) {
@@ -272,20 +322,31 @@ function uncoveredRanges(document, coveredRanges) {
   return out;
 }
 
-async function refreshEditor(editor) {
-  const generation = ++refreshGeneration;
-  clear(editor);
+async function refreshEditor(editor, force = false) {
+  const document = editor.document;
+  const signature = refreshSignature(document);
+  const state = stateFor(document);
+  if (!force && state.signature === signature) {
+    applyDecorations(document, state.decorations);
+    return;
+  }
 
-  if (!cfg().get('enabled', true) || !isSupportedDocument(editor.document)) return;
+  const generation = ++state.generation;
+
+  if (!cfg().get('enabled', true) || !isSupportedDocument(document)) {
+    clearDocument(document);
+    return;
+  }
 
   try {
-    const spans = await fetchSpans(editor.document);
-    if (generation !== refreshGeneration) return;
+    const spans = await fetchSpans(document);
+    if (generation !== state.generation) return;
+    if (document.isClosed || decorationStates.get(documentKey(document)) !== state) return;
 
     const rangesByStyle = new Map();
     const coveredRanges = [];
     for (const span of spans) {
-      const range = spanRange(editor.document, span);
+      const range = spanRange(document, span);
       if (!range) continue;
       coveredRanges.push(range);
       if (typeof span.style !== 'string' || !span.style) continue;
@@ -293,35 +354,49 @@ async function refreshEditor(editor) {
       rangesByStyle.get(span.style).push(range);
     }
 
-    const uncovered = uncoveredRanges(editor.document, coveredRanges);
+    const newDecorations = [];
+    const uncovered = uncoveredRanges(document, coveredRanges);
     if (uncovered.length > 0) {
       const decorationType = vscode.window.createTextEditorDecorationType({
         rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
         color: '#ffffff',
         fontStyle: 'normal'
       });
-      decorationTypes.push(decorationType);
-      editor.setDecorations(decorationType, uncovered);
+      newDecorations.push({ type: decorationType, ranges: uncovered });
     }
 
     for (const [style, ranges] of rangesByStyle) {
       const options = decorationOptions(style);
       if (!options) continue;
       const decorationType = vscode.window.createTextEditorDecorationType(options);
-      decorationTypes.push(decorationType);
-      editor.setDecorations(decorationType, ranges);
+      newDecorations.push({ type: decorationType, ranges });
     }
 
-    log('applied decorations', { file: editor.document.fileName, spans: spans.length, styles: rangesByStyle.size, uncovered: uncovered.length });
+    applyDecorations(document, newDecorations);
+
+    for (const decoration of state.decorations) {
+      decoration.type.dispose();
+    }
+    state.decorations = newDecorations;
+    state.signature = signature;
+
+    log('applied decorations', { file: document.fileName, spans: spans.length, styles: rangesByStyle.size, uncovered: uncovered.length });
   } catch (err) {
-    log('refresh failed', { file: editor.document.fileName, message: err instanceof Error ? err.message : String(err) });
+    log('refresh failed', { file: document.fileName, message: err instanceof Error ? err.message : String(err) });
   }
 }
 
-function scheduleRefresh(editor = vscode.window.activeTextEditor, delay = 100) {
+function scheduleRefresh(editor = vscode.window.activeTextEditor, delay = 100, force = false) {
   if (!editor) return;
-  clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(() => void refreshEditor(editor), delay);
+  const state = stateFor(editor.document);
+  clearTimeout(state.timer);
+  state.timer = setTimeout(() => void refreshEditor(editor, force), delay);
+}
+
+function scheduleVisibleRefreshes(delay = 100, force = false) {
+  for (const editor of vscode.window.visibleTextEditors) {
+    scheduleRefresh(editor, delay, force);
+  }
 }
 
 function activate(context) {
@@ -331,15 +406,15 @@ function activate(context) {
     vscode.commands.registerCommand('textSemanticHighlight.toggle', async () => {
       const configuration = cfg();
       await configuration.update('enabled', !configuration.get('enabled', true), vscode.ConfigurationTarget.Global);
-      scheduleRefresh();
+      scheduleVisibleRefreshes(0, true);
     }),
     vscode.window.onDidChangeActiveTextEditor((editor) => scheduleRefresh(editor)),
     vscode.workspace.onDidSaveTextDocument((document) => {
       const editor = vscode.window.visibleTextEditors.find((candidate) => candidate.document === document);
       if (!editor) return;
-      scheduleRefresh(editor);
+      scheduleRefresh(editor, 100, true);
       setTimeout(() => {
-        if (!editor.document.isClosed) void refreshEditor(editor);
+        if (!editor.document.isClosed) void refreshEditor(editor, true);
       }, 750);
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
@@ -350,19 +425,19 @@ function activate(context) {
         stopServer();
         startServerIfNeeded();
       }
-      if (event.affectsConfiguration('textSemanticHighlight')) scheduleRefresh();
+      if (event.affectsConfiguration('textSemanticHighlight')) scheduleVisibleRefreshes(0, true);
     }),
-    { dispose: () => clear(vscode.window.activeTextEditor) },
+    vscode.workspace.onDidCloseTextDocument(clearDocument),
+    { dispose: clearAll },
     { dispose: stopServer },
     output
   );
 
-  scheduleRefresh();
+  scheduleVisibleRefreshes();
 }
 
 function deactivate() {
-  clearTimeout(refreshTimer);
-  clear(vscode.window.activeTextEditor);
+  clearAll();
   stopServer();
 }
 
