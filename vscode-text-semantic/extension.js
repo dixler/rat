@@ -238,6 +238,40 @@ function spanRange(document, span) {
   return new vscode.Range(new vscode.Position(lineIndex, start), new vscode.Position(lineIndex, end));
 }
 
+function uncoveredRanges(document, coveredRanges) {
+  const coveredByLine = new Map();
+  for (const range of coveredRanges) {
+    const line = range.start.line;
+    if (!coveredByLine.has(line)) coveredByLine.set(line, []);
+    coveredByLine.get(line).push(range);
+  }
+
+  const out = [];
+  for (let lineIndex = 0; lineIndex < document.lineCount; lineIndex++) {
+    const lineEnd = document.lineAt(lineIndex).range.end.character;
+    if (lineEnd === 0) continue;
+
+    const ranges = (coveredByLine.get(lineIndex) || [])
+      .sort((a, b) => a.start.character - b.start.character || a.end.character - b.end.character);
+
+    let cursor = 0;
+    for (const range of ranges) {
+      const start = Math.max(0, Math.min(lineEnd, range.start.character));
+      const end = Math.max(start, Math.min(lineEnd, range.end.character));
+      if (start > cursor) {
+        out.push(new vscode.Range(new vscode.Position(lineIndex, cursor), new vscode.Position(lineIndex, start)));
+      }
+      cursor = Math.max(cursor, end);
+    }
+
+    if (cursor < lineEnd) {
+      out.push(new vscode.Range(new vscode.Position(lineIndex, cursor), new vscode.Position(lineIndex, lineEnd)));
+    }
+  }
+
+  return out;
+}
+
 async function refreshEditor(editor) {
   const generation = ++refreshGeneration;
   clear(editor);
@@ -249,12 +283,25 @@ async function refreshEditor(editor) {
     if (generation !== refreshGeneration) return;
 
     const rangesByStyle = new Map();
+    const coveredRanges = [];
     for (const span of spans) {
-      if (typeof span.style !== 'string' || !span.style) continue;
       const range = spanRange(editor.document, span);
       if (!range) continue;
+      coveredRanges.push(range);
+      if (typeof span.style !== 'string' || !span.style) continue;
       if (!rangesByStyle.has(span.style)) rangesByStyle.set(span.style, []);
       rangesByStyle.get(span.style).push(range);
+    }
+
+    const uncovered = uncoveredRanges(editor.document, coveredRanges);
+    if (uncovered.length > 0) {
+      const decorationType = vscode.window.createTextEditorDecorationType({
+        rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+        color: '#ffffff',
+        fontStyle: 'normal'
+      });
+      decorationTypes.push(decorationType);
+      editor.setDecorations(decorationType, uncovered);
     }
 
     for (const [style, ranges] of rangesByStyle) {
@@ -265,7 +312,7 @@ async function refreshEditor(editor) {
       editor.setDecorations(decorationType, ranges);
     }
 
-    log('applied decorations', { file: editor.document.fileName, spans: spans.length, styles: decorationTypes.length });
+    log('applied decorations', { file: editor.document.fileName, spans: spans.length, styles: rangesByStyle.size, uncovered: uncovered.length });
   } catch (err) {
     log('refresh failed', { file: editor.document.fileName, message: err instanceof Error ? err.message : String(err) });
   }
