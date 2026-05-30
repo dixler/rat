@@ -13,7 +13,8 @@
     "@vscode/vsce": "3.9.1"
   },
   "scripts": {
-    "build": "vsce package"
+    "build": "vsce package",
+    "test": "node --test test/*.test.js"
   },
   "contributes": {
     "commands": [{ "command": "textSemanticHighlight.toggle", "title": "Text Semantic Highlight: Toggle" }],

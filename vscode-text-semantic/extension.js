@@ -322,6 +322,40 @@ function uncoveredRanges(document, coveredRanges) {
   return out;
 }
 
+function buildDecorationSpecs(document, spans) {
+  const rangesByStyle = new Map();
+  const coveredRanges = [];
+  for (const span of spans) {
+    const range = spanRange(document, span);
+    if (!range) continue;
+    coveredRanges.push(range);
+    if (typeof span.style !== 'string' || !span.style) continue;
+    if (!rangesByStyle.has(span.style)) rangesByStyle.set(span.style, []);
+    rangesByStyle.get(span.style).push(range);
+  }
+
+  const specs = [];
+  const uncovered = uncoveredRanges(document, coveredRanges);
+  if (uncovered.length > 0) {
+    specs.push({
+      options: {
+        rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+        color: '#ffffff',
+        fontStyle: 'normal'
+      },
+      ranges: uncovered
+    });
+  }
+
+  for (const [style, ranges] of rangesByStyle) {
+    const options = decorationOptions(style);
+    if (!options) continue;
+    specs.push({ options, ranges });
+  }
+
+  return specs;
+}
+
 async function refreshEditor(editor, force = false) {
   const document = editor.document;
   const signature = refreshSignature(document);
@@ -343,34 +377,11 @@ async function refreshEditor(editor, force = false) {
     if (generation !== state.generation) return;
     if (document.isClosed || decorationStates.get(documentKey(document)) !== state) return;
 
-    const rangesByStyle = new Map();
-    const coveredRanges = [];
-    for (const span of spans) {
-      const range = spanRange(document, span);
-      if (!range) continue;
-      coveredRanges.push(range);
-      if (typeof span.style !== 'string' || !span.style) continue;
-      if (!rangesByStyle.has(span.style)) rangesByStyle.set(span.style, []);
-      rangesByStyle.get(span.style).push(range);
-    }
-
-    const newDecorations = [];
-    const uncovered = uncoveredRanges(document, coveredRanges);
-    if (uncovered.length > 0) {
-      const decorationType = vscode.window.createTextEditorDecorationType({
-        rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
-        color: '#ffffff',
-        fontStyle: 'normal'
-      });
-      newDecorations.push({ type: decorationType, ranges: uncovered });
-    }
-
-    for (const [style, ranges] of rangesByStyle) {
-      const options = decorationOptions(style);
-      if (!options) continue;
-      const decorationType = vscode.window.createTextEditorDecorationType(options);
-      newDecorations.push({ type: decorationType, ranges });
-    }
+    const specs = buildDecorationSpecs(document, spans);
+    const newDecorations = specs.map((spec) => ({
+      type: vscode.window.createTextEditorDecorationType(spec.options),
+      ranges: spec.ranges
+    }));
 
     applyDecorations(document, newDecorations);
 
@@ -380,7 +391,7 @@ async function refreshEditor(editor, force = false) {
     state.decorations = newDecorations;
     state.signature = signature;
 
-    log('applied decorations', { file: document.fileName, spans: spans.length, styles: rangesByStyle.size, uncovered: uncovered.length });
+    log('applied decorations', { file: document.fileName, spans: spans.length, decorations: newDecorations.length });
   } catch (err) {
     log('refresh failed', { file: document.fileName, message: err instanceof Error ? err.message : String(err) });
   }
@@ -441,4 +452,16 @@ function deactivate() {
   stopServer();
 }
 
-module.exports = { activate, deactivate };
+module.exports = {
+  activate,
+  deactivate,
+  _test: {
+    ansiColor,
+    buildDecorationSpecs,
+    decorationOptions,
+    normalizeSpans,
+    parseAnsiStyle,
+    spanRange,
+    uncoveredRanges
+  }
+};
