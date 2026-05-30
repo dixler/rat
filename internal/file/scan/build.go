@@ -210,19 +210,31 @@ func Build(file string) (*Result, error) {
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
 	returnErrors := collectReturnErrorClassifications(parsed, info)
 	b := builder{
-		file:         file,
-		fset:         fset,
-		info:         info,
-		returnErrors: returnErrors,
-		client:       client,
-		declByObj:    map[types.Object]string{},
-		kindByObj:    map[types.Object]string{},
-		pkgByPath:    map[string]string{},
-		pkgDefByPath: map[string]definitionLocation{},
-		goplsByPos:   map[string]definitionLocation{},
-		escapes:      getEscapeAnalysis(file),
+		file:          file,
+		fset:          fset,
+		info:          info,
+		returnErrors:  returnErrors,
+		client:        client,
+		declByObj:     map[types.Object]string{},
+		kindByObj:     map[types.Object]string{},
+		pkgPathByName: map[string]string{},
+		pkgByPath:     map[string]string{},
+		pkgDefByPath:  map[string]definitionLocation{},
+		goplsByPos:    map[string]definitionLocation{},
+		escapes:       getEscapeAnalysis(file),
 	}
 	res := &Result{File: file}
+	for _, imp := range parsed.Imports {
+		pkgRef, pkgDecl := b.buildImport(imp)
+		if pkgRef.PackageID == "" {
+			continue
+		}
+		res.PackageReferences = append(res.PackageReferences, pkgRef)
+		res.Packages = append(res.Packages, pkgDecl)
+		if name := importedPackageName(imp); name != "" && name != "." && name != "_" {
+			b.pkgPathByName[name] = strings.Trim(imp.Path.Value, "\"")
+		}
+	}
 	ast.Inspect(parsed, func(n ast.Node) bool {
 		switch node := n.(type) {
 		case *ast.ReturnStmt:
@@ -269,14 +281,6 @@ func Build(file string) (*Result, error) {
 		}
 	}
 	res.NamedFields = b.collectTopLevelNamedFields(parsed)
-	for _, imp := range parsed.Imports {
-		pkgRef, pkgDecl := b.buildImport(imp)
-		if pkgRef.PackageID == "" {
-			continue
-		}
-		res.PackageReferences = append(res.PackageReferences, pkgRef)
-		res.Packages = append(res.Packages, pkgDecl)
-	}
 	for _, group := range parsed.Comments {
 		for _, comment := range group.List {
 			if comment == nil {
@@ -301,18 +305,19 @@ func Build(file string) (*Result, error) {
 }
 
 type builder struct {
-	file         string
-	fset         *token.FileSet
-	info         *types.Info
-	returnErrors map[token.Pos]bool
-	client       *goplsclient.Client
-	declByObj    map[types.Object]string
-	kindByObj    map[types.Object]string
-	pkgByPath    map[string]string
-	pkgDefByPath map[string]definitionLocation
-	goplsByPos   map[string]definitionLocation
-	escapes      map[string]bool
-	seq          int
+	file          string
+	fset          *token.FileSet
+	info          *types.Info
+	returnErrors  map[token.Pos]bool
+	client        *goplsclient.Client
+	declByObj     map[types.Object]string
+	kindByObj     map[types.Object]string
+	pkgPathByName map[string]string
+	pkgByPath     map[string]string
+	pkgDefByPath  map[string]definitionLocation
+	goplsByPos    map[string]definitionLocation
+	escapes       map[string]bool
+	seq           int
 }
 
 func collectReturnErrorClassifications(parsed *ast.File, info *types.Info) map[token.Pos]bool {
@@ -1327,44 +1332,64 @@ func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
 
 func (b *builder) collectReferences(node ast.Node, decl *Declaration) {
 	ast.Inspect(node, func(n ast.Node) bool {
+		if selector, ok := n.(*ast.SelectorExpr); ok {
+			if id, ok := selector.X.(*ast.Ident); ok && b.info.Uses[id] == nil {
+				if importPath := b.pkgPathByName[id.Name]; importPath != "" {
+					b.appendReferenceForIdent(id, decl, importPath)
+					b.appendReferenceForIdent(selector.Sel, decl, "")
+					return false
+				}
+			}
+		}
 		id, ok := n.(*ast.Ident)
 		if !ok || id.Name == "_" {
 			return true
 		}
-		if b.info.Defs[id] != nil {
-			return true
-		}
-		pos := b.fset.Position(id.Pos())
-		key := fmt.Sprintf("%s:%d:%d", filepath.Clean(b.file), pos.Line, pos.Column)
-		ref := Reference{
-			Text:    id.Name,
-			File:    b.file,
-			Line:    pos.Line,
-			Column:  pos.Column,
-			Kind:    b.classifyObject(b.info.Uses[id]),
-			Escapes: b.escapes[key],
-		}
-		if obj := b.info.Uses[id]; obj != nil {
-			ref.DeclarationID = b.declByObj[obj]
-			if pkgName, ok := obj.(*types.PkgName); ok && pkgName.Imported() != nil {
-				if loc, ok := b.packageDefinitionForImportPath(pkgName.Imported().Path()); ok {
-					ref.DeclarationFile = loc.file
-					ref.DeclarationLine = loc.line
-					ref.DeclarationColumn = loc.column
-				}
-			}
-		}
-		if ref.DeclarationFile == "" {
-			if target, ok := b.definitionFor(id.Pos()); ok {
-				ref.DeclarationFile = target.file
-				ref.DeclarationLine = target.line
-				ref.DeclarationColumn = target.column
-			}
-		}
-		decl.References = append(decl.References, ref)
+		b.appendReferenceForIdent(id, decl, "")
 		return true
 	})
 	sortReferences(decl.References)
+}
+
+func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, importPath string) {
+	if id == nil || id.Name == "_" || b.info.Defs[id] != nil {
+		return
+	}
+	pos := b.fset.Position(id.Pos())
+	key := fmt.Sprintf("%s:%d:%d", filepath.Clean(b.file), pos.Line, pos.Column)
+	ref := Reference{
+		Text:    id.Name,
+		File:    b.file,
+		Line:    pos.Line,
+		Column:  pos.Column,
+		Kind:    b.classifyObject(b.info.Uses[id]),
+		Escapes: b.escapes[key],
+	}
+	if importPath != "" {
+		ref.Kind = KindPackage
+		if loc, ok := b.packageDefinitionForImportPath(importPath); ok {
+			ref.DeclarationFile = loc.file
+			ref.DeclarationLine = loc.line
+			ref.DeclarationColumn = loc.column
+		}
+	} else if obj := b.info.Uses[id]; obj != nil {
+		ref.DeclarationID = b.declByObj[obj]
+		if pkgName, ok := obj.(*types.PkgName); ok && pkgName.Imported() != nil {
+			if loc, ok := b.packageDefinitionForImportPath(pkgName.Imported().Path()); ok {
+				ref.DeclarationFile = loc.file
+				ref.DeclarationLine = loc.line
+				ref.DeclarationColumn = loc.column
+			}
+		}
+	}
+	if ref.DeclarationFile == "" {
+		if target, ok := b.definitionFor(id.Pos()); ok {
+			ref.DeclarationFile = target.file
+			ref.DeclarationLine = target.line
+			ref.DeclarationColumn = target.column
+		}
+	}
+	decl.References = append(decl.References, ref)
 }
 
 func (b *builder) definitionFor(pos token.Pos) (definitionLocation, bool) {
@@ -1389,10 +1414,7 @@ func (b *builder) definitionFor(pos token.Pos) (definitionLocation, bool) {
 
 func (b *builder) buildImport(imp *ast.ImportSpec) (PackageReference, Package) {
 	path := strings.Trim(imp.Path.Value, "\"")
-	name := filepath.Base(path)
-	if imp.Name != nil {
-		name = imp.Name.Name
-	}
+	name := importedPackageName(imp)
 	pos := b.fset.Position(imp.Pos())
 	pkgID := b.pkgByPath[path]
 	if pkgID == "" {
@@ -1408,6 +1430,18 @@ func (b *builder) buildImport(imp *ast.ImportSpec) (PackageReference, Package) {
 		pkgLine, pkgColumn = pkgFiles[0].Line, pkgFiles[0].Column
 	}
 	return pkgRef, Package{ID: pkgID, Name: path, File: pkgFile, Line: pkgLine, Column: pkgColumn, Files: pkgFiles}
+}
+
+func importedPackageName(imp *ast.ImportSpec) string {
+	if imp == nil {
+		return ""
+	}
+	path := strings.Trim(imp.Path.Value, "\"")
+	name := filepath.Base(path)
+	if imp.Name != nil {
+		name = imp.Name.Name
+	}
+	return name
 }
 
 func loadPackageFiles(importPath string) []PackageFile {
