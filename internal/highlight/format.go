@@ -2,6 +2,8 @@ package highlight
 
 import (
 	"fmt"
+	"go/scanner"
+	gotoken "go/token"
 	"path"
 	"path/filepath"
 	"sort"
@@ -24,15 +26,15 @@ const (
 var _kindStyles = map[file.Kind]display.BasicStyle{
 	file.KindType:      display.LightGreen,
 	file.KindVariable:  display.Yellow,
-	file.KindParameter: display.VibrantOrange,
-	file.KindFunction:  display.LightGreen,
+	file.KindParameter: display.LightGreen,
+	file.KindFunction:  display.VibrantOrange,
 	file.KindPackage:   display.Purple,
 	file.KindFile:      display.Yellow,
 }
 
 var _relationStyles = map[relation]display.BasicStyle{
 	_relSameFunction: display.Yellow,
-	_relSameFile:     display.LightGreen,
+	_relSameFile:     display.VibrantOrange,
 	_relSamePackage:  display.Cyan,
 	_relSameProject:  display.Blue,
 	_relExternal:     display.Purple,
@@ -216,7 +218,7 @@ func relationshipStyle(root string, parent, target file.Declaration, kind file.K
 		case target == nil || target.Location() == nil:
 			return _relationStyles[_relExternal]
 		case isBuiltin(target):
-			return display.White
+			return display.LightPink
 		case sameFunction(parent, target):
 			return _relationStyles[_relSameFunction]
 		case sameFile(parent, target):
@@ -344,7 +346,9 @@ func ParseFormats(f file.File) ParseResult {
 	}
 	sourceLines := strings.Split(f.Source(), "\n")
 	root := file.ProjectRoot(f.Name())
+	controlFlowMarks := collectControlFlowMarks(f)
 	collectCommentSpans(result.SourceSpans, sourceLines, f)
+	collectLexicalTokenSpans(result.SourceSpans, f.Source(), sourceLines, loopStyleByLocation(controlFlowMarks))
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(result.SourceSpans, sourceLines, f)
 
@@ -356,12 +360,12 @@ func ParseFormats(f file.File) ParseResult {
 		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl)
 	}
 
-	for _, mark := range collectControlFlowMarks(f) {
+	for _, mark := range controlFlowMarks {
 		if mark.loc == nil || mark.loc.Line() < 1 {
 			continue
 		}
 		result.LineSpans[mark.loc.Line()] = mark.lineStyle
-		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, display.Span{Style: mark.textStyle})
+		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, display.Span{Style: mark.textStyle, Priority: 2})
 	}
 
 	for line := range result.SourceSpans {
@@ -373,6 +377,17 @@ func ParseFormats(f file.File) ParseResult {
 		result.SourceSpans[line] = display.FlattenSpans(sourceLines[line-1], result.SourceSpans[line])
 	}
 	return result
+}
+
+func loopStyleByLocation(marks []controlFlowMark) map[string]display.Style {
+	out := map[string]display.Style{}
+	for _, mark := range marks {
+		if mark.loc == nil || mark.text != "for" {
+			continue
+		}
+		out[locationMapKey(mark.loc.Line(), mark.loc.Column())] = mark.textStyle
+	}
+	return out
 }
 
 func collectPackageReferenceSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
@@ -510,6 +525,8 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				}
 			case "fallthrough":
 				addMark(blue)
+			case "panic":
+				addMark(display.LightRed)
 			}
 		}
 		for _, stmt := range block.ControlFlowStatements() {
@@ -521,6 +538,8 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				addMark(plain)
 			case "continue":
 				addMark(blue)
+			case "goto", "panic":
+				addMark(display.LightRed)
 			}
 		}
 	}
@@ -560,7 +579,7 @@ func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Lo
 
 	switch rank {
 	case fieldTypeDistanceBuiltin:
-		return fieldStyle(display.White, invert)
+		return fieldStyle(display.LightPink, invert)
 	case fieldTypeDistanceSameFile:
 		return fieldStyle(_relationStyles[_relSameFile], invert)
 	case fieldTypeDistanceSamePackage:
@@ -570,6 +589,132 @@ func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Lo
 	default:
 		return fieldStyle(display.Purple, invert)
 	}
+}
+
+var keywordStyles = map[gotoken.Token]display.Style{
+	gotoken.TYPE:      display.MutedOrange,
+	gotoken.STRUCT:    display.MutedOrange,
+	gotoken.FUNC:      display.MutedOrange,
+	gotoken.INTERFACE: display.MutedOrange,
+	gotoken.MAP:       display.MutedOrange,
+	gotoken.VAR:       display.MutedOrange,
+	gotoken.PACKAGE:   display.MutedOrange,
+	gotoken.IMPORT:    display.MutedOrange,
+	gotoken.DEFER:     display.Blue,
+	gotoken.GO:        display.Blue,
+	gotoken.CONST:     display.Blue,
+	gotoken.GOTO:      display.LightRed,
+}
+
+var literalTokens = map[gotoken.Token]bool{
+	gotoken.CHAR:   true,
+	gotoken.FLOAT:  true,
+	gotoken.IMAG:   true,
+	gotoken.INT:    true,
+	gotoken.STRING: true,
+}
+
+func collectLexicalTokenSpans(out map[int][]display.Span, source string, sourceLines []string, loopStyles map[string]display.Style) {
+	fset := gotoken.NewFileSet()
+	file := fset.AddFile("", fset.Base(), len(source))
+	var s scanner.Scanner
+	s.Init(file, []byte(source), nil, 0)
+
+	var pendingForStyle display.Style
+	pendingPackageName := false
+	pendingImportSpec := false
+	importBlockDepth := 0
+	for {
+		pos, tok, lit := s.Scan()
+		if tok == gotoken.EOF {
+			break
+		}
+
+		p := fset.Position(pos)
+		text := lit
+		if text == "" {
+			text = tok.String()
+		}
+
+		if tok == gotoken.FOR {
+			pendingForStyle = loopStyles[locationMapKey(p.Line, p.Column)]
+		}
+		if tok == gotoken.PACKAGE {
+			pendingPackageName = true
+		}
+		if tok == gotoken.IMPORT {
+			pendingImportSpec = true
+		}
+		if pendingImportSpec && tok == gotoken.LPAREN {
+			importBlockDepth = 1
+			pendingImportSpec = false
+		} else if importBlockDepth > 0 && tok == gotoken.LPAREN {
+			importBlockDepth++
+		} else if importBlockDepth > 0 && tok == gotoken.RPAREN {
+			importBlockDepth--
+		}
+
+		style, ok := keywordStyles[tok]
+		if pendingPackageName && tok == gotoken.IDENT {
+			style, ok = _relationStyles[_relSamePackage], true
+			pendingPackageName = false
+		} else if tok == gotoken.RANGE && pendingForStyle != nil {
+			style, ok = pendingForStyle, true
+			pendingForStyle = nil
+		} else if tok == gotoken.STRING && (pendingImportSpec || importBlockDepth > 0) {
+			ok = false
+		} else if literalTokens[tok] {
+			style, ok = display.LightPink, true
+		}
+		if pendingImportSpec && (tok == gotoken.STRING || tok == gotoken.SEMICOLON) {
+			pendingImportSpec = false
+		}
+		if !ok || text == "" {
+			continue
+		}
+		addTokenSpan(out, sourceLines, p.Line, p.Column, text, display.Span{Style: style})
+	}
+}
+
+func addTokenSpan(out map[int][]display.Span, sourceLines []string, line, col int, text string, span display.Span) {
+	if line < 1 || col < 1 || text == "" {
+		return
+	}
+	parts := strings.Split(text, "\n")
+	for i, part := range parts {
+		lineNo := line + i
+		if lineNo < 1 || lineNo > len(sourceLines) {
+			continue
+		}
+		lineText := sourceLines[lineNo-1]
+		start := 0
+		if i == 0 {
+			start = col - 1
+			if start < 0 {
+				start = 0
+			}
+			if start > len(lineText) {
+				start = len(lineText)
+			}
+		}
+		end := len(lineText)
+		if i == len(parts)-1 {
+			end = start + len(part)
+			if end > len(lineText) {
+				end = len(lineText)
+			}
+		}
+		if end <= start {
+			continue
+		}
+		span.Start = start
+		span.End = end
+		out[lineNo] = append(out[lineNo], span)
+	}
+}
+
+func locationMapKey(line, col int) string {
+	return fmt.Sprintf("%d:%d", line, col)
 }
 
 func fieldStyle(style display.BasicStyle, invert bool) display.Style {

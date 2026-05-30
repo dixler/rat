@@ -1,4 +1,4 @@
- [0m1 [97mpackage fielddistance[0m
+ [0m1 [97m[0m[38;5;130mpackage[0m[97m [0m[96mfielddistance[0m[97m[0m
  [0m2 [97m[0m
- [0m3 [97mtype [0m[38;5;120m[7mSamePackageType[0m[97m struct{}[0m
+ [0m3 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;215m[7mSamePackageType[0m[97m [0m[38;5;130mstruct[0m[97m{}[0m
  [0m4 [97m[0m

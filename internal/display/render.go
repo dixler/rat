@@ -13,8 +13,10 @@ const (
 	Blink         BasicStyle = "\x1b[5m"
 	Underline     BasicStyle = "\x1b[4m"
 	Gray          BasicStyle = "\x1b[90m"
+	LightGray     BasicStyle = "\x1b[38;5;250m"
 	Red           BasicStyle = "\x1b[31m"
 	BrightRed     BasicStyle = "\x1b[91m"
+	LightRed      BasicStyle = "\x1b[38;5;203m"
 	MutedOrange   BasicStyle = "\x1b[38;5;130m"
 	Orange        BasicStyle = "\x1b[38;5;208m"
 	VibrantOrange BasicStyle = "\x1b[38;5;215m"
@@ -30,6 +32,7 @@ const (
 	Amber         BasicStyle = "\x1b[38;5;214m"
 	Lime          BasicStyle = "\x1b[38;5;118m"
 	CoralRed      BasicStyle = "\x1b[38;5;203m"
+	LightPink     BasicStyle = "\x1b[38;5;218m"
 	HotMagenta    BasicStyle = "\x1b[38;5;198m"
 )
 
