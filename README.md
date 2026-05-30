@@ -185,13 +185,15 @@ The server accepts `POST /spans`:
 { "path": "/absolute/path/to/file.go" }
 ```
 
-It returns JSON spans:
+It returns JSON spans grouped by 1-based line number:
 
 ```json
 {
-  "spans": [
-    { "line": 7, "start": 5, "end": 10, "style": "\u001b[38;5;226m" }
-  ]
+  "spans": {
+    "7": [
+      { "start": 5, "end": 10, "style": "\u001b[38;5;226m" }
+    ]
+  }
 }
 ```
 

@@ -1,37 +1,25 @@
 const vscode = require('vscode');
 const cp = require('child_process');
 const fs = require('fs');
-const path = require('path');
 
-const DEFAULT_FOREGROUND = '#ffffff';
 const output = vscode.window.createOutputChannel('Text Semantic Highlight');
-const seenLogs = new Set();
 
 let serverProc;
-let activeDecorations = [];
-let uncoveredForegroundDecoration;
+let decorationTypes = [];
+let refreshTimer;
+let refreshGeneration = 0;
 
 function log(message, extra) {
   const suffix = extra === undefined ? '' : ` ${typeof extra === 'string' ? extra : JSON.stringify(extra)}`;
   output.appendLine(`[text-semantic-highlight] ${message}${suffix}`);
 }
 
-function logOnce(key, message, extra) {
-  if (seenLogs.has(key)) return;
-  seenLogs.add(key);
-  log(message, extra);
-}
-
-function mk({ color, ...extra }) {
-  return vscode.window.createTextEditorDecorationType({
-    ...(color ? { color } : {}),
-    ...extra
-  });
+function cfg() {
+  return vscode.workspace.getConfiguration('textSemanticHighlight');
 }
 
 function cubeValue(v) {
-  if (v === 0) return 0;
-  return 55 + v * 40;
+  return v === 0 ? 0 : 55 + v * 40;
 }
 
 function xterm256(idx) {
@@ -54,11 +42,11 @@ function xterm256(idx) {
 }
 
 function ansiBasicColor(i) {
-  return ['#000000', '#b22222', '#2e8b57', '#b8860b', '#1d4ed8', '#8b5cf6', '#0891b2', '#d1d5db'][i] || undefined;
+  return ['#000000', '#b22222', '#2e8b57', '#b8860b', '#1d4ed8', '#8b5cf6', '#0891b2', '#d1d5db'][i];
 }
 
 function ansiBrightColor(i) {
-  return ['#6b7280', '#ef4444', '#22c55e', '#fde047', '#60a5fa', '#c084fc', '#67e8f9', '#ffffff'][i] || undefined;
+  return ['#6b7280', '#ef4444', '#22c55e', '#fde047', '#60a5fa', '#c084fc', '#67e8f9', '#ffffff'][i];
 }
 
 function ansiColor(code) {
@@ -77,40 +65,6 @@ function ansiColor(code) {
   return undefined;
 }
 
-function parseHexByte(v) {
-  const n = Number.parseInt(v, 16);
-  return Number.isNaN(n) ? undefined : n;
-}
-
-function contrastTextColor(hex) {
-  if (typeof hex !== 'string' || hex.length !== 7 || !hex.startsWith('#')) return DEFAULT_FOREGROUND;
-  const r = parseHexByte(hex.slice(1, 3));
-  const g = parseHexByte(hex.slice(3, 5));
-  const b = parseHexByte(hex.slice(5, 7));
-  if (![r, g, b].every(Number.isInteger)) return DEFAULT_FOREGROUND;
-
-  const toLinear = (channel) => {
-    const normalized = channel / 255;
-    return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
-  };
-  const luminance = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-  const contrastWithBlack = (luminance + 0.05) / 0.05;
-  const contrastWithWhite = 1.05 / (luminance + 0.05);
-  return contrastWithBlack >= contrastWithWhite ? '#000000' : '#ffffff';
-}
-
-function resolvedAnsiColors(parsed) {
-  let foreground = ansiColor(parsed?.fg);
-  let background = ansiColor(parsed?.bg);
-
-  if (parsed?.inverse) {
-    [foreground, background] = [background, foreground];
-    if (background) foreground = contrastTextColor(background);
-  }
-
-  return { foreground, background };
-}
-
 function parseAnsiStyle(style) {
   const parsed = { fg: undefined, bg: undefined, inverse: false, fontWeight: undefined, textDecoration: undefined };
   const matches = typeof style === 'string' ? [...style.matchAll(/\x1b\[([0-9;]+)m/g)] : [];
@@ -126,35 +80,21 @@ function parseAnsiStyle(style) {
         parsed.inverse = false;
         parsed.fontWeight = undefined;
         parsed.textDecoration = undefined;
-        continue;
-      }
-      if (code === 1) {
+      } else if (code === 1) {
         parsed.fontWeight = '700';
-        continue;
-      }
-      if (code === 4) {
+      } else if (code === 4) {
         parsed.textDecoration = 'underline';
-        continue;
-      }
-      if (code === 7) {
+      } else if (code === 7) {
         parsed.inverse = true;
-        continue;
-      }
-      if (code === 38 && codes[i + 1] === 5 && Number.isInteger(codes[i + 2])) {
+      } else if (code === 38 && codes[i + 1] === 5 && Number.isInteger(codes[i + 2])) {
         parsed.fg = `38;5;${codes[i + 2]}`;
         i += 2;
-        continue;
-      }
-      if (code === 48 && codes[i + 1] === 5 && Number.isInteger(codes[i + 2])) {
+      } else if (code === 48 && codes[i + 1] === 5 && Number.isInteger(codes[i + 2])) {
         parsed.bg = `48;5;${codes[i + 2]}`;
         i += 2;
-        continue;
-      }
-      if ((code >= 30 && code <= 37) || (code >= 90 && code <= 97)) {
+      } else if ((code >= 30 && code <= 37) || (code >= 90 && code <= 97)) {
         parsed.fg = String(code);
-        continue;
-      }
-      if ((code >= 40 && code <= 47) || (code >= 100 && code <= 107)) {
+      } else if ((code >= 40 && code <= 47) || (code >= 100 && code <= 107)) {
         parsed.bg = String(code);
       }
     }
@@ -163,86 +103,71 @@ function parseAnsiStyle(style) {
   return parsed;
 }
 
-function normalizeSpan(span) {
-  if (typeof span?.style === 'string' && span.style) {
-    return { parsed: parseAnsiStyle(span.style), source: 'style', raw: span.style, priority: Number.isInteger(span.priority) ? span.priority : 0 };
+function parseHexByte(v) {
+  const n = Number.parseInt(v, 16);
+  return Number.isNaN(n) ? undefined : n;
+}
+
+function contrastTextColor(hex) {
+  if (typeof hex !== 'string' || hex.length !== 7 || !hex.startsWith('#')) return '#ffffff';
+  const r = parseHexByte(hex.slice(1, 3));
+  const g = parseHexByte(hex.slice(3, 5));
+  const b = parseHexByte(hex.slice(5, 7));
+  if (![r, g, b].every(Number.isInteger)) return '#ffffff';
+
+  const linear = (channel) => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+  return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? '#000000' : '#ffffff';
+}
+
+function decorationOptions(style) {
+  const parsed = parseAnsiStyle(style);
+  let foreground = ansiColor(parsed.fg);
+  let backgroundColor = ansiColor(parsed.bg);
+
+  if (parsed.inverse) {
+    [foreground, backgroundColor] = [backgroundColor, foreground];
+    if (backgroundColor && !foreground) foreground = contrastTextColor(backgroundColor);
   }
 
-  return { parsed: undefined, source: 'unknown', raw: JSON.stringify(span ?? {}), priority: 0 };
-}
-
-function foregroundSpecFromAnsi(parsed) {
-  const { foreground: color } = resolvedAnsiColors(parsed);
-  if (parsed?.bg || parsed?.inverse) return undefined;
-  if (!color) return undefined;
-  return {
-    color,
-    ...(parsed?.fontWeight ? { fontWeight: parsed.fontWeight } : {}),
-    ...(parsed?.textDecoration ? { textDecoration: parsed.textDecoration } : {}),
+  const options = {
+    rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
     fontStyle: 'normal'
   };
+  if (foreground) options.color = foreground;
+  if (backgroundColor) {
+    options.backgroundColor = backgroundColor;
+    options.borderRadius = '2px';
+    if (!foreground) options.color = contrastTextColor(backgroundColor);
+  }
+  if (parsed.fontWeight) options.fontWeight = parsed.fontWeight;
+  if (parsed.textDecoration) options.textDecoration = parsed.textDecoration;
+
+  return options.color || options.backgroundColor || options.fontWeight || options.textDecoration ? options : undefined;
 }
-
-function foregroundDecoration(spec) {
-  const fgSpec = foregroundSpecFromAnsi(spec);
-  if (!fgSpec) return undefined;
-  return mk(fgSpec);
-}
-
-function backgroundColorFromAnsi(parsed) {
-  return resolvedAnsiColors(parsed).background;
-}
-
-function spanUsesBackground(parsed) {
-  return Boolean(parsed?.bg || parsed?.inverse);
-}
-
-function backgroundDecoration(spec) {
-  const backgroundColor = backgroundColorFromAnsi(spec);
-
-  if (!backgroundColor) return undefined;
-  return mk({
-    backgroundColor,
-    borderRadius: '2px',
-    color: contrastTextColor(backgroundColor),
-    ...(spec?.fontWeight ? { fontWeight: spec.fontWeight } : {}),
-    ...(spec?.textDecoration ? { textDecoration: spec.textDecoration } : {}),
-    fontStyle: 'normal'
-  });
-}
-
-function cfg() { return vscode.workspace.getConfiguration('textSemanticHighlight'); }
 
 function resolveServerCwd() {
   const configured = cfg().get('serverCwd', '${workspaceFolder}');
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
   const cwd = configured.replace('${workspaceFolder}', workspaceFolder);
-  if (fs.existsSync(path.join(cwd, 'cmd', 'rat'))) return cwd;
+  if (fs.existsSync(cwd)) return cwd;
 
-  const parent = path.dirname(cwd);
-  if (parent !== cwd && fs.existsSync(path.join(parent, 'cmd', 'rat'))) {
-    log('server cwd fallback to parent', { configured: cwd, resolved: parent });
-    return parent;
-  }
-
-  log('server cwd missing cmd/rat', { configured: cwd });
-  return cwd;
+  log('configured server cwd does not exist', { cwd });
+  return workspaceFolder;
 }
 
 function startServerIfNeeded() {
-  if (serverProc) {
-    log('server already running');
-    return;
-  }
-  if (!cfg().get('autoStartServer', true)) {
-    log('auto-start disabled');
-    return;
-  }
-  const cmd = cfg().get('serverCommand', 'rat');
+  if (serverProc || !cfg().get('autoStartServer', true)) return;
+
+  const command = cfg().get('serverCommand', 'rat');
   const args = cfg().get('serverArgs', ['--serve', '--addr', ':8081']);
   const cwd = resolveServerCwd();
-  log('starting server', { cmd, args, cwd });
-  serverProc = cp.spawn(cmd, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+  log('starting server', { command, args, cwd });
+
+  serverProc = cp.spawn(command, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
   serverProc.stdout?.on('data', (chunk) => log('server stdout', chunk.toString().trim()));
   serverProc.stderr?.on('data', (chunk) => log('server stderr', chunk.toString().trim()));
   serverProc.on('error', (err) => log('server process error', { message: err.message }));
@@ -259,161 +184,139 @@ function stopServer() {
   serverProc = undefined;
 }
 
-async function fetchSpans(doc, url) {
-  const target = `${url}/spans`;
-  log('fetching spans', { path: doc.fileName, languageId: doc.languageId, url: target });
-  try {
-    const r = await fetch(target, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ path: doc.fileName }) });
-    if (!r.ok) {
-      log('span fetch failed', { status: r.status, statusText: r.statusText });
-      return [];
-    }
-    const j = await r.json();
-    const spans = Array.isArray(j.spans) ? j.spans : [];
-    log('fetched spans', { count: spans.length });
-    return spans;
-  } catch (err) {
-    log('span fetch error', { message: err instanceof Error ? err.message : String(err) });
-    return [];
-  }
-}
-
-async function decorate(editor) {
-  const c = cfg();
-  if (!c.get('enabled', true)) {
-    log('highlighting disabled');
-    return clear(editor);
-  }
-  const langSet = new Set(c.get('languages', ['go']));
-  if (!langSet.has(editor.document.languageId)) {
-    log('skipping unsupported language', { languageId: editor.document.languageId, configured: [...langSet] });
-    return clear(editor);
-  }
-  const url = c.get('serverUrl', 'http://localhost:8081');
-  clear(editor);
-  const spans = await fetchSpans(editor.document, url);
-  applyUncoveredForeground(editor, spans);
-  log(JSON.stringify(spans, null, 2))
-  for (const s of spans) {
-    const range = new vscode.Range(new vscode.Position((s.line || 1) - 1, s.start || 0), new vscode.Position((s.line || 1) - 1, s.end || 0));
-    const normalized = normalizeSpan(s);
-    const spec = normalized.parsed;
-    const useBackground = spanUsesBackground(spec);
-    const decoration = useBackground ? backgroundDecoration(spec) : foregroundDecoration(spec);
-    if (!decoration) {
-      logOnce(`unrecognized:${JSON.stringify(Object.keys(s || {}).sort())}:${normalized.raw}`, 'unrecognized span payload', { keys: Object.keys(s || {}), span: s });
-      continue;
-    }
-    activeDecorations.push(decoration);
-    editor.setDecorations(decoration, [range]);
-  }
-  log('applied decorations', { spans: spans.length, decorations: activeDecorations.length });
-}
-
 function clear(editor) {
-  clearUncoveredForeground(editor);
-  for (const decoration of activeDecorations) {
-    editor?.setDecorations(decoration, []);
-    decoration.dispose();
+  for (const decorationType of decorationTypes) {
+    editor?.setDecorations(decorationType, []);
+    decorationType.dispose();
   }
-  activeDecorations = [];
+  decorationTypes = [];
 }
 
-function clearUncoveredForeground(editor) {
-  if (!uncoveredForegroundDecoration) return;
-  editor?.setDecorations(uncoveredForegroundDecoration, []);
-  uncoveredForegroundDecoration.dispose();
-  uncoveredForegroundDecoration = undefined;
+function isSupportedDocument(document) {
+  if (document.uri.scheme !== 'file') return false;
+  if (!document.fileName.endsWith('.go')) return false;
+  return new Set(cfg().get('languages', ['go'])).has(document.languageId);
 }
 
-function spanRange(doc, span) {
-  const lineIndex = (span?.line || 1) - 1;
-  if (lineIndex < 0 || lineIndex >= doc.lineCount) return undefined;
-  const line = doc.lineAt(lineIndex);
-  const start = Math.max(0, Math.min(line.range.end.character, span?.start || 0));
-  const end = Math.max(start, Math.min(line.range.end.character, span?.end || 0));
+function normalizeSpans(payload) {
+  const spans = payload?.spans;
+  if (Array.isArray(spans)) return spans;
+  if (!spans || typeof spans !== 'object') return [];
+
+  const out = [];
+  for (const [line, lineSpans] of Object.entries(spans)) {
+    if (!Array.isArray(lineSpans)) continue;
+    for (const span of lineSpans) {
+      out.push({ ...span, line: Number(span.line || line) });
+    }
+  }
+  return out;
+}
+
+async function fetchSpans(document) {
+  const baseUrl = cfg().get('serverUrl', 'http://localhost:8081').replace(/\/$/, '');
+  const response = await fetch(`${baseUrl}/spans`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ path: document.fileName })
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error || `${response.status} ${response.statusText}`);
+  return normalizeSpans(body);
+}
+
+function spanRange(document, span) {
+  const lineIndex = Number(span.line || 1) - 1;
+  if (lineIndex < 0 || lineIndex >= document.lineCount) return undefined;
+
+  const line = document.lineAt(lineIndex);
+  const start = Math.max(0, Math.min(line.range.end.character, Number(span.start || 0)));
+  const end = Math.max(start, Math.min(line.range.end.character, Number(span.end || 0)));
   if (start === end) return undefined;
-  return { lineIndex, start, end };
+
+  return new vscode.Range(new vscode.Position(lineIndex, start), new vscode.Position(lineIndex, end));
 }
 
-function uncoveredRanges(doc, spans) {
-  const ranges = [];
-  for (let i = 0; i < doc.lineCount; i++) {
-    const line = doc.lineAt(i);
-    const covered = spans
-      .map((span) => spanRange(doc, span))
-      .filter((range) => range?.lineIndex === i)
-      .sort((a, b) => a.start - b.start || a.end - b.end);
-    let cursor = 0;
-    for (const range of covered) {
-      if (range.start > cursor) {
-        ranges.push(new vscode.Range(new vscode.Position(i, cursor), new vscode.Position(i, range.start)));
-      }
-      cursor = Math.max(cursor, range.end);
+async function refreshEditor(editor) {
+  const generation = ++refreshGeneration;
+  clear(editor);
+
+  if (!cfg().get('enabled', true) || !isSupportedDocument(editor.document)) return;
+
+  try {
+    const spans = await fetchSpans(editor.document);
+    if (generation !== refreshGeneration) return;
+
+    const rangesByStyle = new Map();
+    for (const span of spans) {
+      if (typeof span.style !== 'string' || !span.style) continue;
+      const range = spanRange(editor.document, span);
+      if (!range) continue;
+      if (!rangesByStyle.has(span.style)) rangesByStyle.set(span.style, []);
+      rangesByStyle.get(span.style).push(range);
     }
-    if (cursor < line.range.end.character) {
-      ranges.push(new vscode.Range(new vscode.Position(i, cursor), line.range.end));
+
+    for (const [style, ranges] of rangesByStyle) {
+      const options = decorationOptions(style);
+      if (!options) continue;
+      const decorationType = vscode.window.createTextEditorDecorationType(options);
+      decorationTypes.push(decorationType);
+      editor.setDecorations(decorationType, ranges);
     }
+
+    log('applied decorations', { file: editor.document.fileName, spans: spans.length, styles: decorationTypes.length });
+  } catch (err) {
+    log('refresh failed', { file: editor.document.fileName, message: err instanceof Error ? err.message : String(err) });
   }
-  return ranges;
 }
 
-function applyUncoveredForeground(editor, spans) {
-  const ranges = uncoveredRanges(editor.document, spans);
-  uncoveredForegroundDecoration = mk({ color: DEFAULT_FOREGROUND, fontStyle: 'normal' });
-  editor.setDecorations(uncoveredForegroundDecoration, ranges);
+function scheduleRefresh(editor = vscode.window.activeTextEditor, delay = 100) {
+  if (!editor) return;
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => void refreshEditor(editor), delay);
 }
 
 function activate(context) {
-  log('activating extension');
   startServerIfNeeded();
-  const refresh = () => {
-    const e = vscode.window.activeTextEditor;
-    if (!e) {
-      log('no active editor to decorate');
-      return;
-    }
-    log('refreshing editor', { path: e.document.fileName, languageId: e.document.languageId });
-    void decorate(e);
-  };
+
   context.subscriptions.push(
     vscode.commands.registerCommand('textSemanticHighlight.toggle', async () => {
-      const c = cfg();
-      await c.update('enabled', !c.get('enabled', true), vscode.ConfigurationTarget.Global);
-      log('toggled highlighting', { enabled: c.get('enabled', true) });
-      refresh();
+      const configuration = cfg();
+      await configuration.update('enabled', !configuration.get('enabled', true), vscode.ConfigurationTarget.Global);
+      scheduleRefresh();
     }),
-    vscode.window.onDidChangeActiveTextEditor((e) => {
-      if (!e) return;
-      log('active editor changed', { path: e.document.fileName, languageId: e.document.languageId });
-      void decorate(e);
+    vscode.window.onDidChangeActiveTextEditor((editor) => scheduleRefresh(editor)),
+    vscode.workspace.onDidSaveTextDocument((document) => {
+      const editor = vscode.window.visibleTextEditors.find((candidate) => candidate.document === document);
+      if (!editor) return;
+      scheduleRefresh(editor);
+      setTimeout(() => {
+        if (!editor.document.isClosed) void refreshEditor(editor);
+      }, 750);
     }),
-    vscode.workspace.onDidSaveTextDocument((d) => {
-      const e = vscode.window.activeTextEditor;
-      if (!e || e.document !== d) return;
-      log('document saved', { path: d.fileName });
-      void decorate(e);
-    }),
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('textSemanticHighlight.autoStartServer') || e.affectsConfiguration('textSemanticHighlight.serverCommand') || e.affectsConfiguration('textSemanticHighlight.serverArgs') || e.affectsConfiguration('textSemanticHighlight.serverCwd')) {
-        log('server configuration changed');
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('textSemanticHighlight.serverCommand') ||
+          event.affectsConfiguration('textSemanticHighlight.serverArgs') ||
+          event.affectsConfiguration('textSemanticHighlight.serverCwd') ||
+          event.affectsConfiguration('textSemanticHighlight.autoStartServer')) {
         stopServer();
         startServerIfNeeded();
       }
-      if (e.affectsConfiguration('textSemanticHighlight')) {
-        log('highlight configuration changed');
-        refresh();
-      }
+      if (event.affectsConfiguration('textSemanticHighlight')) scheduleRefresh();
     }),
-    { dispose: stopServer }
+    { dispose: () => clear(vscode.window.activeTextEditor) },
+    { dispose: stopServer },
+    output
   );
-  refresh();
+
+  scheduleRefresh();
 }
 
 function deactivate() {
-  log('deactivating extension');
-  stopServer();
+  clearTimeout(refreshTimer);
   clear(vscode.window.activeTextEditor);
-  output.dispose();
+  stopServer();
 }
+
 module.exports = { activate, deactivate };
