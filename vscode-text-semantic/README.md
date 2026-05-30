@@ -2,6 +2,8 @@
 
 This extension fetches semantic spans from a `rat` HTTP server and decorates those ranges.
 
+Only spans returned by `rat` are decorated. Text outside those ranges is left to VS Code's normal syntax highlighting so editor syntax colors do not cover rat span colors.
+
 ## Auto-start server
 
 By default, the extension starts the server process automatically:

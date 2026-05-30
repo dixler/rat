@@ -984,31 +984,28 @@ func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]
 	if !ok || tv.Type == nil {
 		return false
 	}
-	distanceLoc, hasDistanceLoc := b.typeDeclarationLocationForType(tv.Type)
 	st, ok := underlyingStruct(tv.Type)
 	if !ok {
 		return false
 	}
 	byName := map[string][]NamedFieldTypeDeclaration{}
-	for i := 0; i < st.NumFields(); i++ {
-		field := st.Field(i)
-		if field == nil {
-			continue
+	for field := range st.Fields() {
+		if field != nil {
+			byName[field.Name()] = b.namedFieldTypeDeclarationsForType(field.Type())
 		}
-		byName[field.Name()] = b.namedFieldTypeDeclarationsForType(field.Type())
 	}
+	distanceLoc, hasDistanceLoc := b.typeDeclarationLocationForType(tv.Type)
 	return b.collectStructLiteralFields(lit, byName, distanceLoc, hasDistanceLoc, out)
 }
 
 func underlyingStruct(t types.Type) (*types.Struct, bool) {
-	if t == nil {
+	switch e := t.(type) {
+	case nil:
 		return nil, false
-	}
-	if ptr, ok := t.(*types.Pointer); ok {
-		t = ptr.Elem()
-	}
-	if named, ok := t.(*types.Named); ok {
-		t = named.Underlying()
+	case *types.Pointer:
+		t = e.Elem()
+	case *types.Named:
+		t = e.Underlying()
 	}
 	st, ok := t.(*types.Struct)
 	return st, ok
@@ -1131,12 +1128,12 @@ func (b *builder) appendTypeDeclarations(t types.Type, out *[]NamedFieldTypeDecl
 		b.appendTupleTypeDeclarations(t.Params(), out, seen)
 		b.appendTupleTypeDeclarations(t.Results(), out, seen)
 	case *types.Struct:
-		for i := 0; i < t.NumFields(); i++ {
-			b.appendTypeDeclarations(t.Field(i).Type(), out, seen)
+		for field := range t.Fields() {
+			b.appendTypeDeclarations(field.Type(), out, seen)
 		}
 	case *types.Interface:
-		for i := 0; i < t.NumEmbeddeds(); i++ {
-			b.appendTypeDeclarations(t.EmbeddedType(i), out, seen)
+		for etyp := range t.EmbeddedTypes() {
+			b.appendTypeDeclarations(etyp, out, seen)
 		}
 	}
 }
@@ -1145,8 +1142,8 @@ func (b *builder) appendTupleTypeDeclarations(tuple *types.Tuple, out *[]NamedFi
 	if tuple == nil {
 		return
 	}
-	for i := 0; i < tuple.Len(); i++ {
-		b.appendTypeDeclarations(tuple.At(i).Type(), out, seen)
+	for v := range tuple.Variables() {
+		b.appendTypeDeclarations(v.Type(), out, seen)
 	}
 }
 

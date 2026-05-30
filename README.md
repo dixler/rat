@@ -2,7 +2,7 @@
 
 You've seen `cat`, you've seen `bat`, but have you seen `rat`?
 
-`rat` is an experimental semantic highlighter for Go. It does not just color tokens by syntax. It tries to color names by where their declarations live and color control-flow keywords by what they imply.
+`rat` is an experimental semantic highlighter for Go. It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
 
 Run it on a file:
 
@@ -12,9 +12,7 @@ rat main.go
 
 ![cli-example](./.images/cli.png)
 
-Run it as a VS Code plugin:
-
-![vscode-example](./.images/vscode.png)
+You can also run it as a VS Code plugin.
 
 ## Motivation
 
@@ -114,7 +112,7 @@ That includes calls through interfaces or function values. The color is intentio
 - Comments are gray.
 - Top-level named struct fields are highlighted like declarations.
 - Imports are colored by whether the imported package resolves inside the project or outside it.
-- Unhighlighted text stays white in terminal output and falls back to your editor foreground in VS Code.
+- Unhighlighted text stays white in terminal output. In VS Code, only spans returned by `rat` are decorated so editor syntax colors do not cover rat span colors.
 
 ## Requirements
 
@@ -145,11 +143,18 @@ Build everything:
 make
 ```
 
-`make` does three things:
+`make` does four things:
 
 1. Builds `internal/goplsbin/gopls` so it can be embedded.
-2. Builds `rat` and moves it to `$HOME/bin/rat`.
+2. Builds `rat` in the repository root.
 3. Builds the VS Code `.vsix` package and moves it to the repository root.
+4. Runs `rat ./cmd/rat/main.go` and screenshots the colored terminal output to `.images/cli.png`.
+
+Install the CLI and generated extension package:
+
+```bash
+make install
+```
 
 Install the generated extension package:
 
@@ -185,13 +190,15 @@ The server accepts `POST /spans`:
 { "path": "/absolute/path/to/file.go" }
 ```
 
-It returns JSON spans:
+It returns flattened JSON spans grouped by 1-based line number:
 
 ```json
 {
-  "spans": [
-    { "line": 7, "start": 5, "end": 10, "style": "\u001b[38;5;226m" }
-  ]
+  "spans": {
+    "7": [
+      { "start": 5, "end": 10, "style": "\u001b[38;5;226m" }
+    ]
+  }
 }
 ```
 
@@ -205,7 +212,9 @@ By default, the extension starts:
 rat --serve --addr :8081
 ```
 
-Then it calls `http://localhost:8081/spans` for the active Go file and turns the returned ANSI styles into VS Code decorations.
+Then it calls `http://localhost:8081/spans` for visible Go files and turns the returned ANSI styles into VS Code decorations.
+
+The extension keeps decoration state per document, refreshes visible editors on active-editor changes, saves, and relevant configuration changes, and normalizes both grouped and legacy flat span payloads for tests and local development.
 
 Useful settings:
 
@@ -262,6 +271,13 @@ Run tests:
 go test ./...
 ```
 
+Run the VS Code extension parity tests:
+
+```bash
+cd vscode-text-semantic
+npm test
+```
+
 Build the embedded `gopls` artifact:
 
 ```bash
@@ -279,6 +295,12 @@ Build just the VS Code extension:
 ```bash
 cd vscode-text-semantic
 npm run build
+```
+
+Regenerate the CLI screenshot:
+
+```bash
+make .images/cli.png
 ```
 
 ## Known Limitations And Next Steps

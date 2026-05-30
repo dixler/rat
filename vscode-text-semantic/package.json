@@ -6,14 +6,15 @@
   "publisher": "local",
   "engines": { "vscode": "^1.90.0" },
   "categories": ["Other"],
-  "activationEvents": ["onStartupFinished", "onCommand:textSemanticHighlight.toggle"],
+  "activationEvents": ["onLanguage:go", "onStartupFinished", "onCommand:textSemanticHighlight.toggle"],
   "main": "./extension.js",
   "repository": "https://github.com/dixler/rat",
   "devDependencies": {
     "@vscode/vsce": "3.9.1"
   },
   "scripts": {
-    "build": "vsce package"
+    "build": "vsce package",
+    "test": "node --test test/*.test.js"
   },
   "contributes": {
     "commands": [{ "command": "textSemanticHighlight.toggle", "title": "Text Semantic Highlight: Toggle" }],
