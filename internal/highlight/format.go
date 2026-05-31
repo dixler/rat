@@ -313,15 +313,10 @@ func Analyze(path string) (ParseResult, error) {
 		return ParseResult{}, err
 	}
 	res := ParseFormats(f)
-	lines := strings.Split(res.Source, "\n")
-	for i, line := range lines {
-		lineNo := i + 1
-		res.SourceSpans[lineNo] = FlattenSpans(line, res.SourceSpans[lineNo])
-	}
 	return res, nil
 }
 
-func FlattenSpans(line string, spans []display.Span) []display.Span {
+func flattenSpans(line string, spans []display.Span) []display.Span {
 	if len(spans) == 0 {
 		return nil
 	}
@@ -380,7 +375,7 @@ func ParseFormats(f file.File) ParseResult {
 			delete(result.SourceSpans, line)
 			continue
 		}
-		result.SourceSpans[line] = display.FlattenSpans(sourceLines[line-1], result.SourceSpans[line])
+		result.SourceSpans[line] = flattenSpans(sourceLines[line-1], result.SourceSpans[line])
 	}
 	return result
 }

@@ -96,25 +96,3 @@ func colorLine(line string, spans []Span) string {
 	b.WriteString(defaultStyle.Format(line[idx:]))
 	return b.String()
 }
-
-func FlattenSpans(line string, spans []Span) []Span {
-	if len(spans) == 0 {
-		return nil
-	}
-	out := make([]Span, 0, len(spans))
-	idx := 0
-	for _, s := range spans {
-		if s.Start < idx || s.Start >= len(line) {
-			continue
-		}
-		if s.End > len(line) {
-			s.End = len(line)
-		}
-		if s.End <= s.Start {
-			continue
-		}
-		out = append(out, s)
-		idx = s.End
-	}
-	return out
-}
