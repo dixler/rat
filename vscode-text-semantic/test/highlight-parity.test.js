@@ -193,6 +193,20 @@ function normalizeOptions(options) {
   return normalized;
 }
 
+test('white fallback covers text not decorated by spans', () => {
+  const document = makeDocument('/tmp/sample.go', 'abcdef');
+  const segments = actualSegments(document, [
+    { line: 1, start: 1, end: 3, style: '\x1b[31m' },
+    { line: 1, start: 3, end: 5, style: '' }
+  ]);
+
+  assert.deepEqual(canonicalSegments(segments), canonicalSegments([
+    { line: 0, start: 0, end: 1, options: { color: '#ffffff' } },
+    { line: 0, start: 1, end: 3, options: { color: '#b22222' } },
+    { line: 0, start: 3, end: 6, options: { color: '#ffffff' } }
+  ]));
+});
+
 function fetchSpans(port, filePath) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ path: filePath });

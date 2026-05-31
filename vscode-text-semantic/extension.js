@@ -284,12 +284,16 @@ function spanRange(document, span) {
   return new vscode.Range(new vscode.Position(lineIndex, start), new vscode.Position(lineIndex, end));
 }
 
-function uncoveredRanges(document, coveredRanges) {
-  const coveredByLine = new Map();
-  for (const range of coveredRanges) {
-    const line = range.start.line;
-    if (!coveredByLine.has(line)) coveredByLine.set(line, []);
-    coveredByLine.get(line).push(range);
+function uncoveredRanges(document, decoratedRanges) {
+  const coveredByLine = Array.from({ length: document.lineCount }, () => []);
+  for (const range of decoratedRanges) {
+    const lineIndex = range.start.line;
+    if (lineIndex < 0 || lineIndex >= document.lineCount) continue;
+
+    const lineEnd = document.lineAt(lineIndex).range.end.character;
+    const start = Math.max(0, Math.min(lineEnd, range.start.character));
+    const end = Math.max(start, Math.min(lineEnd, range.end.character));
+    if (start < end) coveredByLine[lineIndex].push([start, end]);
   }
 
   const out = [];
@@ -297,22 +301,15 @@ function uncoveredRanges(document, coveredRanges) {
     const lineEnd = document.lineAt(lineIndex).range.end.character;
     if (lineEnd === 0) continue;
 
-    const ranges = (coveredByLine.get(lineIndex) || [])
-      .sort((a, b) => a.start.character - b.start.character || a.end.character - b.end.character);
-
-    let cursor = 0;
-    for (const range of ranges) {
-      const start = Math.max(0, Math.min(lineEnd, range.start.character));
-      const end = Math.max(start, Math.min(lineEnd, range.end.character));
-      if (start > cursor) {
-        out.push(new vscode.Range(new vscode.Position(lineIndex, cursor), new vscode.Position(lineIndex, start)));
-      }
-      cursor = Math.max(cursor, end);
+    const ranges = coveredByLine[lineIndex].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    let coveredUntil = 0;
+    for (const [start, end] of ranges) {
+      if (start > coveredUntil) out.push(new vscode.Range(new vscode.Position(lineIndex, coveredUntil), new vscode.Position(lineIndex, start)));
+      coveredUntil = Math.max(coveredUntil, end);
+      if (coveredUntil >= lineEnd) break;
     }
 
-    if (cursor < lineEnd) {
-      out.push(new vscode.Range(new vscode.Position(lineIndex, cursor), new vscode.Position(lineIndex, lineEnd)));
-    }
+    if (coveredUntil < lineEnd) out.push(new vscode.Range(new vscode.Position(lineIndex, coveredUntil), new vscode.Position(lineIndex, lineEnd)));
   }
 
   return out;
@@ -320,18 +317,22 @@ function uncoveredRanges(document, coveredRanges) {
 
 function buildDecorationSpecs(document, spans) {
   const rangesByStyle = new Map();
-  const coveredRanges = [];
+  const decoratedRanges = [];
   for (const span of spans) {
     const range = spanRange(document, span);
     if (!range) continue;
-    coveredRanges.push(range);
     if (typeof span.style !== 'string' || !span.style) continue;
-    if (!rangesByStyle.has(span.style)) rangesByStyle.set(span.style, []);
-    rangesByStyle.get(span.style).push(range);
+
+    const options = decorationOptions(span.style);
+    if (!options) continue;
+
+    decoratedRanges.push(range);
+    if (!rangesByStyle.has(span.style)) rangesByStyle.set(span.style, { options, ranges: [] });
+    rangesByStyle.get(span.style).ranges.push(range);
   }
 
   const specs = [];
-  const uncovered = uncoveredRanges(document, coveredRanges);
+  const uncovered = uncoveredRanges(document, decoratedRanges);
   if (uncovered.length > 0) {
     specs.push({
       options: {
@@ -343,9 +344,7 @@ function buildDecorationSpecs(document, spans) {
     });
   }
 
-  for (const [style, ranges] of rangesByStyle) {
-    const options = decorationOptions(style);
-    if (!options) continue;
+  for (const { options, ranges } of rangesByStyle.values()) {
     specs.push({ options, ranges });
   }
 

@@ -29,7 +29,12 @@ type Client struct {
 
 	mu     sync.Mutex
 	nextID int
-	opened map[string]bool
+	opened map[string]openDocument
+}
+
+type openDocument struct {
+	version int
+	content string
 }
 
 var (
@@ -63,7 +68,7 @@ func start() (*Client, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	c := &Client{stdin: stdin, stdout: bufio.NewReader(stdout), opened: map[string]bool{}}
+	c := &Client{stdin: stdin, stdout: bufio.NewReader(stdout), opened: map[string]openDocument{}}
 	if err := c.initialize(); err != nil {
 		_ = cmd.Process.Kill()
 		_ = cmd.Wait()
@@ -102,7 +107,7 @@ func (c *Client) initialize() error {
 }
 
 func (c *Client) Hover(file string, line, column int) (string, error) {
-	if err := c.didOpen(file); err != nil {
+	if err := c.syncDocument(file); err != nil {
 		return "", err
 	}
 	uri := fileURI(file)
@@ -117,7 +122,7 @@ func (c *Client) Hover(file string, line, column int) (string, error) {
 }
 
 func (c *Client) Definition(file string, line, column int) (Location, bool, error) {
-	if err := c.didOpen(file); err != nil {
+	if err := c.syncDocument(file); err != nil {
 		return Location{}, false, err
 	}
 	uri := fileURI(file)
@@ -135,34 +140,51 @@ func (c *Client) Definition(file string, line, column int) (Location, bool, erro
 	return loc, ok, nil
 }
 
-func (c *Client) didOpen(file string) error {
+func (c *Client) syncDocument(file string) error {
 	abs, err := filepath.Abs(file)
 	if err != nil {
 		return err
-	}
-	c.mu.Lock()
-	opened := c.opened[abs]
-	c.mu.Unlock()
-	if opened {
-		return nil
 	}
 	content, err := os.ReadFile(abs)
 	if err != nil {
 		return err
 	}
-	if err := c.notify("textDocument/didOpen", map[string]any{
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	opened, ok := c.opened[abs]
+	if !ok {
+		if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didOpen", "params": map[string]any{
+			"textDocument": map[string]any{
+				"uri":        fileURI(abs),
+				"languageId": "go",
+				"version":    1,
+				"text":       string(content),
+			},
+		}}); err != nil {
+			return err
+		}
+		c.opened[abs] = openDocument{version: 1, content: string(content)}
+		return nil
+	}
+
+	if opened.content == string(content) {
+		return nil
+	}
+
+	opened.version++
+	opened.content = string(content)
+	if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didChange", "params": map[string]any{
 		"textDocument": map[string]any{
-			"uri":        fileURI(abs),
-			"languageId": "go",
-			"version":    1,
-			"text":       string(content),
+			"uri":     fileURI(abs),
+			"version": opened.version,
 		},
-	}); err != nil {
+		"contentChanges": []map[string]any{{"text": opened.content}},
+	}}); err != nil {
 		return err
 	}
-	c.mu.Lock()
-	c.opened[abs] = true
-	c.mu.Unlock()
+	c.opened[abs] = opened
 	return nil
 }
 
