@@ -135,7 +135,7 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
 	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declarationStyle(decl), Priority: 1})
 	for _, ref := range decl.References() {
-		addSpan(out, sourceLines, ref.Location(), ref.Text(), display.Span{Style: relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind())})
+		addSpan(out, sourceLines, ref.Location(), ref.Text(), relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind()))
 	}
 	for _, child := range decl.Declarations() {
 		collectDeclarationSpans(root, out, sourceLines, child)
@@ -207,28 +207,28 @@ func kindStyle(kind file.Kind) display.BasicStyle {
 	panic(fmt.Sprintf("kind %s has no style", kind))
 }
 
-func relationshipStyle(root string, parent, target file.Declaration, kind file.Kind) display.Style {
+func relationshipStyle(root string, parent, target file.Declaration, kind file.Kind) display.Span {
 	switch kind {
 	case file.KindParameter:
-		return kindStyle(file.KindParameter)
+		return display.Span{Style: kindStyle(file.KindParameter)}
 	case file.KindPackage:
-		return packageDeclarationStyle(root, target)
+		return display.Span{Style: packageDeclarationStyle(root, target)}
 	default:
 		switch {
 		case target == nil || target.Location() == nil:
-			return _relationStyles[_relExternal]
+			return display.Span{Style: _relationStyles[_relExternal]}
 		case isBuiltin(target):
-			return display.MutedOrange
+			return display.Span{Style: display.MutedOrange}
 		case sameFunction(parent, target):
-			return _relationStyles[_relSameFunction]
+			return display.Span{Style: _relationStyles[_relSameFunction], Priority: 3}
 		case sameFile(parent, target):
-			return _relationStyles[_relSameFile]
+			return display.Span{Style: _relationStyles[_relSameFile]}
 		case samePackage(parent, target):
-			return _relationStyles[_relSamePackage]
+			return display.Span{Style: _relationStyles[_relSamePackage]}
 		case sameProject(root, parent, target):
-			return _relationStyles[_relSameProject]
+			return display.Span{Style: _relationStyles[_relSameProject]}
 		default:
-			return _relationStyles[_relExternal]
+			return display.Span{Style: _relationStyles[_relExternal]}
 		}
 	}
 }
