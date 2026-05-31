@@ -1,32 +1,32 @@
- [0m 1 [97m[0m[38;5;130mpackage[0m[97m [0m[96msample[0m[97m[0m
+ [0m 1 [97m[0m[38;5;130mpackage[0m[97m [0m[32msample[0m[97m[0m
  [0m 2 [97m[0m
  [0m 3 [97m[0m[38;5;130mimport[0m[97m "[0m[35m[7mfmt[0m[97m"[0m
  [0m 4 [97m[0m
- [0m 5 [97m[0m[94mconst[0m[97m [0m[38;5;226m[7mkeywordFixtureConst[0m[97m = [0m[38;5;218m42[0m[97m[0m
+ [0m 5 [97m[0m[94mconst[0m[97m [0m[38;5;215m[7mkeywordFixtureConst[0m[97m = [0m[38;5;218m42[0m[97m[0m
  [0m 6 [97m[0m
- [0m 7 [97m[0m[38;5;130mvar[0m[97m [0m[38;5;226m[7mkeywordFixtureVar[0m[97m = [0m[38;5;130mmap[0m[97m[[0m[38;5;218mstring[0m[97m][0m[38;5;218mint[0m[97m{[0m[38;5;218m"one"[0m[97m: [0m[38;5;218m1[0m[97m}[0m
+ [0m 7 [97m[0m[38;5;130mvar[0m[97m [0m[38;5;215m[7mkeywordFixtureVar[0m[97m = [0m[38;5;130mmap[0m[97m[[0m[38;5;130mstring[0m[97m][0m[38;5;130mint[0m[97m{[0m[38;5;218m"one"[0m[97m: [0m[38;5;218m1[0m[97m}[0m
  [0m 8 [97m[0m
- [0m 9 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;215m[7mkeywordFixtureStruct[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m10 [97m    [0m[38;5;218m[7mValue[0m[97m [0m[38;5;218mstring[0m[97m[0m
+ [0m 9 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mkeywordFixtureStruct[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m10 [97m    [0m[38;5;130m[7mValue[0m[97m [0m[38;5;130mstring[0m[97m[0m
  [0m11 [97m}[0m
  [0m12 [97m[0m
- [0m13 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;215m[7mkeywordFixtureInterface[0m[97m [0m[38;5;130minterface[0m[97m {[0m
- [0m14 [97m    [0m[38;5;215m[7mHandle[0m[97m([0m[38;5;130mmap[0m[97m[[0m[38;5;218mstring[0m[97m][0m[38;5;218mint[0m[97m)[0m
+ [0m13 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mkeywordFixtureInterface[0m[97m [0m[38;5;130minterface[0m[97m {[0m
+ [0m14 [97m    [0m[38;5;226m[7mHandle[0m[97m([0m[38;5;130mmap[0m[97m[[0m[38;5;130mstring[0m[97m][0m[38;5;130mint[0m[97m)[0m
  [0m15 [97m}[0m
  [0m16 [97m[0m
- [0m17 [97m[0m[38;5;130mfunc[0m[97m [0m[38;5;215m[7mkeywordLiteralBuiltins[0m[97m([0m[38;5;120m[7minput[0m[97m [][0m[38;5;218mstring[0m[97m) {[0m
- [0m18 [97m    [0m[94mdefer[0m[97m [0m[35mfmt[0m[97m.[0m[35mPrintln[0m[97m([0m[38;5;218m"done"[0m[97m, [0m[38;5;218mlen[0m[97m([0m[38;5;120minput[0m[97m))[0m
+ [0m17 [97m[0m[38;5;130mfunc[0m[97m [0m[38;5;120m[7mkeywordLiteralBuiltins[0m[97m([0m[38;5;198m[7minput[0m[97m [][0m[38;5;130mstring[0m[97m) {[0m
+ [0m18 [97m    [0m[94mdefer[0m[97m [0m[35mfmt[0m[97m.[0m[35mPrintln[0m[97m([0m[38;5;218m"done"[0m[97m, [0m[38;5;130mlen[0m[97m([0m[38;5;198minput[0m[97m))[0m
  [0m19 [97m    [0m[94mgo[0m[97m [0m[38;5;130mfunc[0m[97m() {[0m
- [0m20 [97m        [0m[38;5;218mprintln[0m[97m([0m[38;5;218m"worker"[0m[97m)[0m
+ [0m20 [97m        [0m[38;5;130mprintln[0m[97m([0m[38;5;218m"worker"[0m[97m)[0m
  [0m21 [97m    }()[0m
  [0m22 [97m[0m
- [0m23 [97m    [0m[38;5;226m[7mvalues[0m[97m := [0m[38;5;218mmake[0m[97m([0m[38;5;130mmap[0m[97m[[0m[38;5;218mstring[0m[97m][0m[38;5;218mint[0m[97m)[0m
- [0m24 [97m    [0m[94mfor[0m[97m [0m[38;5;226m[7mi[0m[97m, [0m[38;5;226m[7mvalue[0m[97m := [0m[94mrange[0m[97m [0m[38;5;120minput[0m[97m [0m[94m{[0m[97m[0m
- [0m25 [97m        [0m[38;5;226mvalues[0m[97m[[0m[38;5;226mvalue[0m[97m] = [0m[38;5;226mi[0m[97m[0m
+ [0m23 [97m    [0m[38;5;215m[7mvalues[0m[97m := [0m[38;5;130mmake[0m[97m([0m[38;5;130mmap[0m[97m[[0m[38;5;130mstring[0m[97m][0m[38;5;130mint[0m[97m)[0m
+ [0m24 [97m    [0m[94mfor[0m[97m [0m[38;5;215m[7mi[0m[97m, [0m[38;5;215m[7mvalue[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198minput[0m[97m [0m[94m{[0m[97m[0m
+ [0m25 [97m        [0m[38;5;215mvalues[0m[97m[[0m[38;5;215mvalue[0m[97m] = [0m[38;5;215mi[0m[97m[0m
  [0m26 [97m    [0m[94m}[0m[97m[0m
  [0m27 [97m[0m
- [0m28 [97m    _ = [0m[38;5;215mkeywordFixtureStruct[0m[97m{[0m[38;5;218mValue[0m[97m: [0m[38;5;218m`multi[0m[97m[0m
+ [0m28 [97m    _ = [0m[38;5;120mkeywordFixtureStruct[0m[97m{[0m[38;5;130mValue[0m[97m: [0m[38;5;218m`multi[0m[97m[0m
  [0m29 [97m[0m[38;5;218mline`[0m[97m}[0m
- [0m30 [97m    _ = [0m[38;5;218mappend[0m[97m([0m[38;5;120minput[0m[97m, [0m[38;5;218m"tail"[0m[97m)[0m
+ [0m30 [97m    _ = [0m[38;5;130mappend[0m[97m([0m[38;5;198minput[0m[97m, [0m[38;5;218m"tail"[0m[97m)[0m
  [0m31 [97m}[0m
  [0m32 [97m[0m

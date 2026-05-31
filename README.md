@@ -33,8 +33,8 @@ The harder questions are usually semantic:
 
 Reference colors are based on the relationship between the place where a name is used and the place where that name is declared.
 
-- Yellow: same function.
-- Orange: parameter.
+- Vibrant orange: same function/local reference.
+- Magenta: parameter.
 - Green: same file, outside the current function.
 - Light blue: same package, different file.
 - Blue: same project/repository, different package.
@@ -47,7 +47,7 @@ Struct instantiation colors fields using the above key, but the distance is betw
 
 Examples:
 
-- A local variable used later in the same function is yellow.
+- A local variable used later in the same function is vibrant orange.
 - A package-level identifier in the same file is green.
 - A symbol imported from another package in your module is blue.
 - A symbol from a different repository is purple.
@@ -103,7 +103,7 @@ Its communication clauses are displayed as cases:
 
 ## Indirect Calls
 
-Indirect calls are hot magenta.
+Indirect calls are magenta.
 
 That includes calls through interfaces or function values. The color is intentionally loud because the concrete target is less obvious from the call site than a direct function call.
 

@@ -69,65 +69,86 @@ function makeDocument(filePath, source) {
   };
 }
 
-function parseSnapshot(snapshotPath, source) {
+function renderCliHtml(sourcePath) {
+  return cp.execFileSync('go', ['run', './cmd/rat', '-format', 'html', sourcePath], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+}
+
+function parseCliHtml(html, source) {
   const sourceLines = source.split('\n');
   const expected = [];
-  const snapshotLines = fs.readFileSync(snapshotPath, 'utf8').split('\n').filter((line) => line !== '');
-  const linePrefix = /^ \x1b\[0m\s*(\d+) /;
+  const linePrefix = /^\s*(\d+) /;
 
-  for (const line of snapshotLines) {
+  for (const line of html.split('<br>').filter((part) => part !== '')) {
     const match = linePrefix.exec(line);
     if (!match) continue;
 
     const lineIndex = Number(match[1]) - 1;
     const sourceLine = sourceLines[lineIndex] || '';
     const content = line.slice(match[0].length);
-    expected.push(...parseAnsiContent(lineIndex, sourceLine, content));
+    expected.push(...parseHtmlContent(lineIndex, sourceLine, content));
   }
 
   return expected;
 }
 
-function parseAnsiContent(lineIndex, sourceLine, content) {
+function parseHtmlContent(lineIndex, sourceLine, content) {
   const out = [];
-  let currentStyle = '';
   let sourceOffset = 0;
   let cursor = 0;
-  const sgr = /\x1b\[([0-9;]+)m/g;
+  const span = /<span style="([^"]*)">([\s\S]*?)<\/span>/g;
 
-  for (const match of content.matchAll(sgr)) {
-    const text = content.slice(cursor, match.index);
+  for (const match of content.matchAll(span)) {
+    const leading = decodeHtml(content.slice(cursor, match.index));
+    if (leading) sourceOffset += consumeDisplayedSource(sourceLine, sourceOffset, leading);
+
+    const text = decodeHtml(match[2]);
     if (text) {
       const consumed = consumeDisplayedSource(sourceLine, sourceOffset, text);
-      if (currentStyle) {
-        out.push({
-          line: lineIndex,
-          start: sourceOffset,
-          end: sourceOffset + consumed,
-          options: extension.decorationOptions(currentStyle)
-        });
-      }
-      sourceOffset += consumed;
-    }
-
-    currentStyle = match[1] === '0' ? '' : `${currentStyle}\x1b[${match[1]}m`;
-    cursor = match.index + match[0].length;
-  }
-
-  const text = content.slice(cursor);
-  if (text) {
-    const consumed = consumeDisplayedSource(sourceLine, sourceOffset, text);
-    if (currentStyle) {
       out.push({
         line: lineIndex,
         start: sourceOffset,
         end: sourceOffset + consumed,
-        options: extension.decorationOptions(currentStyle)
+        options: decorationOptionsFromCliStyle(match[1])
       });
+      sourceOffset += consumed;
     }
+
+    cursor = match.index + match[0].length;
   }
 
+  const trailing = decodeHtml(content.slice(cursor));
+  if (trailing) consumeDisplayedSource(sourceLine, sourceOffset, trailing);
+
   return out.filter((segment) => segment.options);
+}
+
+function decodeHtml(value) {
+  return value.replace(/&(#\d+|#x[0-9a-fA-F]+|amp|lt|gt|#34|quot|#39);/g, (entity, body) => {
+    if (body === 'amp') return '&';
+    if (body === 'lt') return '<';
+    if (body === 'gt') return '>';
+    if (body === 'quot' || body === '#34') return '"';
+    if (body === '#39') return '\'';
+    if (body.startsWith('#x')) return String.fromCodePoint(Number.parseInt(body.slice(2), 16));
+    if (body.startsWith('#')) return String.fromCodePoint(Number.parseInt(body.slice(1), 10));
+    return entity;
+  });
+}
+
+function decorationOptionsFromCliStyle(style) {
+  const options = {};
+  for (const declaration of style.split(';')) {
+    const [property, value] = declaration.split(':');
+    if (!property || !value) continue;
+    if (property === 'color') options.color = value;
+    if (property === 'background-color') options.backgroundColor = value;
+    if (property === 'font-weight') options.fontWeight = value;
+    if (property === 'text-decoration') options.textDecoration = value;
+  }
+  return Object.keys(options).length ? options : undefined;
 }
 
 function consumeDisplayedSource(sourceLine, sourceOffset, displayed) {
@@ -167,6 +188,8 @@ function actualSegments(document, spans) {
 function normalizeOptions(options) {
   const normalized = { ...options };
   delete normalized.rangeBehavior;
+  delete normalized.fontStyle;
+  delete normalized.borderRadius;
   return normalized;
 }
 
@@ -218,7 +241,7 @@ function freePort() {
   });
 }
 
-test('VS Code decorations match CLI highlight snapshots for rat fixtures', async (t) => {
+test('VS Code decorations match CLI HTML highlights for rat fixtures', async (t) => {
   const port = await freePort();
   const server = cp.spawn('go', ['run', './cmd/rat', '--serve', '--addr', `127.0.0.1:${port}`], {
     cwd: repoRoot,
@@ -247,7 +270,7 @@ test('VS Code decorations match CLI highlight snapshots for rat fixtures', async
       const source = fs.readFileSync(sourcePath, 'utf8');
       const document = makeDocument(sourcePath, source);
       const spans = await fetchSpans(port, sourcePath);
-      const expected = parseSnapshot(`${sourcePath}.out`, source);
+      const expected = parseCliHtml(renderCliHtml(sourcePath), source);
       const actual = actualSegments(document, spans);
 
       assert.deepEqual(canonicalSegments(actual), canonicalSegments(expected), stderr);

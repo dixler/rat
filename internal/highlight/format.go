@@ -25,17 +25,17 @@ const (
 
 var _kindStyles = map[file.Kind]display.BasicStyle{
 	file.KindType:      display.LightGreen,
-	file.KindVariable:  display.Yellow,
-	file.KindParameter: display.LightGreen,
-	file.KindFunction:  display.VibrantOrange,
+	file.KindVariable:  display.VibrantOrange,
+	file.KindParameter: display.HotMagenta,
+	file.KindFunction:  display.Yellow,
 	file.KindPackage:   display.Purple,
-	file.KindFile:      display.Yellow,
+	file.KindFile:      display.VibrantOrange,
 }
 
 var _relationStyles = map[relation]display.BasicStyle{
-	_relSameFunction: display.Yellow,
-	_relSameFile:     display.VibrantOrange,
-	_relSamePackage:  display.Cyan,
+	_relSameFunction: display.VibrantOrange,
+	_relSameFile:     display.LightGreen,
+	_relSamePackage:  display.Green,
 	_relSameProject:  display.Blue,
 	_relExternal:     display.Purple,
 }
@@ -218,7 +218,7 @@ func relationshipStyle(root string, parent, target file.Declaration, kind file.K
 		case target == nil || target.Location() == nil:
 			return _relationStyles[_relExternal]
 		case isBuiltin(target):
-			return display.LightPink
+			return display.MutedOrange
 		case sameFunction(parent, target):
 			return _relationStyles[_relSameFunction]
 		case sameFile(parent, target):
@@ -233,7 +233,7 @@ func relationshipStyle(root string, parent, target file.Declaration, kind file.K
 	}
 }
 
-func packageDeclarationStyle(root string, target interface{ Location() file.Location }) display.Style {
+func packageDeclarationStyle(root string, target interface{ Location() file.Location }) display.BasicStyle {
 	if target == nil || target.Location() == nil {
 		return _relationStyles[_relExternal]
 	}
@@ -350,7 +350,7 @@ func ParseFormats(f file.File) ParseResult {
 	collectCommentSpans(result.SourceSpans, sourceLines, f)
 	collectLexicalTokenSpans(result.SourceSpans, f.Source(), sourceLines, loopStyleByLocation(controlFlowMarks))
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
-	collectPackageReferenceSpans(result.SourceSpans, sourceLines, f)
+	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
 
 	for _, call := range f.IndirectCalls() {
 		collectIndirectCallSpans(result.SourceSpans, call)
@@ -390,9 +390,9 @@ func loopStyleByLocation(marks []controlFlowMark) map[string]display.Style {
 	return out
 }
 
-func collectPackageReferenceSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
+func collectPackageReferenceSpans(root string, out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, ref := range f.PackageReferences() {
-		addImportReferenceSpan(out, sourceLines, ref, display.Purple.Invert())
+		addImportReferenceSpan(out, sourceLines, ref, packageDeclarationStyle(root, ref.Package()).Invert())
 	}
 }
 
@@ -579,7 +579,7 @@ func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Lo
 
 	switch rank {
 	case fieldTypeDistanceBuiltin:
-		return fieldStyle(display.LightPink, invert)
+		return fieldStyle(display.MutedOrange, invert)
 	case fieldTypeDistanceSameFile:
 		return fieldStyle(_relationStyles[_relSameFile], invert)
 	case fieldTypeDistanceSamePackage:

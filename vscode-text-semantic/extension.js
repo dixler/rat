@@ -113,12 +113,8 @@ function contrastTextColor(hex) {
   const b = parseHexByte(hex.slice(5, 7));
   if (![r, g, b].every(Number.isInteger)) return '#ffffff';
 
-  const linear = (channel) => {
-    const normalized = channel / 255;
-    return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
-  };
-  const luminance = 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
-  return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? '#000000' : '#ffffff';
+  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+  return luma >= 140 ? '#000000' : '#ffffff';
 }
 
 function decorationOptions(style) {

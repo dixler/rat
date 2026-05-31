@@ -469,9 +469,7 @@ func getEscapeAnalysis(file string) map[string]bool {
 			line := parts[1]
 			col := parts[2]
 
-			if strings.HasPrefix(filePart, "./") {
-				filePart = filePart[2:]
-			}
+			filePart = strings.TrimPrefix(filePart, "./")
 			absPath, err := filepath.Abs(filepath.Join(dir, filePart))
 			if err == nil {
 				filePart = absPath
