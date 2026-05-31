@@ -560,20 +560,21 @@ func appendBraceMarks(marks *[]controlFlowMark, open, close file.Location, style
 func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
 		distanceLoc := named.DistanceLocation()
+		externalStructInstantiation := distanceLoc != nil && !samePackageLocation(named.Location(), distanceLoc)
 		if distanceLoc == nil {
 			distanceLoc = named.Location()
 		}
-		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: fieldTypeDistanceStyle(root, distanceLoc, named.DeclarationLocations(), !named.Inline()), Priority: 1})
+		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: fieldTypeDistanceStyle(root, distanceLoc, named.DeclarationLocations(), !named.Inline(), externalStructInstantiation), Priority: 1})
 	}
 }
 
-func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Location, invert bool) display.Style {
+func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Location, invert bool, packageResolution bool) display.Style {
 	rank := fieldTypeDistanceBuiltin
 	if source == nil {
 		rank = fieldTypeDistanceExternal
 	} else {
 		for _, target := range targets {
-			rank = max(rank, fieldTypeDistanceRank(root, source, target))
+			rank = max(rank, fieldTypeDistanceRank(root, source, target, packageResolution))
 		}
 	}
 
@@ -734,13 +735,13 @@ const (
 	fieldTypeDistanceExternal
 )
 
-func fieldTypeDistanceRank(root string, source, target file.Location) fieldTypeDistance {
+func fieldTypeDistanceRank(root string, source, target file.Location, packageResolution bool) fieldTypeDistance {
 	switch {
 	case target == nil:
 		return fieldTypeDistanceExternal
 	case isBuiltinLocation(target):
 		return fieldTypeDistanceBuiltin
-	case sameFileLocation(source, target):
+	case !packageResolution && sameFileLocation(source, target):
 		return fieldTypeDistanceSameFile
 	case samePackageLocation(source, target):
 		return fieldTypeDistanceSamePackage
@@ -767,7 +768,7 @@ func sameFileLocation(left, right file.Location) bool {
 }
 
 func samePackageLocation(left, right file.Location) bool {
-	if sameFileLocation(left, right) || left == nil || right == nil {
+	if left == nil || right == nil {
 		return false
 	}
 	return filepath.Dir(filepath.Clean(left.File())) == filepath.Dir(filepath.Clean(right.File()))

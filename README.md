@@ -14,9 +14,10 @@ rat main.go
 
 You can also run it as a VS Code plugin.
 
+Dislaimer: I vibe coded most of this (including the README). Dev-tools can afford to be probably right as long as they help more than they hurt and the developer is aware. I'm focused more on the ergonomics of this tool rather than the correctness at the moment. If you find any errors, please let me know.
+
 ## Motivation
 
-Dislaimer: I vibe coded most of this and had ChatGPT write this README. If you find any errors, please let me know.
 
 Syntax highlighting is useful, but it mostly repeats information you can already see. A keyword is visibly a keyword. An identifier is visibly an identifier.
 
@@ -43,7 +44,7 @@ Reference colors are based on the relationship between the place where a name is
 
 Declarations use an inverted/background style. That makes definitions stand out from references.
 
-Struct instantiation colors fields using the above key, but the distance is between the struct type declaration location and the field's type declaration location.
+Struct field names are colored by the relationship between the struct type declaration and the field type declaration. For struct literals whose type is declared outside the current package, package-level resolution is used: brown for built-ins, green for the struct type's package, blue for the same project, and purple for external dependencies or unknown targets.
 
 Examples:
 

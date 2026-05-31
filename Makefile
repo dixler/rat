@@ -1,4 +1,4 @@
-.PHONY: all install .images/cli.png
+.PHONY: all install
 
 all: internal/goplsbin/gopls
 	bash -c 'go build ./cmd/rat'
@@ -11,7 +11,3 @@ install: all
 
 internal/goplsbin/gopls:
 	go build -o $@ golang.org/x/tools/gopls
-
-.images/cli.png: internal/goplsbin/gopls
-	bash -c 'go build ./cmd/rat'
-	bash -c 'PATH="$$PWD:$$PATH" go run github.com/charmbracelet/freeze@v0.2.2 --execute "rat ./cmd/rat/main.go" --output .images/cli.png'
