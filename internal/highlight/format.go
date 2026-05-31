@@ -61,7 +61,7 @@ func declarationStyle(d file.Declaration) display.Style {
 	case usesTopLevelSameFileStyle(d):
 		return _relationStyles[_relSameFile].Invert()
 	case isTopLevelDeclaration(d):
-		return _relationStyles[_relSameFunction].Invert()
+		return _relationStyles[_relSameFile].Invert()
 	case enclosingFunction(d) != nil && d.Kind() == file.KindVariable:
 		return _relationStyles[_relSameFunction].Invert()
 	default:
@@ -135,7 +135,8 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
 	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declarationStyle(decl), Priority: 1})
 	for _, ref := range decl.References() {
-		addSpan(out, sourceLines, ref.Location(), ref.Text(), relationshipStyle(root, ref.Parent(), ref.Declaration(), ref.Kind()))
+		ref := reference{Reference: ref}
+		addSpan(out, sourceLines, ref.Location(), ref.Text(), ref.relationshipStyle(root))
 	}
 	for _, child := range decl.Declarations() {
 		collectDeclarationSpans(root, out, sourceLines, child)
@@ -207,13 +208,18 @@ func kindStyle(kind file.Kind) display.BasicStyle {
 	panic(fmt.Sprintf("kind %s has no style", kind))
 }
 
-func relationshipStyle(root string, parent, target file.Declaration, kind file.Kind) display.Span {
-	switch kind {
+type reference struct {
+	file.Reference
+}
+
+func (r *reference) relationshipStyle(root string) display.Span {
+	switch r.Kind() {
 	case file.KindParameter:
 		return display.Span{Style: kindStyle(file.KindParameter)}
 	case file.KindPackage:
-		return display.Span{Style: packageDeclarationStyle(root, target)}
+		return display.Span{Style: packageDeclarationStyle(root, r.Declaration())}
 	default:
+		target, parent := r.Declaration(), r.Parent()
 		switch {
 		case target == nil || target.Location() == nil:
 			return display.Span{Style: _relationStyles[_relExternal]}
