@@ -1,7 +1,6 @@
 package file
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -296,19 +295,7 @@ func New(name string) (File, error) {
 	if err != nil {
 		return nil, err
 	}
-	f := &file{name: abs, source: string(src)}
-	root, pkgRefs, decls, returns, indirectCalls, comments, err := buildTree(raw)
-	if err != nil {
-		return nil, fmt.Errorf("build file tree: %w", err)
-	}
-	f.root = root
-	f.packageRefs = pkgRefs
-	f.decls = decls
-	f.namedFields = buildNamedFields(raw.NamedFields)
-	f.returns = returns
-	f.indirectCalls = indirectCalls
-	f.comments = comments
-	return f, nil
+	return buildTree(abs, string(src), raw)
 }
 
 func (f *file) Name() string      { return f.name }
