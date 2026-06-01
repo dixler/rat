@@ -95,10 +95,6 @@ type ControlFlowBlock struct {
 	MayReturn               bool
 }
 
-func (b ControlFlowBlock) HasTerminalControlFlowStatement() bool {
-	return b.HasControlFlowStatement
-}
-
 type Reference struct {
 	DeclarationID     string
 	DeclarationFile   string

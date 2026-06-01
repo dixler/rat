@@ -467,35 +467,32 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 					*marks = append(*marks, newControlFlowMark(branch.Location(), branch.Keyword(), style))
 					appendBraceMarks(marks, branch.OpenBrace(), branch.CloseBrace(), style)
 				}
-				switch {
-				case branch.HasTerminalControlFlowStatement():
-					addBranchMark(plain)
-				default:
-					addBranchMark(blue)
+				color := blue
+				if branch.HasTerminalControlFlowStatement() {
+					color = plain
 				}
+				addBranchMark(color)
 			}
 		case file.LoopBlock:
 			addLoopMark := func(style display.Style) {
 				*marks = append(*marks, newControlFlowMark(block.Location(), b.LoopKind(), style))
 				appendBraceMarks(marks, block.OpenBrace(), block.CloseBrace(), style)
 			}
-			switch {
-			case b.HasEscapingControlFlow():
-				addLoopMark(plain)
-			default:
-				addLoopMark(blue)
+			color := blue
+			if b.HasEscapingControlFlow() {
+				color = plain
 			}
+			addLoopMark(color)
 		case file.SwitchBlock:
 			addSwitchMark := func(style display.Style) {
 				*marks = append(*marks, newControlFlowMark(b.Location(), b.SwitchKind(), style))
 				appendBraceMarks(marks, block.OpenBrace(), block.CloseBrace(), style)
 			}
-			switch {
-			case b.IsExhaustive():
-				addSwitchMark(exhaustive)
-			default:
-				addSwitchMark(plain)
+			color := plain
+			if b.IsExhaustive() {
+				color = exhaustive
 			}
+			addSwitchMark(color)
 			for _, child := range b.Blocks() {
 				if caseBlock, ok := child.(file.CaseBlock); ok {
 					addCaseMark := func(keyword string, style display.Style) {
@@ -519,11 +516,11 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 			}
 			switch stmt.Kind() {
 			case "return":
+				color := blue
 				if stmt.ReturnsError() {
-					addMark(plain)
-				} else {
-					addMark(blue)
+					color = plain
 				}
+				addMark(color)
 			case "fallthrough":
 				addMark(blue)
 			case "panic":
