@@ -462,8 +462,9 @@ func buildNamedFields(fields []scan.NamedField) []NamedLocation {
 
 func buildNamedField(field scan.NamedField) NamedLocation {
 	named := namedLocation{location: location{file: field.File, line: field.Line, column: field.Column}, text: field.Text, inline: field.Inline}
-	if field.DistanceLine > 0 && field.DistanceColumn > 0 {
-		loc := location{file: field.DistanceFile, line: field.DistanceLine, column: field.DistanceColumn}
+	loc := field.StructDecl.Location()
+	if loc.Line > 0 && loc.Column > 0 {
+		loc := location{file: loc.File, line: loc.Line, column: loc.Column}
 		named.distanceLocation = &loc
 	}
 	for _, decl := range field.TypeDeclarations {

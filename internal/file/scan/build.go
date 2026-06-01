@@ -129,9 +129,7 @@ type NamedField struct {
 	Location
 	Text             string
 	Inline           bool
-	DistanceFile     string
-	DistanceLine     int
-	DistanceColumn   int
+	StructDecl       definitionLocation
 	Declaration      NamedFieldTypeDeclaration
 	TypeDeclarations []NamedFieldTypeDeclaration
 }
@@ -952,14 +950,14 @@ func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]
 			byName[field.Name()] = b.namedFieldTypeDeclarationsForType(field.Type())
 		}
 	}
-	typeLoc, hasTypeLoc := definitionLocation{}, false
+	structTypeLoc, hasStructTypeLoc := definitionLocation{}, false
 	if ptr, ok := tv.Type.(*types.Pointer); ok {
 		tv.Type = ptr.Elem()
 	}
 	if named, ok := tv.Type.(*types.Named); ok {
-		typeLoc, hasTypeLoc = b.typeNameLocation(named.Obj())
+		structTypeLoc, hasStructTypeLoc = b.typeNameLocation(named.Obj())
 	}
-	return b.collectStructLiteralFields(lit, byName, typeLoc, hasTypeLoc, out)
+	return b.collectStructLiteralFields(lit, byName, structTypeLoc, hasStructTypeLoc, out)
 }
 
 func (b *builder) collectInlineStructLiteralFields(lit *ast.CompositeLit, out *[]NamedField) bool {
@@ -1016,9 +1014,7 @@ func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[s
 		}
 		named := NamedField{Location: Location{pos.Filename, pos.Line, pos.Column}, Text: key.Name, Inline: true, TypeDeclarations: decls}
 		if hasTypeLoc {
-			named.DistanceFile = typeLoc.file
-			named.DistanceLine = typeLoc.line
-			named.DistanceColumn = typeLoc.column
+			named.StructDecl = typeLoc
 		}
 		*out = append(*out, named)
 		collected = true
