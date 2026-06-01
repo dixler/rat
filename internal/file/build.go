@@ -77,13 +77,17 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 }
 
 func toDeclaration(src scan.Declaration, parent Declaration, declMap map[string]*declaration) *declaration {
+	blocks := make([]Block, 0, len(src.ControlFlow))
+	for _, block := range src.ControlFlow {
+		blocks = append(blocks, buildBlock(block))
+	}
 	d := &declaration{
 		name:     src.Name,
 		kind:     Kind(src.Kind),
 		location: location{src.File, src.Line, src.Column},
 		parent:   parent,
 		escapes:  src.Escapes,
-		blocks:   buildBlocks(src.ControlFlow),
+		blocks:   blocks,
 	}
 	declMap[src.ID] = d
 	for _, child := range src.Declarations {
@@ -142,53 +146,44 @@ func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
 	return p
 }
 
-func buildBlocks(raw []scan.ControlFlowBlock) []Block {
-	out := make([]Block, 0, len(raw))
-	for _, block := range raw {
-		out = append(out, buildBlock(block))
+func buildBlockBase(raw scan.ControlFlowBlock) blockBase {
+	base := blockBase{location: location{raw.File, raw.Line, raw.Column}, hasTerminalControlFlowStatement: raw.HasTerminalControlFlowStatement()}
+	if raw.OpenBraceLine > 0 && raw.OpenBraceColumn > 0 {
+		open := location{raw.File, raw.OpenBraceLine, raw.OpenBraceColumn}
+		base.openBrace = &open
 	}
-	return out
+	if raw.CloseBraceLine > 0 && raw.CloseBraceColumn > 0 {
+		close := location{raw.File, raw.CloseBraceLine, raw.CloseBraceColumn}
+		base.closeBrace = &close
+	}
+	appendControlFlowStatements(&base.statements, raw.Statements)
+	for _, child := range raw.Blocks {
+		base.blocks = append(base.blocks, buildBlock(child))
+	}
+	return base
 }
 
 func buildBlock(raw scan.ControlFlowBlock) Block {
-	newBase := func() blockBase {
-		base := blockBase{location: location{raw.File, raw.Line, raw.Column}, hasTerminalControlFlowStatement: raw.HasTerminalControlFlowStatement()}
-		if raw.OpenBraceLine > 0 && raw.OpenBraceColumn > 0 {
-			open := location{raw.File, raw.OpenBraceLine, raw.OpenBraceColumn}
-			base.openBrace = &open
-		}
-		if raw.CloseBraceLine > 0 && raw.CloseBraceColumn > 0 {
-			close := location{raw.File, raw.CloseBraceLine, raw.CloseBraceColumn}
-			base.closeBrace = &close
-		}
-		appendControlFlowStatements(&base.statements, raw.Statements)
-		for _, child := range raw.Blocks {
-			base.blocks = append(base.blocks, buildBlock(child))
-		}
-		return base
-	}
-	var block Block
+	blockBase := buildBlockBase(raw)
 	switch raw.Kind {
 	case scan.BlockKindIf:
 		return buildIfBlock(raw)
 	case scan.BlockKindElseIf, scan.BlockKindElse:
-		block = &anonymousBlock{blockBase: newBase()}
+		return &anonymousBlock{blockBase: blockBase}
 	case scan.BlockKindFor:
-		block = &loopBlock{blockBase: newBase(), kind: raw.Kind, mayBreak: raw.MayBreak, mayReturn: raw.MayReturn}
+		return &loopBlock{blockBase: blockBase, kind: raw.Kind, mayBreak: raw.MayBreak, mayReturn: raw.MayReturn}
 	case scan.BlockKindSwitch, scan.BlockKindSelect:
-		block = &switchBlock{blockBase: newBase(), kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}
+		return &switchBlock{blockBase: blockBase, kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}
 	case scan.BlockKindCase:
-		block = &caseBlock{blockBase: newBase(), isDefault: raw.HasDefault}
+		return &caseBlock{blockBase: blockBase, isDefault: raw.HasDefault}
 	default:
-		block = &anonymousBlock{blockBase: newBase()}
+		return &anonymousBlock{blockBase: blockBase}
 	}
-
-	return block
 }
 
 func buildIfBlock(raw scan.ControlFlowBlock) Block {
 	ifb := &ifBlock{ifChainID: raw.IfChainID}
-	collectIfBranches(raw, ifb)
+	ifb.collectIfBranches(raw)
 	if len(ifb.branches) > 0 {
 		if first := ifBranchBaseOf(ifb.branches[0]); first != nil {
 			ifb.location = first.location
@@ -200,43 +195,42 @@ func buildIfBlock(raw scan.ControlFlowBlock) Block {
 	return ifb
 }
 
-func collectIfBranches(raw scan.ControlFlowBlock, dst *ifBlock) {
-	if dst == nil {
-		return
+func buildBranch(raw scan.ControlFlowBlock) (IfBranch, *ifBranchBase) {
+	base := ifBranchBase{location: location{raw.File, raw.Line, raw.Column}, step: raw.IfStep, hasTerminalControlFlowStatement: hasTerminalControlFlowInBranch(raw)}
+	switch raw.Kind {
+	case scan.BlockKindIf:
+		branch := &ifBranch{ifBranchBase: base}
+		return branch, &branch.ifBranchBase
+	case scan.BlockKindElseIf:
+		branch := &ifBranch{ifBranchBase: base, elseIf: true}
+		return branch, &branch.ifBranchBase
+	case scan.BlockKindElse:
+		branch := &elseBranch{ifBranchBase: base}
+		return branch, &branch.ifBranchBase
+	default:
+		panic("unexpected control flow block in collectIfBranches")
 	}
-	kind := raw.Kind
-	if !isIfBranchKind(kind) {
-		return
+}
+
+func (ifb *ifBlock) collectIfBranches(raw scan.ControlFlowBlock) {
+	branch, base := buildBranch(raw)
+	if raw.OpenBraceLine > 0 && raw.OpenBraceColumn > 0 {
+		open := location{raw.File, raw.OpenBraceLine, raw.OpenBraceColumn}
+		base.openBrace = &open
 	}
-	loc := location{raw.File, raw.Line, raw.Column}
-	var branch IfBranch
-	hasTerminal := hasTerminalControlFlowInBranch(raw)
-	if kind == scan.BlockKindElse {
-		branch = &elseBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep, hasTerminalControlFlowStatement: hasTerminal}}
-	} else {
-		branch = &ifBranch{ifBranchBase: ifBranchBase{location: loc, step: raw.IfStep, hasTerminalControlFlowStatement: hasTerminal}, elseIf: kind == scan.BlockKindElseIf}
+	if raw.CloseBraceLine > 0 && raw.CloseBraceColumn > 0 {
+		close := location{raw.File, raw.CloseBraceLine, raw.CloseBraceColumn}
+		base.closeBrace = &close
 	}
-	if base := ifBranchBaseOf(branch); base != nil {
-		if raw.OpenBraceLine > 0 && raw.OpenBraceColumn > 0 {
-			open := location{raw.File, raw.OpenBraceLine, raw.OpenBraceColumn}
-			base.openBrace = &open
-		}
-		if raw.CloseBraceLine > 0 && raw.CloseBraceColumn > 0 {
-			close := location{raw.File, raw.CloseBraceLine, raw.CloseBraceColumn}
-			base.closeBrace = &close
-		}
-		appendControlFlowStatements(&base.statements, raw.Statements)
-	}
+	appendControlFlowStatements(&base.statements, raw.Statements)
 	for _, child := range raw.Blocks {
 		if child.Kind == scan.BlockKindElseIf || child.Kind == scan.BlockKindElse {
-			collectIfBranches(child, dst)
+			ifb.collectIfBranches(child)
 			continue
 		}
-		if base := ifBranchBaseOf(branch); base != nil {
-			base.blocks = append(base.blocks, buildBlock(child))
-		}
+		base.blocks = append(base.blocks, buildBlock(child))
 	}
-	dst.branches = append(dst.branches, branch)
+	ifb.branches = append(ifb.branches, branch)
 }
 
 func hasTerminalControlFlowInBranch(raw scan.ControlFlowBlock) bool {
@@ -261,10 +255,6 @@ func appendControlFlowStatements(dst *[]ControlFlowStatement, raw []scan.Control
 	for _, stmt := range raw {
 		*dst = append(*dst, &controlFlowStatement{kind: stmt.Kind, location: location{stmt.File, stmt.Line, stmt.Column}, returnsError: stmt.ReturnsError})
 	}
-}
-
-func isIfBranchKind(kind string) bool {
-	return kind == scan.BlockKindIf || kind == scan.BlockKindElseIf || kind == scan.BlockKindElse
 }
 
 func ifBranchBaseOf(branch IfBranch) *ifBranchBase {
