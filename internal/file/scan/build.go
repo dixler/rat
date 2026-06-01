@@ -34,6 +34,12 @@ type Result struct {
 	Comments          []Comment
 }
 
+type Location struct {
+	File   string
+	Line   int
+	Column int
+}
+
 type Comment struct {
 	StartLine   int
 	StartColumn int
@@ -42,25 +48,19 @@ type Comment struct {
 }
 
 type IndirectCall struct {
-	File   string
-	Line   int
-	Column int
-	Text   string
+	Location
+	Text string
 }
 
 type Return struct {
-	File   string
-	Line   int
-	Column int
+	Location
 }
 
 type Declaration struct {
+	Location
 	ID           string
 	Name         string
 	Kind         string
-	File         string
-	Line         int
-	Column       int
 	Escapes      bool
 	References   []Reference
 	Declarations []Declaration
@@ -68,18 +68,14 @@ type Declaration struct {
 }
 
 type ControlFlowStatement struct {
+	Location
 	Kind         string
-	File         string
-	Line         int
-	Column       int
 	ReturnsError bool
 }
 
 type ControlFlowBlock struct {
+	Location
 	Kind                    string
-	File                    string
-	Line                    int
-	Column                  int
 	OpenBraceLine           int
 	OpenBraceColumn         int
 	CloseBraceLine          int
@@ -96,55 +92,43 @@ type ControlFlowBlock struct {
 }
 
 type Reference struct {
+	Location
 	DeclarationID     string
 	DeclarationFile   string
 	DeclarationLine   int
 	DeclarationColumn int
 	Text              string
 	Kind              string
-	File              string
-	Line              int
-	Column            int
 	Escapes           bool
 }
 
 type PackageReference struct {
+	Location
 	PackageID string
 	ParentID  string
 	Text      string
-	File      string
-	Line      int
-	Column    int
 }
 
 type Package struct {
-	ID     string
-	Name   string
-	File   string
-	Line   int
-	Column int
-	Files  []PackageFile
+	Location
+	ID    string
+	Name  string
+	Files []PackageFile
 }
 
 type PackageFile struct {
-	File         string
-	Line         int
-	Column       int
+	Location
 	Declarations []DeclarationSummary
 }
 
 type DeclarationSummary struct {
-	Name   string
-	Kind   string
-	File   string
-	Line   int
-	Column int
+	Location
+	Name string
+	Kind string
 }
 
 type NamedField struct {
-	File              string
-	Line              int
-	Column            int
+	Location
 	Text              string
 	Inline            bool
 	DistanceFile      string
@@ -157,9 +141,7 @@ type NamedField struct {
 }
 
 type NamedFieldTypeDeclaration struct {
-	File   string
-	Line   int
-	Column int
+	Location
 }
 
 const (
@@ -221,14 +203,23 @@ func Build(file string) (*Result, error) {
 	}
 	res := &Result{File: file}
 	for _, imp := range parsed.Imports {
-		pkgRef, pkgDecl := b.buildImport(imp)
-		if pkgRef.PackageID == "" {
-			continue
+		path := strings.Trim(imp.Path.Value, "\"")
+		name := importedPackageName(imp)
+		pos := fset.Position(imp.Pos())
+		pkgID := b.pkgByPath[path]
+		if pkgID == "" {
+			pkgID = b.nextID("pkg")
+			b.pkgByPath[path] = pkgID
 		}
-		res.PackageReferences = append(res.PackageReferences, pkgRef)
-		res.Packages = append(res.Packages, pkgDecl)
-		if name := importedPackageName(imp); name != "" && name != "." && name != "_" {
-			b.pkgPathByName[name] = strings.Trim(imp.Path.Value, "\"")
+		pkgFiles := loadPackageFiles(path)
+		pkgFile, pkgLine, pkgColumn := b.file, pos.Line, pos.Column
+		if len(pkgFiles) > 0 {
+			pkgFile, pkgLine, pkgColumn = pkgFiles[0].File, pkgFiles[0].Line, pkgFiles[0].Column
+		}
+		res.PackageReferences = append(res.PackageReferences, PackageReference{PackageID: pkgID, ParentID: KindFile, Text: name, Location: Location{b.file, pos.Line, pos.Column}})
+		res.Packages = append(res.Packages, Package{ID: pkgID, Name: path, Location: Location{pkgFile, pkgLine, pkgColumn}, Files: pkgFiles})
+		if name != "" && name != "." && name != "_" {
+			b.pkgPathByName[name] = path
 		}
 	}
 	ast.Inspect(parsed, func(n ast.Node) bool {
@@ -236,9 +227,11 @@ func Build(file string) (*Result, error) {
 		case *ast.ReturnStmt:
 			pos := fset.Position(node.Return)
 			res.Returns = append(res.Returns, Return{
-				File:   file,
-				Line:   pos.Line,
-				Column: pos.Column,
+				Location: Location{
+					File:   file,
+					Line:   pos.Line,
+					Column: pos.Column,
+				},
 			})
 		case *ast.CallExpr:
 			name, startPos := indirectCallTarget(node.Fun, fset)
@@ -253,10 +246,12 @@ func Build(file string) (*Result, error) {
 
 			if name != "" {
 				res.IndirectCalls = append(res.IndirectCalls, IndirectCall{
-					File:   file,
-					Line:   pos.Line,
-					Column: pos.Column,
-					Text:   name,
+					Location: Location{
+						File:   file,
+						Line:   pos.Line,
+						Column: pos.Column,
+					},
+					Text: name,
 				})
 			}
 		}
@@ -447,7 +442,12 @@ func isNilExpr(expr ast.Expr) bool {
 func getEscapeAnalysis(file string) map[string]bool {
 	dir := filepath.Dir(file)
 	if cached, ok := escapeAnalysisCache.Load(dir); ok {
-		return cloneStringBoolMap(cached.(map[string]bool))
+		cachedMap := cached.(map[string]bool)
+		out := make(map[string]bool, len(cachedMap))
+		for k, v := range cachedMap {
+			out[k] = v
+		}
+		return out
 	}
 	cmd := exec.Command("go", "build", "-gcflags=all=-m=1", "./...")
 	cmd.Dir = dir
@@ -486,6 +486,10 @@ type definitionLocation struct {
 	ok     bool
 }
 
+func (l *definitionLocation) Location() Location {
+	return Location{l.file, l.line, l.column}
+}
+
 func (b *builder) nextID(prefix string) string {
 	b.seq++
 	return fmt.Sprintf("%s-%d", prefix, b.seq)
@@ -496,7 +500,9 @@ func (b *builder) buildSpecs(spec ast.Spec) []Declaration {
 	case *ast.TypeSpec:
 		decl := b.newDeclaration(s.Name, KindType)
 		b.appendFieldDeclarations(&decl, s.TypeParams, KindParameter)
-		b.appendInterfaceMethodDeclarations(&decl, s.Type)
+		if iface, ok := s.Type.(*ast.InterfaceType); ok && iface.Methods != nil {
+			b.appendFieldDeclarations(&decl, iface.Methods, KindFunction)
+		}
 		b.collectReferences(s.Type, &decl)
 		return []Declaration{decl}
 	case *ast.ValueSpec:
@@ -536,7 +542,8 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 	if fn.Body == nil {
 		return decl
 	}
-	decl.ControlFlow = b.buildControlFlowBlocks(fn.Body.List)
+	cfb := controlFlowBuilder{fset: b.fset, file: b.file, returnErrors: b.returnErrors, labels: map[string]*ControlFlowBlock{}}
+	decl.ControlFlow = cfb.buildBlocks(fn.Body.List)
 	ast.Inspect(fn.Body, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.DeclStmt:
@@ -609,11 +616,6 @@ type controlFlowBuilder struct {
 	ifChainSeq   int
 }
 
-func (b *builder) buildControlFlowBlocks(stmts []ast.Stmt) []ControlFlowBlock {
-	cfb := controlFlowBuilder{fset: b.fset, file: b.file, returnErrors: b.returnErrors, labels: map[string]*ControlFlowBlock{}}
-	return cfb.buildBlocks(stmts)
-}
-
 func (b *controlFlowBuilder) buildBlocks(stmts []ast.Stmt) []ControlFlowBlock {
 	out := make([]ControlFlowBlock, 0, len(stmts))
 	for _, stmt := range stmts {
@@ -636,12 +638,13 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	}
 
 	pos := b.fset.Position(stmt.Pos())
-	block := ControlFlowBlock{Kind: BlockKindBase, File: b.file, Line: pos.Line, Column: pos.Column}
+	block := ControlFlowBlock{Kind: BlockKindBase, Location: Location{b.file, pos.Line, pos.Column}}
 	switch s := stmt.(type) {
 	case *ast.BlockStmt:
 		block.Blocks = b.buildBlocks(s.List)
 	case *ast.IfStmt:
-		block = b.buildIfBlock(s)
+		b.ifChainSeq++
+		block = b.buildIfChain(s, fmt.Sprintf("if-chain-%d", b.ifChainSeq), 1, BlockKindIf, s.If)
 	case *ast.ForStmt:
 		block = b.buildForBlock(s.Pos(), s.Body, "")
 	case *ast.RangeStmt:
@@ -658,15 +661,10 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
-func (b *controlFlowBuilder) buildIfBlock(stmt *ast.IfStmt) ControlFlowBlock {
-	b.ifChainSeq++
-	chainID := fmt.Sprintf("if-chain-%d", b.ifChainSeq)
-	return b.buildIfChain(stmt, chainID, 1, BlockKindIf, stmt.If)
-}
 
 func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step int, kind string, keywordPos token.Pos) ControlFlowBlock {
 	pos := b.fset.Position(keywordPos)
-	block := ControlFlowBlock{Kind: kind, File: b.file, Line: pos.Line, Column: pos.Column, IfChainID: chainID, IfStep: step}
+	block := ControlFlowBlock{Kind: kind, Location: Location{b.file, pos.Line, pos.Column}, IfChainID: chainID, IfStep: step}
 	block.Statements = b.collectControlFlowStatements(stmt.Init, stmt.Cond)
 	if stmt.Body != nil {
 		setBlockBracesFromStmt(b.fset, &block, stmt.Body)
@@ -679,7 +677,7 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 			block.Blocks = append(block.Blocks, b.buildIfChain(e, chainID, step+1, BlockKindElseIf, elsePos))
 		case *ast.BlockStmt:
 			elseLoc := b.fset.Position(elsePos)
-			elseBlock := ControlFlowBlock{Kind: BlockKindElse, File: b.file, Line: elseLoc.Line, Column: elseLoc.Column, IfChainID: chainID, IfStep: step + 1}
+			elseBlock := ControlFlowBlock{Kind: BlockKindElse, Location: Location{b.file, elseLoc.Line, elseLoc.Column}, IfChainID: chainID, IfStep: step + 1}
 			setBlockBracesFromStmt(b.fset, &elseBlock, e)
 			elseBlock.Blocks = b.buildBlocks(e.List)
 			block.Blocks = append(block.Blocks, elseBlock)
@@ -693,7 +691,7 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 
 func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt, label string) ControlFlowBlock {
 	p := b.fset.Position(pos)
-	block := ControlFlowBlock{Kind: BlockKindFor, File: b.file, Line: p.Line, Column: p.Column}
+	block := ControlFlowBlock{Kind: BlockKindFor, Location: Location{b.file, p.Line, p.Column}}
 	if label != "" {
 		b.labels[label] = &block
 		defer delete(b.labels, label)
@@ -750,7 +748,7 @@ func isTerminalControlFlowKind(kind string) bool {
 
 func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, body *ast.BlockStmt) ControlFlowBlock {
 	p := b.fset.Position(pos)
-	block := ControlFlowBlock{Kind: BlockKindSwitch, File: b.file, Line: p.Line, Column: p.Column}
+	block := ControlFlowBlock{Kind: BlockKindSwitch, Location: Location{b.file, p.Line, p.Column}}
 	setBlockBracesFromStmt(b.fset, &block, body)
 	b.breakStack = append(b.breakStack, &block)
 	for _, stmt := range body.List {
@@ -767,7 +765,7 @@ func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, body *ast.BlockStmt
 
 func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowBlock {
 	p := b.fset.Position(stmt.Select)
-	block := ControlFlowBlock{Kind: BlockKindSelect, File: b.file, Line: p.Line, Column: p.Column}
+	block := ControlFlowBlock{Kind: BlockKindSelect, Location: Location{b.file, p.Line, p.Column}}
 	setBlockBracesFromStmt(b.fset, &block, stmt.Body)
 	b.breakStack = append(b.breakStack, &block)
 	if stmt.Body != nil {
@@ -805,7 +803,7 @@ func (b *controlFlowBuilder) appendCaseBlock(parent *ControlFlowBlock, casePos t
 	}
 	parent.CaseCount++
 	p := b.fset.Position(casePos)
-	caseBlock := ControlFlowBlock{Kind: BlockKindCase, File: b.file, Line: p.Line, Column: p.Column, HasDefault: hasDefault}
+	caseBlock := ControlFlowBlock{Kind: BlockKindCase, Location: Location{b.file, p.Line, p.Column}, HasDefault: hasDefault}
 	caseNodes := make([]ast.Node, 0, len(body))
 	for _, stmt := range body {
 		caseNodes = append(caseNodes, stmt)
@@ -832,21 +830,21 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 			switch s := n.(type) {
 			case *ast.ReturnStmt:
 				p := b.fset.Position(s.Return)
-				out = append(out, ControlFlowStatement{Kind: "return", File: b.file, Line: p.Line, Column: p.Column, ReturnsError: b.returnErrors[s.Return]})
+				out = append(out, ControlFlowStatement{Kind: "return", Location: Location{b.file, p.Line, p.Column}, ReturnsError: b.returnErrors[s.Return]})
 			case *ast.BranchStmt:
 				if s.Tok == token.BREAK {
 					b.markBreakTarget(s)
 				}
 				kind := strings.ToLower(s.Tok.String())
 				p := b.fset.Position(s.TokPos)
-				out = append(out, ControlFlowStatement{Kind: kind, File: b.file, Line: p.Line, Column: p.Column})
+				out = append(out, ControlFlowStatement{Kind: kind, Location: Location{b.file, p.Line, p.Column}})
 			case *ast.CallExpr:
 				id, ok := s.Fun.(*ast.Ident)
 				if !ok || id.Name != StatementKindPanic {
 					return true
 				}
 				p := b.fset.Position(id.NamePos)
-				out = append(out, ControlFlowStatement{Kind: StatementKindPanic, File: b.file, Line: p.Line, Column: p.Column})
+				out = append(out, ControlFlowStatement{Kind: StatementKindPanic, Location: Location{b.file, p.Line, p.Column}})
 			}
 			return true
 		})
@@ -872,14 +870,6 @@ func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
 	if target != nil && target.Kind == BlockKindFor {
 		target.MayBreak = true
 	}
-}
-
-func (b *builder) appendInterfaceMethodDeclarations(parent *Declaration, expr ast.Expr) {
-	iface, ok := expr.(*ast.InterfaceType)
-	if !ok || iface.Methods == nil {
-		return
-	}
-	b.appendFieldDeclarations(parent, iface.Methods, KindFunction)
 }
 
 func (b *builder) appendFieldDeclarations(parent *Declaration, fields *ast.FieldList, kind string) {
@@ -965,7 +955,7 @@ func (b *builder) collectNamedFields(fields *ast.FieldList, inline bool, out *[]
 			if pos.Line < 1 || pos.Column < 1 {
 				continue
 			}
-			named := NamedField{File: pos.Filename, Line: pos.Line, Column: pos.Column, Text: name.Name, Inline: inline}
+			named := NamedField{Location: Location{pos.Filename, pos.Line, pos.Column}, Text: name.Name, Inline: inline}
 			named.TypeDeclarations = b.namedFieldTypeDeclarations(field.Type)
 			if len(named.TypeDeclarations) > 0 {
 				loc := named.TypeDeclarations[0]
@@ -979,11 +969,21 @@ func (b *builder) collectNamedFields(fields *ast.FieldList, inline bool, out *[]
 }
 
 func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]NamedField) bool {
+	if b.info == nil {
+		return false
+	}
 	tv, ok := b.info.Types[lit.Type]
 	if !ok || tv.Type == nil {
 		return false
 	}
-	st, ok := underlyingStruct(tv.Type)
+	t := tv.Type
+	if ptr, ok := t.(*types.Pointer); ok {
+		t = ptr.Elem()
+	}
+	if named, ok := t.(*types.Named); ok {
+		t = named.Underlying()
+	}
+	st, ok := t.(*types.Struct)
 	if !ok {
 		return false
 	}
@@ -993,31 +993,14 @@ func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]
 			byName[field.Name()] = b.namedFieldTypeDeclarationsForType(field.Type())
 		}
 	}
-	distanceLoc, hasDistanceLoc := b.typeDeclarationLocationForType(tv.Type)
+	distanceLoc, hasDistanceLoc := definitionLocation{}, false
+	if ptr, ok := tv.Type.(*types.Pointer); ok {
+		tv.Type = ptr.Elem()
+	}
+	if named, ok := tv.Type.(*types.Named); ok {
+		distanceLoc, hasDistanceLoc = b.typeNameLocation(named.Obj())
+	}
 	return b.collectStructLiteralFields(lit, byName, distanceLoc, hasDistanceLoc, out)
-}
-
-func underlyingStruct(t types.Type) (*types.Struct, bool) {
-	switch e := t.(type) {
-	case nil:
-		return nil, false
-	case *types.Pointer:
-		t = e.Elem()
-	case *types.Named:
-		t = e.Underlying()
-	}
-	st, ok := t.(*types.Struct)
-	return st, ok
-}
-
-func (b *builder) typeDeclarationLocationForType(t types.Type) (definitionLocation, bool) {
-	if ptr, ok := t.(*types.Pointer); ok {
-		t = ptr.Elem()
-	}
-	if named, ok := t.(*types.Named); ok {
-		return b.typeNameLocation(named.Obj())
-	}
-	return definitionLocation{}, false
 }
 
 func (b *builder) collectInlineStructLiteralFields(lit *ast.CompositeLit, out *[]NamedField) bool {
@@ -1072,7 +1055,7 @@ func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[s
 		if pos.Line < 1 || pos.Column < 1 {
 			continue
 		}
-		named := NamedField{File: pos.Filename, Line: pos.Line, Column: pos.Column, Text: key.Name, Inline: true, TypeDeclarations: decls}
+		named := NamedField{Location: Location{pos.Filename, pos.Line, pos.Column}, Text: key.Name, Inline: true, TypeDeclarations: decls}
 		if hasDistanceLoc {
 			named.DistanceFile = distanceLoc.file
 			named.DistanceLine = distanceLoc.line
@@ -1085,9 +1068,12 @@ func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[s
 }
 
 func (b *builder) namedFieldTypeDeclarations(expr ast.Expr) []NamedFieldTypeDeclaration {
+	if b.info == nil {
+		return nil
+	}
 	var out []NamedFieldTypeDeclaration
 	for _, loc := range b.typeDeclarationsFor(expr) {
-		out = append(out, NamedFieldTypeDeclaration{File: loc.file, Line: loc.line, Column: loc.column})
+		out = append(out, NamedFieldTypeDeclaration{Location: Location{loc.file, loc.line, loc.column}})
 	}
 	return out
 }
@@ -1184,41 +1170,61 @@ func appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, seen map[
 		return
 	}
 	seen[key] = true
-	*out = append(*out, NamedFieldTypeDeclaration{File: loc.file, Line: loc.line, Column: loc.column})
-}
-
-func (b *builder) collectNamedFieldsInExpr(expr ast.Expr, out *[]NamedField) {
-	switch n := expr.(type) {
-	case *ast.StructType:
-		b.collectNamedFields(n.Fields, false, out)
-		for _, field := range n.Fields.List {
-			b.collectNamedFieldsInExpr(field.Type, out)
-		}
-	case *ast.FuncType:
-		if n.Params != nil {
-			for _, p := range n.Params.List {
-				b.collectNamedFieldsInExpr(p.Type, out)
-			}
-		}
-		if n.Results != nil {
-			for _, r := range n.Results.List {
-				b.collectNamedFieldsInExpr(r.Type, out)
-			}
-		}
-	case *ast.ArrayType:
-		b.collectNamedFieldsInExpr(n.Elt, out)
-	case *ast.MapType:
-		b.collectNamedFieldsInExpr(n.Key, out)
-		b.collectNamedFieldsInExpr(n.Value, out)
-	case *ast.StarExpr:
-		b.collectNamedFieldsInExpr(n.X, out)
-	case *ast.ChanType:
-		b.collectNamedFieldsInExpr(n.Value, out)
-	}
+	*out = append(*out, NamedFieldTypeDeclaration{Location: loc.Location()})
 }
 
 func (b *builder) typeDeclarationsFor(expr ast.Expr) []definitionLocation {
-	ids := typeReferenceIdents(expr)
+	var ids []*ast.Ident
+	var walk func(ast.Expr)
+	walk = func(expr ast.Expr) {
+		switch n := expr.(type) {
+		case *ast.Ident:
+			ids = append(ids, n)
+		case *ast.SelectorExpr:
+			ids = append(ids, n.Sel)
+		case *ast.StarExpr:
+			walk(n.X)
+		case *ast.ArrayType:
+			walk(n.Elt)
+		case *ast.MapType:
+			walk(n.Key)
+			walk(n.Value)
+		case *ast.ChanType:
+			walk(n.Value)
+		case *ast.IndexExpr:
+			walk(n.X)
+			walk(n.Index)
+		case *ast.IndexListExpr:
+			walk(n.X)
+			for _, idx := range n.Indices {
+				walk(idx)
+			}
+		case *ast.ParenExpr:
+			walk(n.X)
+		case *ast.FuncType:
+			for _, fields := range []*ast.FieldList{n.Params, n.Results} {
+				if fields == nil {
+					continue
+				}
+				for _, field := range fields.List {
+					walk(field.Type)
+				}
+			}
+		case *ast.InterfaceType:
+			if n.Methods != nil {
+				for _, field := range n.Methods.List {
+					walk(field.Type)
+				}
+			}
+		case *ast.StructType:
+			if n.Fields != nil {
+				for _, field := range n.Fields.List {
+					walk(field.Type)
+				}
+			}
+		}
+	}
+	walk(expr)
 	out := make([]definitionLocation, 0, len(ids))
 	seen := map[string]bool{}
 	for _, id := range ids {
@@ -1255,66 +1261,18 @@ func (b *builder) typeDeclarationForIdent(id *ast.Ident) (definitionLocation, bo
 	return definitionLocation{}, false
 }
 
-func typeReferenceIdents(expr ast.Expr) []*ast.Ident {
-	var out []*ast.Ident
-	appendTypeReferenceIdents(expr, &out)
-	return out
-}
-
-func appendTypeReferenceIdents(expr ast.Expr, out *[]*ast.Ident) {
-	switch n := expr.(type) {
-	case *ast.Ident:
-		*out = append(*out, n)
-	case *ast.SelectorExpr:
-		*out = append(*out, n.Sel)
-	case *ast.StarExpr:
-		appendTypeReferenceIdents(n.X, out)
-	case *ast.ArrayType:
-		appendTypeReferenceIdents(n.Elt, out)
-	case *ast.MapType:
-		appendTypeReferenceIdents(n.Key, out)
-		appendTypeReferenceIdents(n.Value, out)
-	case *ast.ChanType:
-		appendTypeReferenceIdents(n.Value, out)
-	case *ast.IndexExpr:
-		appendTypeReferenceIdents(n.X, out)
-		appendTypeReferenceIdents(n.Index, out)
-	case *ast.IndexListExpr:
-		appendTypeReferenceIdents(n.X, out)
-		for _, idx := range n.Indices {
-			appendTypeReferenceIdents(idx, out)
-		}
-	case *ast.ParenExpr:
-		appendTypeReferenceIdents(n.X, out)
-	case *ast.FuncType:
-		appendFieldListTypeReferenceIdents(n.Params, out)
-		appendFieldListTypeReferenceIdents(n.Results, out)
-	case *ast.InterfaceType:
-		appendFieldListTypeReferenceIdents(n.Methods, out)
-	case *ast.StructType:
-		appendFieldListTypeReferenceIdents(n.Fields, out)
-	}
-}
-
-func appendFieldListTypeReferenceIdents(fields *ast.FieldList, out *[]*ast.Ident) {
-	if fields == nil {
-		return
-	}
-	for _, field := range fields.List {
-		appendTypeReferenceIdents(field.Type, out)
-	}
-}
-
 func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
 	pos := b.fset.Position(id.Pos())
 	key := fmt.Sprintf("%s:%d:%d", filepath.Clean(b.file), pos.Line, pos.Column)
 	decl := Declaration{
-		ID:      b.nextID(kind),
-		Name:    id.Name,
-		Kind:    kind,
-		File:    b.file,
-		Line:    pos.Line,
-		Column:  pos.Column,
+		ID:   b.nextID(kind),
+		Name: id.Name,
+		Kind: kind,
+		Location: Location{
+			File:   b.file,
+			Line:   pos.Line,
+			Column: pos.Column,
+		},
 		Escapes: b.escapes[key],
 	}
 	if obj := b.info.Defs[id]; obj != nil {
@@ -1352,10 +1310,12 @@ func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, impo
 	pos := b.fset.Position(id.Pos())
 	key := fmt.Sprintf("%s:%d:%d", filepath.Clean(b.file), pos.Line, pos.Column)
 	ref := Reference{
-		Text:    id.Name,
-		File:    b.file,
-		Line:    pos.Line,
-		Column:  pos.Column,
+		Text: id.Name,
+		Location: Location{
+			File:   b.file,
+			Line:   pos.Line,
+			Column: pos.Column,
+		},
 		Kind:    b.classifyObject(b.info.Uses[id]),
 		Escapes: b.escapes[key],
 	}
@@ -1406,26 +1366,6 @@ func (b *builder) definitionFor(pos token.Pos) (definitionLocation, bool) {
 	return loc, loc.ok
 }
 
-func (b *builder) buildImport(imp *ast.ImportSpec) (PackageReference, Package) {
-	path := strings.Trim(imp.Path.Value, "\"")
-	name := importedPackageName(imp)
-	pos := b.fset.Position(imp.Pos())
-	pkgID := b.pkgByPath[path]
-	if pkgID == "" {
-		pkgID = b.nextID("pkg")
-		b.pkgByPath[path] = pkgID
-	}
-	pkgRef := PackageReference{PackageID: pkgID, ParentID: KindFile, Text: name, File: b.file, Line: pos.Line, Column: pos.Column}
-	pkgFiles := loadPackageFiles(path)
-	pkgFile := b.file
-	pkgLine, pkgColumn := pos.Line, pos.Column
-	if len(pkgFiles) > 0 {
-		pkgFile = pkgFiles[0].File
-		pkgLine, pkgColumn = pkgFiles[0].Line, pkgFiles[0].Column
-	}
-	return pkgRef, Package{ID: pkgID, Name: path, File: pkgFile, Line: pkgLine, Column: pkgColumn, Files: pkgFiles}
-}
-
 func importedPackageName(imp *ast.ImportSpec) string {
 	if imp == nil {
 		return ""
@@ -1458,22 +1398,22 @@ func loadPackageFiles(importPath string) []PackageFile {
 		if err != nil {
 			continue
 		}
-		pf := PackageFile{File: file, Line: 1, Column: 1}
+		pf := PackageFile{Location: Location{File: file, Line: 1, Column: 1}}
 		for _, decl := range parsed.Decls {
 			switch d := decl.(type) {
 			case *ast.FuncDecl:
 				pos := fset.Position(d.Name.Pos())
-				pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: d.Name.Name, Kind: KindFunction, File: file, Line: pos.Line, Column: pos.Column})
+				pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: d.Name.Name, Kind: KindFunction, Location: Location{file, pos.Line, pos.Column}})
 			case *ast.GenDecl:
 				for _, spec := range d.Specs {
 					switch s := spec.(type) {
 					case *ast.TypeSpec:
 						pos := fset.Position(s.Name.Pos())
-						pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: s.Name.Name, Kind: KindType, File: file, Line: pos.Line, Column: pos.Column})
+						pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: s.Name.Name, Kind: KindType, Location: Location{file, pos.Line, pos.Column}})
 					case *ast.ValueSpec:
 						for _, name := range s.Names {
 							pos := fset.Position(name.Pos())
-							pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: name.Name, Kind: KindVariable, File: file, Line: pos.Line, Column: pos.Column})
+							pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: name.Name, Kind: KindVariable, Location: Location{file, pos.Line, pos.Column}})
 						}
 					}
 				}
@@ -1618,17 +1558,6 @@ func isIndirectCallByDefinition(client *goplsclient.Client, pos token.Position) 
 	return !strings.HasPrefix(line, "func "), true
 }
 
-func cloneStringBoolMap(src map[string]bool) map[string]bool {
-	if src == nil {
-		return nil
-	}
-	dst := make(map[string]bool, len(src))
-	for k, v := range src {
-		dst[k] = v
-	}
-	return dst
-}
-
 func clonePackageFiles(src []PackageFile) []PackageFile {
 	if src == nil {
 		return nil
@@ -1705,112 +1634,5 @@ func TopLevelNamedFields(name, source string) []NamedField {
 	if err != nil || node == nil {
 		return nil
 	}
-
-	var out []NamedField
-	topLevelStructs := map[token.Pos]bool{}
-	for _, decl := range node.Decls {
-		gen, ok := decl.(*ast.GenDecl)
-		if !ok || gen.Tok != token.TYPE {
-			continue
-		}
-		for _, spec := range gen.Specs {
-			ts, ok := spec.(*ast.TypeSpec)
-			if !ok {
-				continue
-			}
-			if t, ok := ts.Type.(*ast.StructType); ok {
-				topLevelStructs[t.Pos()] = true
-				collectNamedFields(fset, t.Fields, false, &out)
-			}
-		}
-	}
-	ast.Inspect(node, func(n ast.Node) bool {
-		switch n := n.(type) {
-		case *ast.StructType:
-			if topLevelStructs[n.Pos()] {
-				return true
-			}
-			collectNamedFields(fset, n.Fields, false, &out)
-		case *ast.CompositeLit:
-			collectInlineStructLiteralFields(fset, n, &out)
-		}
-		return true
-	})
-
-	return out
-}
-
-func collectNamedFields(fset *token.FileSet, fields *ast.FieldList, inline bool, out *[]NamedField) {
-	if fields == nil {
-		return
-	}
-	for _, field := range fields.List {
-		for _, name := range field.Names {
-			pos := fset.Position(name.Pos())
-			if pos.Line < 1 || pos.Column < 1 {
-				continue
-			}
-			*out = append(*out, NamedField{File: pos.Filename, Line: pos.Line, Column: pos.Column, Text: name.Name, Inline: inline})
-		}
-	}
-}
-
-func collectInlineStructLiteralFields(fset *token.FileSet, lit *ast.CompositeLit, out *[]NamedField) {
-	st, ok := lit.Type.(*ast.StructType)
-	if !ok || st.Fields == nil {
-		return
-	}
-	fieldNames := map[string]bool{}
-	for _, field := range st.Fields.List {
-		for _, name := range field.Names {
-			if name != nil {
-				fieldNames[name.Name] = true
-			}
-		}
-	}
-	for _, elt := range lit.Elts {
-		kv, ok := elt.(*ast.KeyValueExpr)
-		if !ok {
-			continue
-		}
-		key, ok := kv.Key.(*ast.Ident)
-		if !ok || !fieldNames[key.Name] {
-			continue
-		}
-		pos := fset.Position(key.Pos())
-		if pos.Line < 1 || pos.Column < 1 {
-			continue
-		}
-		*out = append(*out, NamedField{File: pos.Filename, Line: pos.Line, Column: pos.Column, Text: key.Name, Inline: true})
-	}
-}
-
-func collectNamedFieldsInExpr(fset *token.FileSet, expr ast.Expr, out *[]NamedField) {
-	switch n := expr.(type) {
-	case *ast.StructType:
-		collectNamedFields(fset, n.Fields, false, out)
-		for _, field := range n.Fields.List {
-			collectNamedFieldsInExpr(fset, field.Type, out)
-		}
-	case *ast.FuncType:
-		if n.Params != nil {
-			for _, p := range n.Params.List {
-				collectNamedFieldsInExpr(fset, p.Type, out)
-			}
-		}
-		if n.Results != nil {
-			for _, r := range n.Results.List {
-				collectNamedFieldsInExpr(fset, r.Type, out)
-			}
-		}
-	case *ast.ArrayType:
-		collectNamedFieldsInExpr(fset, n.Elt, out)
-	case *ast.MapType:
-		collectNamedFieldsInExpr(fset, n.Key, out)
-		collectNamedFieldsInExpr(fset, n.Value, out)
-	case *ast.StarExpr:
-		collectNamedFieldsInExpr(fset, n.X, out)
-	case *ast.ChanType:
-		collectNamedFieldsInExpr(fset, n.Value, out)
-	}
+	return (&builder{fset: fset}).collectTopLevelNamedFields(node)
 }
