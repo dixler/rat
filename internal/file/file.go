@@ -188,7 +188,7 @@ type controlFlowStatement struct {
 }
 
 type blockBase struct {
-	location                        location
+	location                        Location
 	openBrace                       *location
 	closeBrace                      *location
 	blocks                          []Block
@@ -212,13 +212,8 @@ type elseBranch struct {
 }
 
 type ifBranchBase struct {
-	location                        location
-	openBrace                       *location
-	closeBrace                      *location
-	step                            int
-	blocks                          []Block
-	statements                      []ControlFlowStatement
-	hasTerminalControlFlowStatement bool
+	blockBase
+	step int
 }
 
 type loopBlock struct {
