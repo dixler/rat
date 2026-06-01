@@ -199,7 +199,6 @@ func Build(file string) (*Result, error) {
 		pkgByPath:     map[string]string{},
 		pkgDefByPath:  map[string]definitionLocation{},
 		goplsByPos:    map[string]definitionLocation{},
-		escapes:       getEscapeAnalysis(file),
 		seen:          map[string]struct{}{},
 	}
 	res := &Result{File: file}
@@ -308,7 +307,6 @@ type builder struct {
 	pkgByPath     map[string]string
 	pkgDefByPath  map[string]definitionLocation
 	goplsByPos    map[string]definitionLocation
-	escapes       map[string]bool
 	seq           int
 	seen          map[string]struct{}
 }
@@ -404,8 +402,8 @@ func returnExprTypes(expr ast.Expr, info *types.Info) []types.Type {
 	}
 	if tuple, ok := tv.Type.(*types.Tuple); ok {
 		out := make([]types.Type, 0, tuple.Len())
-		for i := 0; i < tuple.Len(); i++ {
-			out = append(out, tuple.At(i).Type())
+		for v := range tuple.Variables() {
+			out = append(out, v.Type())
 		}
 		return out
 	}
@@ -416,8 +414,8 @@ func tupleHasError(tuple *types.Tuple) bool {
 	if tuple == nil {
 		return false
 	}
-	for i := 0; i < tuple.Len(); i++ {
-		if isErrorType(tuple.At(i).Type()) {
+	for v := range tuple.Variables() {
+		if isErrorType(v.Type()) {
 			return true
 		}
 	}
@@ -439,46 +437,6 @@ func isErrorType(t types.Type) bool {
 func isNilExpr(expr ast.Expr) bool {
 	id, ok := expr.(*ast.Ident)
 	return ok && id.Name == "nil"
-}
-
-func getEscapeAnalysis(file string) map[string]bool {
-	dir := filepath.Dir(file)
-	if cached, ok := escapeAnalysisCache.Load(dir); ok {
-		cachedMap := cached.(map[string]bool)
-		out := make(map[string]bool, len(cachedMap))
-		for k, v := range cachedMap {
-			out[k] = v
-		}
-		return out
-	}
-	cmd := exec.Command("go", "build", "-gcflags=all=-m=1", "./...")
-	cmd.Dir = dir
-	out, _ := cmd.CombinedOutput()
-	lines := strings.Split(string(out), "\n")
-
-	escapes := make(map[string]bool)
-	for _, l := range lines {
-		if !strings.Contains(l, "escapes to heap") && !strings.Contains(l, "moved to heap") && !strings.Contains(l, "leaking param") {
-			continue
-		}
-		parts := strings.SplitN(l, ":", 4)
-		if len(parts) >= 4 {
-			filePart := parts[0]
-			line := parts[1]
-			col := parts[2]
-
-			filePart = strings.TrimPrefix(filePart, "./")
-			absPath, err := filepath.Abs(filepath.Join(dir, filePart))
-			if err == nil {
-				filePart = absPath
-			}
-
-			key := fmt.Sprintf("%s:%s:%s", filepath.Clean(filePart), line, col)
-			escapes[key] = true
-		}
-	}
-	escapeAnalysisCache.Store(dir, escapes)
-	return escapes
 }
 
 type definitionLocation struct {
@@ -1264,7 +1222,6 @@ func (b *builder) typeDeclarationForIdent(id *ast.Ident) (definitionLocation, bo
 
 func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
 	pos := b.fset.Position(id.Pos())
-	key := fmt.Sprintf("%s:%d:%d", filepath.Clean(b.file), pos.Line, pos.Column)
 	decl := Declaration{
 		ID:   b.nextID(kind),
 		Name: id.Name,
@@ -1274,7 +1231,6 @@ func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
 			Line:   pos.Line,
 			Column: pos.Column,
 		},
-		Escapes: b.escapes[key],
 	}
 	if obj := b.info.Defs[id]; obj != nil {
 		b.declByObj[obj] = decl.ID
@@ -1309,7 +1265,6 @@ func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, impo
 		return
 	}
 	pos := b.fset.Position(id.Pos())
-	key := fmt.Sprintf("%s:%d:%d", filepath.Clean(b.file), pos.Line, pos.Column)
 	ref := Reference{
 		Text: id.Name,
 		Location: Location{
@@ -1317,8 +1272,7 @@ func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, impo
 			Line:   pos.Line,
 			Column: pos.Column,
 		},
-		Kind:    b.classifyObject(b.info.Uses[id]),
-		Escapes: b.escapes[key],
+		Kind: b.classifyObject(b.info.Uses[id]),
 	}
 	if importPath != "" {
 		ref.Kind = KindPackage

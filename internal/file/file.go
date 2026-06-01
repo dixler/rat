@@ -35,7 +35,6 @@ type Reference interface {
 	Location() Location
 	Text() string
 	Kind() Kind
-	Escapes() bool
 }
 
 type Declaration interface {
@@ -46,7 +45,6 @@ type Declaration interface {
 	Declarations() []Declaration
 	Blocks() []Block
 	Parent() Declaration
-	Escapes() bool
 }
 
 type ControlFlowStatement interface {
@@ -178,7 +176,6 @@ type declaration struct {
 	declarations []Declaration
 	blocks       []Block
 	parent       Declaration
-	escapes      bool
 }
 
 type controlFlowStatement struct {
@@ -245,7 +242,6 @@ type reference struct {
 	location    location
 	text        string
 	kind        Kind
-	escapes     bool
 }
 
 type packageReference struct {
@@ -317,7 +313,6 @@ func (d *declaration) Declarations() []Declaration {
 }
 func (d *declaration) Blocks() []Block     { return append([]Block(nil), d.blocks...) }
 func (d *declaration) Parent() Declaration { return d.parent }
-func (d *declaration) Escapes() bool       { return d.escapes }
 
 func (s *controlFlowStatement) Kind() string       { return s.kind }
 func (s *controlFlowStatement) Location() Location { return s.location }
@@ -412,7 +407,6 @@ func (r *reference) Declaration() Declaration { return r.declaration }
 func (r *reference) Location() Location       { return r.location }
 func (r *reference) Text() string             { return r.text }
 func (r *reference) Kind() Kind               { return r.kind }
-func (r *reference) Escapes() bool            { return r.escapes }
 
 func (r *packageReference) Package() PackageDeclaration { return r.pkg }
 

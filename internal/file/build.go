@@ -86,7 +86,6 @@ func toDeclaration(src scan.Declaration, parent Declaration, declMap map[string]
 		kind:     Kind(src.Kind),
 		location: location{src.File, src.Line, src.Column},
 		parent:   parent,
-		escapes:  src.Escapes,
 		blocks:   blocks,
 	}
 	declMap[src.ID] = d
@@ -110,7 +109,6 @@ func attachDeclarationReferences(raw scan.Declaration, declMap map[string]*decla
 			location: location{rr.File, rr.Line, rr.Column},
 			text:     rr.Text,
 			kind:     Kind(rr.Kind),
-			escapes:  rr.Escapes,
 		}
 		if rr.DeclarationID != "" {
 			ref.declaration = declMap[rr.DeclarationID]
