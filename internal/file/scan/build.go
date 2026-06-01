@@ -200,6 +200,7 @@ func Build(file string) (*Result, error) {
 		pkgDefByPath:  map[string]definitionLocation{},
 		goplsByPos:    map[string]definitionLocation{},
 		escapes:       getEscapeAnalysis(file),
+		seen:          map[string]struct{}{},
 	}
 	res := &Result{File: file}
 	for _, imp := range parsed.Imports {
@@ -309,6 +310,7 @@ type builder struct {
 	goplsByPos    map[string]definitionLocation
 	escapes       map[string]bool
 	seq           int
+	seen          map[string]struct{}
 }
 
 func collectReturnErrorClassifications(parsed *ast.File, info *types.Info) map[token.Pos]bool {
@@ -1080,55 +1082,54 @@ func (b *builder) namedFieldTypeDeclarations(expr ast.Expr) []NamedFieldTypeDecl
 
 func (b *builder) namedFieldTypeDeclarationsForType(t types.Type) []NamedFieldTypeDeclaration {
 	var out []NamedFieldTypeDeclaration
-	seen := map[string]bool{}
-	b.appendTypeDeclarations(t, &out, seen)
+	b.appendTypeDeclarations(t, &out)
 	return out
 }
 
-func (b *builder) appendTypeDeclarations(t types.Type, out *[]NamedFieldTypeDeclaration, seen map[string]bool) {
+func (b *builder) appendTypeDeclarations(t types.Type, out *[]NamedFieldTypeDeclaration) {
 	switch t := t.(type) {
 	case nil, *types.Basic:
 		return
 	case *types.Named:
 		if loc, ok := b.typeNameLocation(t.Obj()); ok {
-			appendNamedFieldTypeDeclaration(out, seen, loc)
+			b.appendNamedFieldTypeDeclaration(out, loc)
 		}
 		if typeArgs := t.TypeArgs(); typeArgs != nil {
 			for i := 0; i < typeArgs.Len(); i++ {
-				b.appendTypeDeclarations(typeArgs.At(i), out, seen)
+				b.appendTypeDeclarations(typeArgs.At(i), out)
 			}
 		}
 	case *types.Pointer:
-		b.appendTypeDeclarations(t.Elem(), out, seen)
+		b.appendTypeDeclarations(t.Elem(), out)
 	case *types.Slice:
-		b.appendTypeDeclarations(t.Elem(), out, seen)
+		b.appendTypeDeclarations(t.Elem(), out)
 	case *types.Array:
-		b.appendTypeDeclarations(t.Elem(), out, seen)
+		b.appendTypeDeclarations(t.Elem(), out)
 	case *types.Map:
-		b.appendTypeDeclarations(t.Key(), out, seen)
-		b.appendTypeDeclarations(t.Elem(), out, seen)
+		b.appendTypeDeclarations(t.Key(), out)
+		b.appendTypeDeclarations(t.Elem(), out)
 	case *types.Chan:
-		b.appendTypeDeclarations(t.Elem(), out, seen)
+		b.appendTypeDeclarations(t.Elem(), out)
 	case *types.Signature:
-		b.appendTupleTypeDeclarations(t.Params(), out, seen)
-		b.appendTupleTypeDeclarations(t.Results(), out, seen)
+		b.appendTupleTypeDeclarations(t.Params(), out)
+		b.appendTupleTypeDeclarations(t.Results(), out)
 	case *types.Struct:
 		for field := range t.Fields() {
-			b.appendTypeDeclarations(field.Type(), out, seen)
+			b.appendTypeDeclarations(field.Type(), out)
 		}
 	case *types.Interface:
 		for etyp := range t.EmbeddedTypes() {
-			b.appendTypeDeclarations(etyp, out, seen)
+			b.appendTypeDeclarations(etyp, out)
 		}
 	}
 }
 
-func (b *builder) appendTupleTypeDeclarations(tuple *types.Tuple, out *[]NamedFieldTypeDeclaration, seen map[string]bool) {
+func (b *builder) appendTupleTypeDeclarations(tuple *types.Tuple, out *[]NamedFieldTypeDeclaration) {
 	if tuple == nil {
 		return
 	}
 	for v := range tuple.Variables() {
-		b.appendTypeDeclarations(v.Type(), out, seen)
+		b.appendTypeDeclarations(v.Type(), out)
 	}
 }
 
@@ -1164,12 +1165,12 @@ func (b *builder) packageTypeDefinition(importPath, name string) (definitionLoca
 	return definitionLocation{}, false
 }
 
-func appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, seen map[string]bool, loc definitionLocation) {
+func (b *builder) appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, loc definitionLocation) {
 	key := fmt.Sprintf("%s:%d:%d", loc.file, loc.line, loc.column)
-	if seen[key] {
+	if _, ok := b.seen[key]; ok {
 		return
 	}
-	seen[key] = true
+	b.seen[key] = struct{}{}
 	*out = append(*out, NamedFieldTypeDeclaration{Location: loc.Location()})
 }
 
@@ -1226,7 +1227,7 @@ func (b *builder) typeDeclarationsFor(expr ast.Expr) []definitionLocation {
 	}
 	walk(expr)
 	out := make([]definitionLocation, 0, len(ids))
-	seen := map[string]bool{}
+	seen := map[string]struct{}{}
 	for _, id := range ids {
 		if id == nil || id.Pos() == token.NoPos {
 			continue
@@ -1236,10 +1237,10 @@ func (b *builder) typeDeclarationsFor(expr ast.Expr) []definitionLocation {
 			continue
 		}
 		key := fmt.Sprintf("%s:%d:%d", loc.file, loc.line, loc.column)
-		if seen[key] {
+		if _, ok := seen[key]; ok {
 			continue
 		}
-		seen[key] = true
+		seen[key] = struct{}{}
 		out = append(out, loc)
 	}
 	return out
@@ -1505,10 +1506,9 @@ func indirectObject(obj types.Object) (bool, bool) {
 
 func isPackageQualifier(expr ast.Expr, info *types.Info) bool {
 	id, ok := expr.(*ast.Ident)
-	if !ok {
-		return false
+	if ok {
+		_, ok = info.Uses[id].(*types.PkgName)
 	}
-	_, ok = info.Uses[id].(*types.PkgName)
 	return ok
 }
 
@@ -1634,5 +1634,5 @@ func TopLevelNamedFields(name, source string) []NamedField {
 	if err != nil || node == nil {
 		return nil
 	}
-	return (&builder{fset: fset}).collectTopLevelNamedFields(node)
+	return (&builder{fset: fset, seen: map[string]struct{}{}}).collectTopLevelNamedFields(node)
 }
