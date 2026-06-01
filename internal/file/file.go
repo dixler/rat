@@ -476,8 +476,8 @@ func buildNamedField(field scan.NamedField) NamedLocation {
 	if len(named.declarationLocations) > 0 {
 		loc := named.declarationLocations[0].(location)
 		named.declarationLocation = &loc
-	} else if field.DeclarationLine > 0 && field.DeclarationColumn > 0 {
-		loc := location{file: field.DeclarationFile, line: field.DeclarationLine, column: field.DeclarationColumn}
+	} else if field.Declaration.Line > 0 && field.Declaration.Column > 0 {
+		loc := location{file: field.Declaration.File, line: field.Declaration.Line, column: field.Declaration.Column}
 		named.declarationLocation = &loc
 		named.declarationLocations = append(named.declarationLocations, loc)
 	}

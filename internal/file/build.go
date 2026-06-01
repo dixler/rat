@@ -112,7 +112,7 @@ func attachDeclarationReferences(raw scan.Declaration, declMap map[string]*decla
 		}
 		if rr.DeclarationID != "" {
 			ref.declaration = declMap[rr.DeclarationID]
-		} else if rr.DeclarationFile != "" && rr.DeclarationLine > 0 && rr.DeclarationColumn > 0 {
+		} else if loc := rr.Declaration.Location(); loc.File != "" && loc.Line > 0 && loc.Column > 0 {
 			ref.declaration = externalDeclaration(rr, declMap)
 		}
 		decl.references = append(decl.references, ref)
@@ -123,11 +123,12 @@ func attachDeclarationReferences(raw scan.Declaration, declMap map[string]*decla
 }
 
 func externalDeclaration(raw scan.Reference, declMap map[string]*declaration) *declaration {
-	key := fmt.Sprintf("external:%s:%d:%d:%s", raw.DeclarationFile, raw.DeclarationLine, raw.DeclarationColumn, raw.Kind)
+	loc := raw.Declaration.Location()
+	key := fmt.Sprintf("external:%s:%d:%d:%s", loc.File, loc.Line, loc.Column, raw.Kind)
 	if decl := declMap[key]; decl != nil {
 		return decl
 	}
-	decl := &declaration{name: raw.Text, kind: Kind(raw.Kind), location: location{raw.DeclarationFile, raw.DeclarationLine, raw.DeclarationColumn}}
+	decl := &declaration{name: raw.Text, kind: Kind(raw.Kind), location: location{loc.File, loc.Line, loc.Column}}
 	declMap[key] = decl
 	return decl
 }

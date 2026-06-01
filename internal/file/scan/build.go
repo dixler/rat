@@ -93,13 +93,11 @@ type ControlFlowBlock struct {
 
 type Reference struct {
 	Location
-	DeclarationID     string
-	DeclarationFile   string
-	DeclarationLine   int
-	DeclarationColumn int
-	Text              string
-	Kind              string
-	Escapes           bool
+	DeclarationID string
+	Declaration   definitionLocation
+	Text          string
+	Kind          string
+	Escapes       bool
 }
 
 type PackageReference struct {
@@ -129,15 +127,13 @@ type DeclarationSummary struct {
 
 type NamedField struct {
 	Location
-	Text              string
-	Inline            bool
-	DistanceFile      string
-	DistanceLine      int
-	DistanceColumn    int
-	DeclarationFile   string
-	DeclarationLine   int
-	DeclarationColumn int
-	TypeDeclarations  []NamedFieldTypeDeclaration
+	Text             string
+	Inline           bool
+	DistanceFile     string
+	DistanceLine     int
+	DistanceColumn   int
+	Declaration      NamedFieldTypeDeclaration
+	TypeDeclarations []NamedFieldTypeDeclaration
 }
 
 type NamedFieldTypeDeclaration struct {
@@ -915,15 +911,18 @@ func (b *builder) collectNamedFields(fields *ast.FieldList, inline bool, out *[]
 			if pos.Line < 1 || pos.Column < 1 {
 				continue
 			}
-			named := NamedField{Location: Location{pos.Filename, pos.Line, pos.Column}, Text: name.Name, Inline: inline}
-			named.TypeDeclarations = b.namedFieldTypeDeclarations(field.Type)
-			if len(named.TypeDeclarations) > 0 {
-				loc := named.TypeDeclarations[0]
-				named.DeclarationFile = loc.File
-				named.DeclarationLine = loc.Line
-				named.DeclarationColumn = loc.Column
+			typeDeclarations := b.namedFieldTypeDeclarations(field.Type)
+			var loc NamedFieldTypeDeclaration
+			if len(typeDeclarations) > 0 {
+				loc = typeDeclarations[0]
 			}
-			*out = append(*out, named)
+			*out = append(*out, NamedField{
+				Location:         Location{pos.Filename, pos.Line, pos.Column},
+				TypeDeclarations: typeDeclarations,
+				Declaration:      loc,
+				Text:             name.Name,
+				Inline:           inline,
+			})
 		}
 	}
 }
@@ -953,14 +952,14 @@ func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]
 			byName[field.Name()] = b.namedFieldTypeDeclarationsForType(field.Type())
 		}
 	}
-	distanceLoc, hasDistanceLoc := definitionLocation{}, false
+	typeLoc, hasTypeLoc := definitionLocation{}, false
 	if ptr, ok := tv.Type.(*types.Pointer); ok {
 		tv.Type = ptr.Elem()
 	}
 	if named, ok := tv.Type.(*types.Named); ok {
-		distanceLoc, hasDistanceLoc = b.typeNameLocation(named.Obj())
+		typeLoc, hasTypeLoc = b.typeNameLocation(named.Obj())
 	}
-	return b.collectStructLiteralFields(lit, byName, distanceLoc, hasDistanceLoc, out)
+	return b.collectStructLiteralFields(lit, byName, typeLoc, hasTypeLoc, out)
 }
 
 func (b *builder) collectInlineStructLiteralFields(lit *ast.CompositeLit, out *[]NamedField) bool {
@@ -996,7 +995,7 @@ func compositeLiteralTypeName(expr ast.Expr) (string, bool) {
 	return "", false
 }
 
-func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[string][]NamedFieldTypeDeclaration, distanceLoc definitionLocation, hasDistanceLoc bool, out *[]NamedField) bool {
+func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[string][]NamedFieldTypeDeclaration, typeLoc definitionLocation, hasTypeLoc bool, out *[]NamedField) bool {
 	collected := false
 	for _, elt := range lit.Elts {
 		kv, ok := elt.(*ast.KeyValueExpr)
@@ -1016,10 +1015,10 @@ func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[s
 			continue
 		}
 		named := NamedField{Location: Location{pos.Filename, pos.Line, pos.Column}, Text: key.Name, Inline: true, TypeDeclarations: decls}
-		if hasDistanceLoc {
-			named.DistanceFile = distanceLoc.file
-			named.DistanceLine = distanceLoc.line
-			named.DistanceColumn = distanceLoc.column
+		if hasTypeLoc {
+			named.DistanceFile = typeLoc.file
+			named.DistanceLine = typeLoc.line
+			named.DistanceColumn = typeLoc.column
 		}
 		*out = append(*out, named)
 		collected = true
@@ -1277,25 +1276,19 @@ func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, impo
 	if importPath != "" {
 		ref.Kind = KindPackage
 		if loc, ok := b.packageDefinitionForImportPath(importPath); ok {
-			ref.DeclarationFile = loc.file
-			ref.DeclarationLine = loc.line
-			ref.DeclarationColumn = loc.column
+			ref.Declaration = loc
 		}
 	} else if obj := b.info.Uses[id]; obj != nil {
 		ref.DeclarationID = b.declByObj[obj]
 		if pkgName, ok := obj.(*types.PkgName); ok && pkgName.Imported() != nil {
 			if loc, ok := b.packageDefinitionForImportPath(pkgName.Imported().Path()); ok {
-				ref.DeclarationFile = loc.file
-				ref.DeclarationLine = loc.line
-				ref.DeclarationColumn = loc.column
+				ref.Declaration = loc
 			}
 		}
 	}
-	if ref.DeclarationFile == "" {
+	if ref.Declaration.file == "" {
 		if target, ok := b.definitionFor(id.Pos()); ok {
-			ref.DeclarationFile = target.file
-			ref.DeclarationLine = target.line
-			ref.DeclarationColumn = target.column
+			ref.Declaration = target
 		}
 	}
 	decl.References = append(decl.References, ref)
