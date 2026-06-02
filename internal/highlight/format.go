@@ -54,7 +54,7 @@ type controlFlowMark struct {
 	lineStyle display.Style
 }
 
-func declarationStyle(d file.Declaration) display.Style {
+func declarationStyle(d file.Declaration) display.BasicStyle {
 	switch {
 	case d == nil:
 		return _relationStyles[_relSameFile].Invert()
@@ -67,6 +67,14 @@ func declarationStyle(d file.Declaration) display.Style {
 	default:
 		return kindStyle(d.Kind()).Invert()
 	}
+}
+
+func referencedDeclarationStyle(d file.Declaration, referenceCounts map[string]int) display.BasicStyle {
+	style := declarationStyle(d)
+	if d != nil && referenceCounts[locationKey(d.Location())] > 1 {
+		return style + display.Underline
+	}
+	return style
 }
 
 func isTopLevelDeclaration(d file.Declaration) bool {
@@ -132,14 +140,39 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 	})
 }
 
-func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
-	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declarationStyle(decl), Priority: 1})
+func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration, referenceCounts map[string]int) {
+	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: referencedDeclarationStyle(decl, referenceCounts), Priority: 1})
 	for _, ref := range decl.References() {
 		ref := reference{Reference: ref}
 		addSpan(out, sourceLines, ref.Location(), ref.Text(), ref.relationshipStyle(root))
 	}
 	for _, child := range decl.Declarations() {
-		collectDeclarationSpans(root, out, sourceLines, child)
+		collectDeclarationSpans(root, out, sourceLines, child, referenceCounts)
+	}
+}
+
+func collectReferenceCounts(decls []file.Declaration) map[string]int {
+	out := map[string]int{}
+	for _, decl := range decls {
+		collectDeclarationReferenceCounts(decl, out)
+	}
+	return out
+}
+
+func collectDeclarationReferenceCounts(decl file.Declaration, out map[string]int) {
+	if decl == nil {
+		return
+	}
+	for _, ref := range decl.References() {
+		if ref == nil || ref.Declaration() == nil {
+			continue
+		}
+		if key := locationKey(ref.Declaration().Location()); key != "" {
+			out[key]++
+		}
+	}
+	for _, child := range decl.Declarations() {
+		collectDeclarationReferenceCounts(child, out)
 	}
 }
 
@@ -347,10 +380,11 @@ func ParseFormats(f file.File) ParseResult {
 	}
 	sourceLines := strings.Split(f.Source(), "\n")
 	root := file.ProjectRoot(f.Name())
+	referenceCounts := collectReferenceCounts(f.Declarations())
 	controlFlowMarks := collectControlFlowMarks(f)
 	collectCommentSpans(result.SourceSpans, sourceLines, f)
 	collectLexicalTokenSpans(result.SourceSpans, f.Source(), sourceLines, loopStyleByLocation(controlFlowMarks))
-	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
+	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f, referenceCounts)
 	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
 
 	for _, call := range f.IndirectCalls() {
@@ -358,7 +392,7 @@ func ParseFormats(f file.File) ParseResult {
 	}
 
 	for _, decl := range f.Declarations() {
-		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl)
+		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl, referenceCounts)
 	}
 
 	for _, mark := range controlFlowMarks {
@@ -555,18 +589,22 @@ func appendBraceMarks(marks *[]controlFlowMark, open, close file.Location, style
 	}
 }
 
-func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, f file.File) {
+func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, f file.File, referenceCounts map[string]int) {
 	for _, named := range file.TopLevelNamedFields(f) {
 		distanceLoc := named.DistanceLocation()
 		externalStructInstantiation := distanceLoc != nil && !samePackageLocation(named.Location(), distanceLoc)
 		if distanceLoc == nil {
 			distanceLoc = named.Location()
 		}
-		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: fieldTypeDistanceStyle(root, distanceLoc, named.DeclarationLocations(), !named.Inline(), externalStructInstantiation), Priority: 1})
+		style := fieldTypeDistanceStyle(root, distanceLoc, named.DeclarationLocations(), !named.Inline(), externalStructInstantiation)
+		if referenceCounts[locationKey(named.Location())] > 1 {
+			style += display.Underline
+		}
+		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: style, Priority: 1})
 	}
 }
 
-func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Location, invert bool, packageResolution bool) display.Style {
+func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Location, invert bool, packageResolution bool) display.BasicStyle {
 	rank := fieldTypeDistanceBuiltin
 	if source == nil {
 		rank = fieldTypeDistanceExternal
@@ -716,7 +754,7 @@ func locationMapKey(line, col int) string {
 	return fmt.Sprintf("%d:%d", line, col)
 }
 
-func fieldStyle(style display.BasicStyle, invert bool) display.Style {
+func fieldStyle(style display.BasicStyle, invert bool) display.BasicStyle {
 	if invert {
 		return style.Invert()
 	}
