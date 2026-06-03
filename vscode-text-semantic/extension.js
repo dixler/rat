@@ -65,7 +65,12 @@ function ansiColor(code) {
 
 function parseAnsiStyle(style) {
   const parsed = { fg: undefined, bg: undefined, inverse: false, fontWeight: undefined, textDecoration: undefined };
+  const textDecorations = new Set();
   const matches = typeof style === 'string' ? [...style.matchAll(/\x1b\[([0-9;]+)m/g)] : [];
+
+  const updateTextDecoration = () => {
+    parsed.textDecoration = textDecorations.size ? [...textDecorations].join(' ') : undefined;
+  };
 
   for (const [, rawCodes] of matches) {
     const codes = rawCodes.split(';').map((part) => Number(part));
@@ -77,13 +82,24 @@ function parseAnsiStyle(style) {
         parsed.bg = undefined;
         parsed.inverse = false;
         parsed.fontWeight = undefined;
-        parsed.textDecoration = undefined;
+        textDecorations.clear();
+        updateTextDecoration();
       } else if (code === 1) {
         parsed.fontWeight = '700';
       } else if (code === 4) {
-        parsed.textDecoration = 'underline';
+        textDecorations.add('underline');
+        updateTextDecoration();
       } else if (code === 7) {
         parsed.inverse = true;
+      } else if (code === 9) {
+        textDecorations.add('line-through');
+        updateTextDecoration();
+      } else if (code === 24) {
+        textDecorations.delete('underline');
+        updateTextDecoration();
+      } else if (code === 29) {
+        textDecorations.delete('line-through');
+        updateTextDecoration();
       } else if (code === 38 && codes[i + 1] === 5 && Number.isInteger(codes[i + 2])) {
         parsed.fg = `38;5;${codes[i + 2]}`;
         i += 2;

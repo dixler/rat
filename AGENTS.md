@@ -2,6 +2,8 @@
 
 Guidance for AI coding agents working in this repository.
 
+Always review and update the AGENTS.md to ensure it's up to date with the high level product details and high level architectural overview.
+
 ## Project Overview
 
 `rat` is an experimental semantic highlighter for Go. It provides:

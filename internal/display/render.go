@@ -53,7 +53,7 @@ func (s BasicStyle) Invert() BasicStyle {
 }
 
 func (s BasicStyle) Frame() BasicStyle {
-	return s + Strikethrough
+	return s + Underline
 }
 
 type Span struct {

@@ -207,6 +207,18 @@ test('white fallback covers text not decorated by spans', () => {
   ]));
 });
 
+test('ANSI strikethrough maps to VS Code line-through decoration', () => {
+  const options = extension.decorationOptions('\x1b[9m');
+
+  assert.equal(options.textDecoration, 'line-through');
+});
+
+test('ANSI text decorations can be combined and reset independently', () => {
+  assert.equal(extension.decorationOptions('\x1b[4;9m').textDecoration, 'underline line-through');
+  assert.equal(extension.decorationOptions('\x1b[4;9;24m').textDecoration, 'line-through');
+  assert.equal(extension.decorationOptions('\x1b[4;9;29m').textDecoration, 'underline');
+});
+
 function fetchSpans(port, filePath) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ path: filePath });
