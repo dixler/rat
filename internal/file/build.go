@@ -200,7 +200,7 @@ func buildBlockBase(raw scan.ControlFlowBlock) blockBase {
 		location:                        location{raw.File, raw.Line, raw.Column},
 		openBrace:                       openBrace,
 		closeBrace:                      closeBrace,
-		hasTerminalControlFlowStatement: hasTerminalControlFlowInBranch(raw),
+		hasTerminalControlFlowStatement: raw.HasTerminalControlFlowStatement,
 		statements:                      statements,
 		blocks:                          blocks,
 	}
@@ -237,22 +237,4 @@ func (ifb *ifBlock) collectIfBranches(raw scan.ControlFlowBlock) {
 		}
 	}
 	ifb.branches = append(ifb.branches, branch)
-}
-
-func hasTerminalControlFlowInBranch(raw scan.ControlFlowBlock) bool {
-	for _, stmt := range raw.Statements {
-		switch stmt.Kind {
-		case "return", "continue", "break", "goto", "panic":
-			return true
-		}
-	}
-	for _, child := range raw.Blocks {
-		if child.Kind == scan.BlockKindElseIf || child.Kind == scan.BlockKindElse {
-			continue
-		}
-		if hasTerminalControlFlowInBranch(child) {
-			return true
-		}
-	}
-	return false
 }

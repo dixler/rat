@@ -76,20 +76,20 @@ type ControlFlowStatement struct {
 
 type ControlFlowBlock struct {
 	Location
-	Kind                    string
-	OpenBraceLine           int
-	OpenBraceColumn         int
-	CloseBraceLine          int
-	CloseBraceColumn        int
-	HasControlFlowStatement bool
-	IfChainID               string
-	IfStep                  int
-	Statements              []ControlFlowStatement
-	Blocks                  []ControlFlowBlock
-	CaseCount               int
-	HasDefault              bool
-	MayBreak                bool
-	MayReturn               bool
+	Kind                            string
+	OpenBraceLine                   int
+	OpenBraceColumn                 int
+	CloseBraceLine                  int
+	CloseBraceColumn                int
+	HasTerminalControlFlowStatement bool
+	IfChainID                       string
+	IfStep                          int
+	Statements                      []ControlFlowStatement
+	Blocks                          []ControlFlowBlock
+	CaseCount                       int
+	HasDefault                      bool
+	MayBreak                        bool
+	MayReturn                       bool
 }
 
 type Reference struct {
@@ -620,7 +620,7 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	default:
 		block.Statements = b.collectControlFlowStatements(stmt)
 	}
-	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -642,12 +642,13 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 			elseBlock := ControlFlowBlock{Kind: BlockKindElse, Location: Location{b.file, elseLoc.Line, elseLoc.Column}, IfChainID: chainID, IfStep: step + 1}
 			setBlockBracesFromStmt(b.fset, &elseBlock, e)
 			elseBlock.Blocks = b.buildBlocks(e.List)
+			elseBlock.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(elseBlock)
 			block.Blocks = append(block.Blocks, elseBlock)
 		default:
 			block.Blocks = append(block.Blocks, b.buildBlock(e))
 		}
 	}
-	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -667,7 +668,7 @@ func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt, l
 	if controlFlowBlockHasStatementKind(block, "return") {
 		block.MayReturn = true
 	}
-	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -692,6 +693,9 @@ func controlFlowBlockHasTerminalStatement(block ControlFlowBlock) bool {
 		}
 	}
 	for _, child := range block.Blocks {
+		if child.Kind == BlockKindElseIf || child.Kind == BlockKindElse {
+			continue
+		}
 		if controlFlowBlockHasTerminalStatement(child) {
 			return true
 		}
@@ -721,7 +725,7 @@ func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, body *ast.BlockStmt
 		b.appendCaseBlock(&block, clause.Case, clause.List == nil, clause.Body)
 	}
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
-	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -740,7 +744,7 @@ func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowB
 		}
 	}
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
-	block.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
@@ -772,7 +776,7 @@ func (b *controlFlowBuilder) appendCaseBlock(parent *ControlFlowBlock, casePos t
 	}
 	caseBlock.Statements = b.collectControlFlowStatements(caseNodes...)
 	caseBlock.Blocks = b.buildBlocks(body)
-	caseBlock.HasControlFlowStatement = controlFlowBlockHasTerminalStatement(caseBlock)
+	caseBlock.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(caseBlock)
 	parent.Blocks = append(parent.Blocks, caseBlock)
 }
 
