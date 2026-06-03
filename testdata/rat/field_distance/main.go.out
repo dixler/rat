@@ -4,7 +4,7 @@
  [0m 4 [97m    "net/[0m[35m[7mhttp[0m[97m"[0m
  [0m 5 [97m    "[0m[35m[7mtime[0m[97m"[0m
  [0m 6 [97m[0m
- [0m 7 [97m    "rat/internal/[0m[94m[7mdisplay[0m[97m"[0m
+ [0m 7 [97m    "rat/internal/[0m[94m[7mhighlight[0m[97m"[0m
  [0m 8 [97m    "rat/testdata/rat/field_distance/[0m[94m[7mother[0m[97m"[0m
  [0m 9 [97m)[0m
  [0m10 [97m[0m
@@ -17,7 +17,7 @@
  [0m17 [97m    [0m[35m[7m[4mExternal[0m[97m    [0m[35mtime[0m[97m.[0m[35m[4mTime[0m[97m[0m
  [0m18 [97m    [0m[38;5;130m[7mBuiltin[0m[97m     [0m[38;5;130mint[0m[97m[0m
  [0m19 [97m    [0m[38;5;130m[7mFuncBuiltin[0m[97m [0m[38;5;130mfunc[0m[97m([0m[38;5;130mint[0m[97m) [0m[38;5;130mint[0m[97m[0m
- [0m20 [97m    [0m[94m[7mFuncProject[0m[97m [0m[38;5;130mfunc[0m[97m() [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m[0m
+ [0m20 [97m    [0m[94m[7mFuncProject[0m[97m [0m[38;5;130mfunc[0m[97m() [0m[94mhighlight[0m[97m.[0m[94mSpan[0m[97m[0m
  [0m21 [97m}[0m
  [0m22 [97m[0m
  [0m23 [97m[0m[38;5;130mfunc[0m[97m [0m[38;5;120m[7minlineDemo[0m[97m() {[0m
@@ -28,7 +28,7 @@
  [0m28 [97m        [0m[35m[7m[4mExternal[0m[97m    [0m[35mtime[0m[97m.[0m[35m[4mTime[0m[97m[0m
  [0m29 [97m        [0m[38;5;130m[7mBuiltin[0m[97m     [0m[38;5;130mint[0m[97m[0m
  [0m30 [97m        [0m[38;5;130m[7mFuncBuiltin[0m[97m [0m[38;5;130mfunc[0m[97m([0m[38;5;130mint[0m[97m) [0m[38;5;130mint[0m[97m[0m
- [0m31 [97m        [0m[94m[7mFuncProject[0m[97m [0m[38;5;130mfunc[0m[97m() [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m[0m
+ [0m31 [97m        [0m[94m[7mFuncProject[0m[97m [0m[38;5;130mfunc[0m[97m() [0m[94mhighlight[0m[97m.[0m[94mSpan[0m[97m[0m
  [0m32 [97m    }{[0m
  [0m33 [97m        [0m[38;5;120mSameFile[0m[97m:    [0m[38;5;120mSameFileType[0m[97m{},[0m
  [0m34 [97m        [0m[32mSamePackage[0m[97m: [0m[32mSamePackageType[0m[97m{},[0m
@@ -36,7 +36,7 @@
  [0m36 [97m        [0m[35m[4mExternal[0m[97m:    [0m[35mtime[0m[97m.[0m[35m[4mTime[0m[97m{},[0m
  [0m37 [97m        [0m[38;5;130mBuiltin[0m[97m:     [0m[38;5;218m1[0m[97m,[0m
  [0m38 [97m        [0m[38;5;130mFuncBuiltin[0m[97m: [0m[38;5;130mfunc[0m[97m(v [0m[38;5;130mint[0m[97m) [0m[38;5;130mint[0m[97m { return [0m[38;5;120mv[0m[97m },[0m
- [0m39 [97m        [0m[94mFuncProject[0m[97m: [0m[38;5;130mfunc[0m[97m() [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m { return [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m{} },[0m
+ [0m39 [97m        [0m[94mFuncProject[0m[97m: [0m[38;5;130mfunc[0m[97m() [0m[94mhighlight[0m[97m.[0m[94mSpan[0m[97m { return [0m[94mhighlight[0m[97m.[0m[94mSpan[0m[97m{} },[0m
  [0m40 [97m    }[0m
  [0m41 [97m}[0m
  [0m42 [97m[0m
@@ -48,7 +48,7 @@
  [0m48 [97m        [0m[35m[4mExternal[0m[97m:    [0m[35mtime[0m[97m.[0m[35m[4mTime[0m[97m{},[0m
  [0m49 [97m        [0m[38;5;130mBuiltin[0m[97m:     [0m[38;5;218m1[0m[97m,[0m
  [0m50 [97m        [0m[38;5;130mFuncBuiltin[0m[97m: [0m[38;5;130mfunc[0m[97m(v [0m[38;5;130mint[0m[97m) [0m[38;5;130mint[0m[97m { return [0m[38;5;120mv[0m[97m },[0m
- [0m51 [97m        [0m[94mFuncProject[0m[97m: [0m[38;5;130mfunc[0m[97m() [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m { return [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m{} },[0m
+ [0m51 [97m        [0m[94mFuncProject[0m[97m: [0m[38;5;130mfunc[0m[97m() [0m[94mhighlight[0m[97m.[0m[94mSpan[0m[97m { return [0m[94mhighlight[0m[97m.[0m[94mSpan[0m[97m{} },[0m
  [0m52 [97m    }[0m
  [0m53 [97m}[0m
  [0m54 [97m[0m

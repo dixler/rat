@@ -42,7 +42,7 @@ var _relationStyles = map[relation]display.BasicStyle{
 
 type ParseResult struct {
 	Source      string
-	SourceSpans map[int][]display.Span
+	SourceSpans map[int][]Span
 	LineSpans   map[int]display.Style
 	LineMarkers map[int]string
 }
@@ -98,7 +98,7 @@ func usesTopLevelSameFileStyle(d file.Declaration) bool {
 	return false
 }
 
-func sortSpans(spans []display.Span) {
+func sortSpans(spans []Span) {
 	sort.Slice(spans, func(i, j int) bool {
 		if spans[i].Start != spans[j].Start {
 			return spans[i].Start < spans[j].Start
@@ -111,7 +111,7 @@ func sortSpans(spans []display.Span) {
 	})
 }
 
-func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall) {
+func collectIndirectCallSpans(out map[int][]Span, call file.IndirectCall) {
 	text := call.Text()
 	loc := call.Location()
 	if loc == nil || text == "" {
@@ -124,7 +124,7 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 		return
 	}
 
-	out[line] = append(out[line], display.Span{
+	out[line] = append(out[line], Span{
 		Start:    col - 1,
 		End:      col - 1 + len(text),
 		Style:    display.HotMagenta,
@@ -132,12 +132,12 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 	})
 }
 
-func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
+func collectDeclarationSpans(root string, out map[int][]Span, sourceLines []string, decl file.Declaration) {
 	declStyle := declarationStyle(decl)
 	if decl.ReferenceType() {
 		declStyle = frameStyle(declStyle)
 	}
-	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declStyle, Priority: 1})
+	addSpan(out, sourceLines, decl.Location(), decl.Name(), Span{Style: declStyle, Priority: 1})
 	for _, ref := range decl.References() {
 		ref := reference{Reference: ref}
 		span := ref.relationshipStyle(root)
@@ -158,7 +158,7 @@ func frameStyle(style display.Style) display.Style {
 	return style
 }
 
-func addSpan(out map[int][]display.Span, sourceLines []string, loc file.Location, text string, span display.Span) {
+func addSpan(out map[int][]Span, sourceLines []string, loc file.Location, text string, span Span) {
 	if loc == nil || text == "" {
 		return
 	}
@@ -227,29 +227,29 @@ type reference struct {
 	file.Reference
 }
 
-func (r *reference) relationshipStyle(root string) display.Span {
+func (r *reference) relationshipStyle(root string) Span {
 	switch r.Kind() {
 	case file.KindParameter:
-		return display.Span{Style: kindStyle(file.KindParameter)}
+		return Span{Style: kindStyle(file.KindParameter)}
 	case file.KindPackage:
-		return display.Span{Style: packageDeclarationStyle(root, r.Declaration())}
+		return Span{Style: packageDeclarationStyle(root, r.Declaration())}
 	default:
 		target, parent := r.Declaration(), r.Parent()
 		switch {
 		case target == nil || target.Location() == nil:
-			return display.Span{Style: _relationStyles[_relExternal]}
+			return Span{Style: _relationStyles[_relExternal]}
 		case isBuiltin(target):
-			return display.Span{Style: display.MutedOrange}
+			return Span{Style: display.MutedOrange}
 		case sameFunction(parent, target):
-			return display.Span{Style: _relationStyles[_relSameFunction], Priority: 3}
+			return Span{Style: _relationStyles[_relSameFunction], Priority: 3}
 		case sameFile(parent, target):
-			return display.Span{Style: _relationStyles[_relSameFile]}
+			return Span{Style: _relationStyles[_relSameFile]}
 		case samePackage(parent, target):
-			return display.Span{Style: _relationStyles[_relSamePackage]}
+			return Span{Style: _relationStyles[_relSamePackage]}
 		case sameProject(root, parent, target):
-			return display.Span{Style: _relationStyles[_relSameProject]}
+			return Span{Style: _relationStyles[_relSameProject]}
 		default:
-			return display.Span{Style: _relationStyles[_relExternal]}
+			return Span{Style: _relationStyles[_relExternal]}
 		}
 	}
 }
@@ -331,11 +331,11 @@ func Analyze(path string) (ParseResult, error) {
 	return res, nil
 }
 
-func flattenSpans(line string, spans []display.Span) []display.Span {
+func flattenSpans(line string, spans []Span) []Span {
 	if len(spans) == 0 {
 		return nil
 	}
-	out := make([]display.Span, 0, len(spans))
+	out := make([]Span, 0, len(spans))
 	idx := 0
 	for _, s := range spans {
 		if s.Start < idx || s.Start >= len(line) {
@@ -356,7 +356,7 @@ func flattenSpans(line string, spans []display.Span) []display.Span {
 func ParseFormats(f file.File) ParseResult {
 	result := ParseResult{
 		Source:      f.Source(),
-		SourceSpans: map[int][]display.Span{},
+		SourceSpans: map[int][]Span{},
 		LineSpans:   map[int]display.Style{},
 		LineMarkers: map[int]string{},
 	}
@@ -381,7 +381,7 @@ func ParseFormats(f file.File) ParseResult {
 			continue
 		}
 		result.LineSpans[mark.loc.Line()] = mark.lineStyle
-		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, display.Span{Style: mark.textStyle, Priority: 2})
+		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, Span{Style: mark.textStyle, Priority: 2})
 	}
 
 	for line := range result.SourceSpans {
@@ -406,13 +406,13 @@ func loopStyleByLocation(marks []controlFlowMark) map[string]display.Style {
 	return out
 }
 
-func collectPackageReferenceSpans(root string, out map[int][]display.Span, sourceLines []string, f file.File) {
+func collectPackageReferenceSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
 	for _, ref := range f.PackageReferences() {
 		addImportReferenceSpan(out, sourceLines, ref, packageDeclarationStyle(root, ref.Package()).Invert())
 	}
 }
 
-func addImportReferenceSpan(out map[int][]display.Span, sourceLines []string, ref file.PackageReference, style display.Style) {
+func addImportReferenceSpan(out map[int][]Span, sourceLines []string, ref file.PackageReference, style display.Style) {
 	loc := ref.Location()
 	if loc == nil || loc.Line() < 1 || loc.Line() > len(sourceLines) || ref.Text() == "" {
 		return
@@ -422,7 +422,7 @@ func addImportReferenceSpan(out map[int][]display.Span, sourceLines []string, re
 	if start < 0 {
 		return
 	}
-	out[loc.Line()] = append(out[loc.Line()], display.Span{Start: start, End: start + len(ref.Text()), Style: style})
+	out[loc.Line()] = append(out[loc.Line()], Span{Start: start, End: start + len(ref.Text()), Style: style})
 }
 
 func collectControlFlowMarks(f file.File) []controlFlowMark {
@@ -570,7 +570,7 @@ func appendBraceMarks(marks *[]controlFlowMark, open, close file.Location, style
 	}
 }
 
-func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, f file.File) {
+func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
 		distanceLoc := named.DistanceLocation()
 		externalStructInstantiation := distanceLoc != nil && !samePackageLocation(named.Location(), distanceLoc)
@@ -581,7 +581,7 @@ func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]display.S
 		if named.ReferenceType() {
 			style = frameStyle(style)
 		}
-		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: style, Priority: 1})
+		addSpan(out, sourceLines, named.Location(), named.Text(), Span{Style: style, Priority: 1})
 	}
 }
 
@@ -632,7 +632,7 @@ var literalTokens = map[gotoken.Token]bool{
 	gotoken.STRING: true,
 }
 
-func collectLexicalTokenSpans(out map[int][]display.Span, source string, sourceLines []string, loopStyles map[string]display.Style) {
+func collectLexicalTokenSpans(out map[int][]Span, source string, sourceLines []string, loopStyles map[string]display.Style) {
 	fset := gotoken.NewFileSet()
 	file := fset.AddFile("", fset.Base(), len(source))
 	var s scanner.Scanner
@@ -690,11 +690,11 @@ func collectLexicalTokenSpans(out map[int][]display.Span, source string, sourceL
 		if !ok || text == "" {
 			continue
 		}
-		addTokenSpan(out, sourceLines, p.Line, p.Column, text, display.Span{Style: style})
+		addTokenSpan(out, sourceLines, p.Line, p.Column, text, Span{Style: style})
 	}
 }
 
-func addTokenSpan(out map[int][]display.Span, sourceLines []string, line, col int, text string, span display.Span) {
+func addTokenSpan(out map[int][]Span, sourceLines []string, line, col int, text string, span Span) {
 	if line < 1 || col < 1 || text == "" {
 		return
 	}
@@ -801,7 +801,7 @@ func sameProjectLocation(root string, left, right file.Location) bool {
 	return strings.HasPrefix(lfile, root+string(filepath.Separator)) && strings.HasPrefix(rfile, root+string(filepath.Separator))
 }
 
-func collectCommentSpans(out map[int][]display.Span, sourceLines []string, f file.File) {
+func collectCommentSpans(out map[int][]Span, sourceLines []string, f file.File) {
 	for _, comment := range f.Comments() {
 		start := comment.Start()
 		end := comment.End()
@@ -837,7 +837,7 @@ func collectCommentSpans(out map[int][]display.Span, sourceLines []string, f fil
 			if end <= start {
 				continue
 			}
-			out[line] = append(out[line], display.Span{Start: start, End: end, Style: display.Gray})
+			out[line] = append(out[line], Span{Start: start, End: end, Style: display.Gray})
 		}
 	}
 }

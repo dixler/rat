@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"rat/internal/display"
+	"rat/internal/highlight"
 	"rat/testdata/rat/field_distance/other"
 )
 
@@ -17,7 +17,7 @@ type Demo struct {
 	External    time.Time
 	Builtin     int
 	FuncBuiltin func(int) int
-	FuncProject func() display.Span
+	FuncProject func() highlight.Span
 }
 
 func inlineDemo() {
@@ -28,7 +28,7 @@ func inlineDemo() {
 		External    time.Time
 		Builtin     int
 		FuncBuiltin func(int) int
-		FuncProject func() display.Span
+		FuncProject func() highlight.Span
 	}{
 		SameFile:    SameFileType{},
 		SamePackage: SamePackageType{},
@@ -36,7 +36,7 @@ func inlineDemo() {
 		External:    time.Time{},
 		Builtin:     1,
 		FuncBuiltin: func(v int) int { return v },
-		FuncProject: func() display.Span { return display.Span{} },
+		FuncProject: func() highlight.Span { return highlight.Span{} },
 	}
 }
 
@@ -48,7 +48,7 @@ func namedDemo() Demo {
 		External:    time.Time{},
 		Builtin:     1,
 		FuncBuiltin: func(v int) int { return v },
-		FuncProject: func() display.Span { return display.Span{} },
+		FuncProject: func() highlight.Span { return highlight.Span{} },
 	}
 }
 

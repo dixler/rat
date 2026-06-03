@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"rat/internal/ansihtml"
-	"rat/internal/display"
 	"rat/internal/highlight"
 )
 
@@ -23,7 +22,7 @@ func ProcessPipeline(filepath string, mode OutputMode) (string, error) {
 		return "", err
 	}
 
-	ansi := display.RenderSource(program.Source, program.SourceSpans, program.LineSpans, program.LineMarkers)
+	ansi := highlight.RenderSource(program.Source, program.SourceSpans, program.LineSpans, program.LineMarkers)
 	if mode == ModeHTML {
 		return ansihtml.Convert(ansi), nil
 	}

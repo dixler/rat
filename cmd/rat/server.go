@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"rat/internal/display"
 	"rat/internal/highlight"
 )
 
@@ -13,8 +12,8 @@ type apiRequest struct {
 	Path string `json:"path"`
 }
 type apiResponse struct {
-	Spans map[int][]display.Span `json:"spans,omitempty"`
-	Error string                 `json:"error,omitempty"`
+	Spans map[int][]highlight.Span `json:"spans,omitempty"`
+	Error string                   `json:"error,omitempty"`
 }
 
 func runServer(addr string) {
