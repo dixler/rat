@@ -10,11 +10,11 @@
  [0m10 [97m[0m
  [0m11 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mSameFileType[0m[97m [0m[38;5;130mstruct[0m[97m{}[0m
  [0m12 [97m[0m
- [0m13 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mDemo[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m13 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[9mDemo[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
  [0m14 [97m    [0m[38;5;120m[7mSameFile[0m[97m    [0m[38;5;120mSameFileType[0m[97m[0m
  [0m15 [97m    [0m[32m[7mSamePackage[0m[97m [0m[32mSamePackageType[0m[97m[0m
  [0m16 [97m    [0m[94m[7mSameProject[0m[97m [0m[94mother[0m[97m.[0m[94mProjectType[0m[97m[0m
- [0m17 [97m    [0m[35m[7mExternal[0m[97m    [0m[35mtime[0m[97m.[0m[35mTime[0m[97m[0m
+ [0m17 [97m    [0m[35m[7m[9mExternal[0m[97m    [0m[35mtime[0m[97m.[0m[35m[9mTime[0m[97m[0m
  [0m18 [97m    [0m[38;5;130m[7mBuiltin[0m[97m     [0m[38;5;130mint[0m[97m[0m
  [0m19 [97m    [0m[38;5;130m[7mFuncBuiltin[0m[97m [0m[38;5;130mfunc[0m[97m([0m[38;5;130mint[0m[97m) [0m[38;5;130mint[0m[97m[0m
  [0m20 [97m    [0m[94m[7mFuncProject[0m[97m [0m[38;5;130mfunc[0m[97m() [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m[0m
@@ -25,7 +25,7 @@
  [0m25 [97m        [0m[38;5;120m[7mSameFile[0m[97m    [0m[38;5;120mSameFileType[0m[97m[0m
  [0m26 [97m        [0m[32m[7mSamePackage[0m[97m [0m[32mSamePackageType[0m[97m[0m
  [0m27 [97m        [0m[94m[7mSameProject[0m[97m [0m[94mother[0m[97m.[0m[94mProjectType[0m[97m[0m
- [0m28 [97m        [0m[35m[7mExternal[0m[97m    [0m[35mtime[0m[97m.[0m[35mTime[0m[97m[0m
+ [0m28 [97m        [0m[35m[7m[9mExternal[0m[97m    [0m[35mtime[0m[97m.[0m[35m[9mTime[0m[97m[0m
  [0m29 [97m        [0m[38;5;130m[7mBuiltin[0m[97m     [0m[38;5;130mint[0m[97m[0m
  [0m30 [97m        [0m[38;5;130m[7mFuncBuiltin[0m[97m [0m[38;5;130mfunc[0m[97m([0m[38;5;130mint[0m[97m) [0m[38;5;130mint[0m[97m[0m
  [0m31 [97m        [0m[94m[7mFuncProject[0m[97m [0m[38;5;130mfunc[0m[97m() [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m[0m
@@ -33,29 +33,29 @@
  [0m33 [97m        [0m[38;5;120mSameFile[0m[97m:    [0m[38;5;120mSameFileType[0m[97m{},[0m
  [0m34 [97m        [0m[32mSamePackage[0m[97m: [0m[32mSamePackageType[0m[97m{},[0m
  [0m35 [97m        [0m[94mSameProject[0m[97m: [0m[94mother[0m[97m.[0m[94mProjectType[0m[97m{},[0m
- [0m36 [97m        [0m[35mExternal[0m[97m:    [0m[35mtime[0m[97m.[0m[35mTime[0m[97m{},[0m
+ [0m36 [97m        [0m[35m[9mExternal[0m[97m:    [0m[35mtime[0m[97m.[0m[35m[9mTime[0m[97m{},[0m
  [0m37 [97m        [0m[38;5;130mBuiltin[0m[97m:     [0m[38;5;218m1[0m[97m,[0m
  [0m38 [97m        [0m[38;5;130mFuncBuiltin[0m[97m: [0m[38;5;130mfunc[0m[97m(v [0m[38;5;130mint[0m[97m) [0m[38;5;130mint[0m[97m { return [0m[38;5;120mv[0m[97m },[0m
  [0m39 [97m        [0m[94mFuncProject[0m[97m: [0m[38;5;130mfunc[0m[97m() [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m { return [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m{} },[0m
  [0m40 [97m    }[0m
  [0m41 [97m}[0m
  [0m42 [97m[0m
- [0m43 [97m[0m[38;5;130mfunc[0m[97m [0m[38;5;120m[7mnamedDemo[0m[97m() [0m[38;5;120mDemo[0m[97m {[0m
- [0m44 [97m    [0m[94mreturn[0m[97m [0m[38;5;120mDemo[0m[97m{[0m
+ [0m43 [97m[0m[38;5;130mfunc[0m[97m [0m[38;5;120m[7mnamedDemo[0m[97m() [0m[38;5;120m[9mDemo[0m[97m {[0m
+ [0m44 [97m    [0m[94mreturn[0m[97m [0m[38;5;120m[9mDemo[0m[97m{[0m
  [0m45 [97m        [0m[38;5;120mSameFile[0m[97m:    [0m[38;5;120mSameFileType[0m[97m{},[0m
  [0m46 [97m        [0m[32mSamePackage[0m[97m: [0m[32mSamePackageType[0m[97m{},[0m
  [0m47 [97m        [0m[94mSameProject[0m[97m: [0m[94mother[0m[97m.[0m[94mProjectType[0m[97m{},[0m
- [0m48 [97m        [0m[35mExternal[0m[97m:    [0m[35mtime[0m[97m.[0m[35mTime[0m[97m{},[0m
+ [0m48 [97m        [0m[35m[9mExternal[0m[97m:    [0m[35mtime[0m[97m.[0m[35m[9mTime[0m[97m{},[0m
  [0m49 [97m        [0m[38;5;130mBuiltin[0m[97m:     [0m[38;5;218m1[0m[97m,[0m
  [0m50 [97m        [0m[38;5;130mFuncBuiltin[0m[97m: [0m[38;5;130mfunc[0m[97m(v [0m[38;5;130mint[0m[97m) [0m[38;5;130mint[0m[97m { return [0m[38;5;120mv[0m[97m },[0m
  [0m51 [97m        [0m[94mFuncProject[0m[97m: [0m[38;5;130mfunc[0m[97m() [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m { return [0m[94mdisplay[0m[97m.[0m[94mSpan[0m[97m{} },[0m
  [0m52 [97m    }[0m
  [0m53 [97m}[0m
  [0m54 [97m[0m
- [0m55 [97m[0m[38;5;130mfunc[0m[97m [0m[38;5;120m[7mexternalStructDemo[0m[97m() [0m[35mhttp[0m[97m.[0m[35mServer[0m[97m {[0m
- [0m56 [97m    [0m[94mreturn[0m[97m [0m[35mhttp[0m[97m.[0m[35mServer[0m[97m{[0m
+ [0m55 [97m[0m[38;5;130mfunc[0m[97m [0m[38;5;120m[7mexternalStructDemo[0m[97m() [0m[35mhttp[0m[97m.[0m[35m[9mServer[0m[97m {[0m
+ [0m56 [97m    [0m[94mreturn[0m[97m [0m[35mhttp[0m[97m.[0m[35m[9mServer[0m[97m{[0m
  [0m57 [97m        [0m[38;5;130mAddr[0m[97m:        [0m[38;5;218m":8080"[0m[97m,[0m
- [0m58 [97m        [0m[32mHandler[0m[97m:     [0m[35mhttp[0m[97m.[0m[35mDefaultServeMux[0m[97m,[0m
+ [0m58 [97m        [0m[32m[9mHandler[0m[97m:     [0m[35mhttp[0m[97m.[0m[35m[9mDefaultServeMux[0m[97m,[0m
  [0m59 [97m        [0m[35mReadTimeout[0m[97m: [0m[35mtime[0m[97m.[0m[35mSecond[0m[97m,[0m
  [0m60 [97m    }[0m
  [0m61 [97m}[0m

@@ -12,6 +12,8 @@ const (
 	Invert        BasicStyle = "\x1b[7m"
 	Blink         BasicStyle = "\x1b[5m"
 	Underline     BasicStyle = "\x1b[4m"
+	Overline      BasicStyle = "\x1b[53m"
+	Strikethrough BasicStyle = "\x1b[9m"
 	Gray          BasicStyle = "\x1b[90m"
 	LightGray     BasicStyle = "\x1b[38;5;250m"
 	Red           BasicStyle = "\x1b[31m"
@@ -48,6 +50,10 @@ func (s BasicStyle) Format(str string) string {
 
 func (s BasicStyle) Invert() BasicStyle {
 	return s + Invert
+}
+
+func (s BasicStyle) Frame() BasicStyle {
+	return s + Strikethrough
 }
 
 type Span struct {

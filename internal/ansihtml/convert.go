@@ -12,6 +12,8 @@ type state struct {
 	bg        string
 	bold      bool
 	underline bool
+	overline  bool
+	strike    bool
 	invert    bool
 	blink     bool
 }
@@ -81,8 +83,18 @@ func styleString(st state) string {
 	if st.bold {
 		parts = append(parts, "font-weight:700")
 	}
-	if st.underline {
-		parts = append(parts, "text-decoration:underline")
+	if st.underline || st.overline || st.strike {
+		decorations := make([]string, 0, 3)
+		if st.underline {
+			decorations = append(decorations, "underline")
+		}
+		if st.overline {
+			decorations = append(decorations, "overline")
+		}
+		if st.strike {
+			decorations = append(decorations, "line-through")
+		}
+		parts = append(parts, "text-decoration:"+strings.Join(decorations, " "))
 	}
 	if st.blink {
 		parts = append(parts, "opacity:0.95")
@@ -137,6 +149,10 @@ func applyCode(st *state, code string) {
 			st.blink = true
 		case v == 7:
 			st.invert = true
+		case v == 9:
+			st.strike = true
+		case v == 53:
+			st.overline = true
 		case v == 22:
 			st.bold = false
 		case v == 24:
@@ -145,6 +161,10 @@ func applyCode(st *state, code string) {
 			st.blink = false
 		case v == 27:
 			st.invert = false
+		case v == 29:
+			st.strike = false
+		case v == 55:
+			st.overline = false
 		case v == 39:
 			st.fg = ""
 		case v == 49:

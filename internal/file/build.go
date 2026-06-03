@@ -82,11 +82,12 @@ func toDeclaration(src scan.Declaration, parent Declaration, declMap map[string]
 		blocks = append(blocks, buildBlock(block))
 	}
 	d := &declaration{
-		name:     src.Name,
-		kind:     Kind(src.Kind),
-		location: location{src.File, src.Line, src.Column},
-		parent:   parent,
-		blocks:   blocks,
+		name:          src.Name,
+		kind:          Kind(src.Kind),
+		location:      location{src.File, src.Line, src.Column},
+		referenceType: src.ReferenceType,
+		parent:        parent,
+		blocks:        blocks,
 	}
 	declMap[src.ID] = d
 	for _, child := range src.Declarations {
@@ -105,10 +106,11 @@ func attachDeclarationReferences(raw scan.Declaration, declMap map[string]*decla
 	decl := declMap[raw.ID]
 	for _, rr := range raw.References {
 		ref := &reference{
-			parent:   decl,
-			location: location{rr.File, rr.Line, rr.Column},
-			text:     rr.Text,
-			kind:     Kind(rr.Kind),
+			parent:        decl,
+			location:      location{rr.File, rr.Line, rr.Column},
+			text:          rr.Text,
+			kind:          Kind(rr.Kind),
+			referenceType: rr.ReferenceType,
 		}
 		if rr.DeclarationID != "" {
 			ref.declaration = declMap[rr.DeclarationID]
@@ -128,7 +130,7 @@ func externalDeclaration(raw scan.Reference, declMap map[string]*declaration) *d
 	if decl := declMap[key]; decl != nil {
 		return decl
 	}
-	decl := &declaration{name: raw.Text, kind: Kind(raw.Kind), location: location{loc.File, loc.Line, loc.Column}}
+	decl := &declaration{name: raw.Text, kind: Kind(raw.Kind), location: location{loc.File, loc.Line, loc.Column}, referenceType: raw.ReferenceType}
 	declMap[key] = decl
 	return decl
 }

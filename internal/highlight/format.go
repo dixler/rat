@@ -133,14 +133,29 @@ func collectIndirectCallSpans(out map[int][]display.Span, call file.IndirectCall
 }
 
 func collectDeclarationSpans(root string, out map[int][]display.Span, sourceLines []string, decl file.Declaration) {
-	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declarationStyle(decl), Priority: 1})
+	declStyle := declarationStyle(decl)
+	if decl.ReferenceType() {
+		declStyle = frameStyle(declStyle)
+	}
+	addSpan(out, sourceLines, decl.Location(), decl.Name(), display.Span{Style: declStyle, Priority: 1})
 	for _, ref := range decl.References() {
 		ref := reference{Reference: ref}
-		addSpan(out, sourceLines, ref.Location(), ref.Text(), ref.relationshipStyle(root))
+		span := ref.relationshipStyle(root)
+		if ref.ReferenceType() {
+			span.Style = frameStyle(span.Style)
+		}
+		addSpan(out, sourceLines, ref.Location(), ref.Text(), span)
 	}
 	for _, child := range decl.Declarations() {
 		collectDeclarationSpans(root, out, sourceLines, child)
 	}
+}
+
+func frameStyle(style display.Style) display.Style {
+	if basic, ok := style.(display.BasicStyle); ok {
+		return basic.Frame()
+	}
+	return style
 }
 
 func addSpan(out map[int][]display.Span, sourceLines []string, loc file.Location, text string, span display.Span) {
@@ -562,7 +577,11 @@ func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]display.S
 		if distanceLoc == nil {
 			distanceLoc = named.Location()
 		}
-		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: fieldTypeDistanceStyle(root, distanceLoc, named.DeclarationLocations(), !named.Inline(), externalStructInstantiation), Priority: 1})
+		style := fieldTypeDistanceStyle(root, distanceLoc, named.DeclarationLocations(), !named.Inline(), externalStructInstantiation)
+		if named.ReferenceType() {
+			style = frameStyle(style)
+		}
+		addSpan(out, sourceLines, named.Location(), named.Text(), display.Span{Style: style, Priority: 1})
 	}
 }
 

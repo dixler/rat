@@ -58,13 +58,14 @@ type Return struct {
 
 type Declaration struct {
 	Location
-	ID           string
-	Name         string
-	Kind         string
-	Escapes      bool
-	References   []Reference
-	Declarations []Declaration
-	ControlFlow  []ControlFlowBlock
+	ID            string
+	Name          string
+	Kind          string
+	Escapes       bool
+	ReferenceType bool
+	References    []Reference
+	Declarations  []Declaration
+	ControlFlow   []ControlFlowBlock
 }
 
 type ControlFlowStatement struct {
@@ -98,6 +99,7 @@ type Reference struct {
 	Text          string
 	Kind          string
 	Escapes       bool
+	ReferenceType bool
 }
 
 type PackageReference struct {
@@ -129,8 +131,14 @@ type NamedField struct {
 	Location
 	Text             string
 	Inline           bool
+	ReferenceType    bool
 	StructDecl       definitionLocation
 	Declaration      NamedFieldTypeDeclaration
+	TypeDeclarations []NamedFieldTypeDeclaration
+}
+
+type namedFieldInfo struct {
+	ReferenceType    bool
 	TypeDeclarations []NamedFieldTypeDeclaration
 }
 
@@ -843,7 +851,7 @@ func (b *builder) appendFieldDeclarations(parent *Declaration, fields *ast.Field
 func (b *builder) collectTopLevelNamedFields(node *ast.File) []NamedField {
 	var out []NamedField
 	topLevelStructs := map[token.Pos]bool{}
-	structFieldsByType := map[string]map[string][]NamedFieldTypeDeclaration{}
+	structFieldsByType := map[string]map[string]namedFieldInfo{}
 	for _, decl := range node.Decls {
 		gen, ok := decl.(*ast.GenDecl)
 		if !ok || gen.Tok != token.TYPE {
@@ -883,16 +891,19 @@ func (b *builder) collectTopLevelNamedFields(node *ast.File) []NamedField {
 	return out
 }
 
-func (b *builder) structFieldTypes(fields *ast.FieldList) map[string][]NamedFieldTypeDeclaration {
-	byName := map[string][]NamedFieldTypeDeclaration{}
+func (b *builder) structFieldTypes(fields *ast.FieldList) map[string]namedFieldInfo {
+	byName := map[string]namedFieldInfo{}
 	if fields == nil {
 		return byName
 	}
 	for _, field := range fields.List {
-		decls := b.namedFieldTypeDeclarations(field.Type)
+		info := namedFieldInfo{
+			ReferenceType:    b.isReferenceTypeExpr(field.Type),
+			TypeDeclarations: b.namedFieldTypeDeclarations(field.Type),
+		}
 		for _, name := range field.Names {
 			if name != nil {
-				byName[name.Name] = decls
+				byName[name.Name] = info
 			}
 		}
 	}
@@ -916,6 +927,7 @@ func (b *builder) collectNamedFields(fields *ast.FieldList, inline bool, out *[]
 			}
 			*out = append(*out, NamedField{
 				Location:         Location{pos.Filename, pos.Line, pos.Column},
+				ReferenceType:    b.isReferenceTypeExpr(field.Type),
 				TypeDeclarations: typeDeclarations,
 				Declaration:      loc,
 				Text:             name.Name,
@@ -944,10 +956,13 @@ func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]
 	if !ok {
 		return false
 	}
-	byName := map[string][]NamedFieldTypeDeclaration{}
+	byName := map[string]namedFieldInfo{}
 	for field := range st.Fields() {
 		if field != nil {
-			byName[field.Name()] = b.namedFieldTypeDeclarationsForType(field.Type())
+			byName[field.Name()] = namedFieldInfo{
+				ReferenceType:    isReferenceType(field.Type()),
+				TypeDeclarations: b.namedFieldTypeDeclarationsForType(field.Type()),
+			}
 		}
 	}
 	structTypeLoc, hasStructTypeLoc := definitionLocation{}, false
@@ -969,7 +984,7 @@ func (b *builder) collectInlineStructLiteralFields(lit *ast.CompositeLit, out *[
 	return b.collectStructLiteralFields(lit, byName, definitionLocation{}, false, out)
 }
 
-func (b *builder) collectNamedStructLiteralFields(lit *ast.CompositeLit, structFieldsByType map[string]map[string][]NamedFieldTypeDeclaration, out *[]NamedField) bool {
+func (b *builder) collectNamedStructLiteralFields(lit *ast.CompositeLit, structFieldsByType map[string]map[string]namedFieldInfo, out *[]NamedField) bool {
 	typeName, ok := compositeLiteralTypeName(lit.Type)
 	if !ok {
 		return false
@@ -993,7 +1008,7 @@ func compositeLiteralTypeName(expr ast.Expr) (string, bool) {
 	return "", false
 }
 
-func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[string][]NamedFieldTypeDeclaration, typeLoc definitionLocation, hasTypeLoc bool, out *[]NamedField) bool {
+func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[string]namedFieldInfo, typeLoc definitionLocation, hasTypeLoc bool, out *[]NamedField) bool {
 	collected := false
 	for _, elt := range lit.Elts {
 		kv, ok := elt.(*ast.KeyValueExpr)
@@ -1004,7 +1019,7 @@ func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[s
 		if !ok {
 			continue
 		}
-		decls, ok := byName[key.Name]
+		info, ok := byName[key.Name]
 		if !ok {
 			continue
 		}
@@ -1012,7 +1027,7 @@ func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[s
 		if pos.Line < 1 || pos.Column < 1 {
 			continue
 		}
-		named := NamedField{Location: Location{pos.Filename, pos.Line, pos.Column}, Text: key.Name, Inline: true, TypeDeclarations: decls}
+		named := NamedField{Location: Location{pos.Filename, pos.Line, pos.Column}, Text: key.Name, Inline: true, ReferenceType: info.ReferenceType, TypeDeclarations: info.TypeDeclarations}
 		if hasTypeLoc {
 			named.StructDecl = typeLoc
 		}
@@ -1031,6 +1046,14 @@ func (b *builder) namedFieldTypeDeclarations(expr ast.Expr) []NamedFieldTypeDecl
 		out = append(out, NamedFieldTypeDeclaration{Location: Location{loc.file, loc.line, loc.column}})
 	}
 	return out
+}
+
+func (b *builder) isReferenceTypeExpr(expr ast.Expr) bool {
+	if b.info == nil || expr == nil {
+		return false
+	}
+	tv, ok := b.info.Types[expr]
+	return ok && isReferenceType(tv.Type)
 }
 
 func (b *builder) namedFieldTypeDeclarationsForType(t types.Type) []NamedFieldTypeDeclaration {
@@ -1230,8 +1253,39 @@ func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
 	if obj := b.info.Defs[id]; obj != nil {
 		b.declByObj[obj] = decl.ID
 		b.kindByObj[obj] = kind
+		decl.ReferenceType = isReferenceType(obj.Type())
 	}
 	return decl
+}
+
+func isReferenceType(t types.Type) bool {
+	return isReferenceTypeSeen(t, map[types.Type]bool{})
+}
+
+func isReferenceTypeSeen(t types.Type, seen map[types.Type]bool) bool {
+	switch t := t.(type) {
+	case nil:
+		return false
+	case *types.Pointer, *types.Slice, *types.Map, *types.Chan, *types.Interface:
+		return true
+	case *types.Array:
+		return isReferenceTypeSeen(t.Elem(), seen)
+	case *types.Named:
+		if seen[t] {
+			return false
+		}
+		seen[t] = true
+		return isReferenceTypeSeen(t.Underlying(), seen)
+	case *types.Struct:
+		for field := range t.Fields() {
+			if field != nil && isReferenceTypeSeen(field.Type(), seen) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
 }
 
 func (b *builder) collectReferences(node ast.Node, decl *Declaration) {
@@ -1275,6 +1329,7 @@ func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, impo
 			ref.Declaration = loc
 		}
 	} else if obj := b.info.Uses[id]; obj != nil {
+		ref.ReferenceType = isReferenceType(obj.Type())
 		ref.DeclarationID = b.declByObj[obj]
 		if pkgName, ok := obj.(*types.PkgName); ok && pkgName.Imported() != nil {
 			if loc, ok := b.packageDefinitionForImportPath(pkgName.Imported().Path()); ok {

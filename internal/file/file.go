@@ -35,6 +35,7 @@ type Reference interface {
 	Location() Location
 	Text() string
 	Kind() Kind
+	ReferenceType() bool
 }
 
 type Declaration interface {
@@ -45,6 +46,7 @@ type Declaration interface {
 	Declarations() []Declaration
 	Blocks() []Block
 	Parent() Declaration
+	ReferenceType() bool
 }
 
 type ControlFlowStatement interface {
@@ -132,6 +134,7 @@ type NamedLocation interface {
 	DeclarationLocations() []Location
 	DistanceLocation() Location
 	Inline() bool
+	ReferenceType() bool
 }
 
 type Comment interface {
@@ -169,13 +172,14 @@ type location struct {
 }
 
 type declaration struct {
-	name         string
-	kind         Kind
-	location     location
-	references   []Reference
-	declarations []Declaration
-	blocks       []Block
-	parent       Declaration
+	name          string
+	kind          Kind
+	location      location
+	referenceType bool
+	references    []Reference
+	declarations  []Declaration
+	blocks        []Block
+	parent        Declaration
 }
 
 type controlFlowStatement struct {
@@ -237,11 +241,12 @@ type anonymousBlock struct {
 }
 
 type reference struct {
-	parent      Declaration
-	declaration Declaration
-	location    location
-	text        string
-	kind        Kind
+	parent        Declaration
+	declaration   Declaration
+	location      location
+	text          string
+	kind          Kind
+	referenceType bool
 }
 
 type packageReference struct {
@@ -259,6 +264,7 @@ type namedLocation struct {
 	location             location
 	text                 string
 	inline               bool
+	referenceType        bool
 	distanceLocation     *location
 	declarationLocation  *location
 	declarationLocations []Location
@@ -313,6 +319,7 @@ func (d *declaration) Declarations() []Declaration {
 }
 func (d *declaration) Blocks() []Block     { return append([]Block(nil), d.blocks...) }
 func (d *declaration) Parent() Declaration { return d.parent }
+func (d *declaration) ReferenceType() bool { return d.referenceType }
 
 func (s *controlFlowStatement) Kind() string       { return s.kind }
 func (s *controlFlowStatement) Location() Location { return s.location }
@@ -407,6 +414,7 @@ func (r *reference) Declaration() Declaration { return r.declaration }
 func (r *reference) Location() Location       { return r.location }
 func (r *reference) Text() string             { return r.text }
 func (r *reference) Kind() Kind               { return r.kind }
+func (r *reference) ReferenceType() bool      { return r.referenceType }
 
 func (r *packageReference) Package() PackageDeclaration { return r.pkg }
 
@@ -414,8 +422,9 @@ func (p *packageDeclaration) Name() string         { return p.name }
 func (p *packageDeclaration) Location() Location   { return p.location }
 func (p *packageDeclaration) Files() []Declaration { return append([]Declaration(nil), p.files...) }
 
-func (n namedLocation) Location() Location { return n.location }
-func (n namedLocation) Text() string       { return n.text }
+func (n namedLocation) Location() Location  { return n.location }
+func (n namedLocation) Text() string        { return n.text }
+func (n namedLocation) ReferenceType() bool { return n.referenceType }
 func (n namedLocation) DeclarationLocation() Location {
 	if n.declarationLocation == nil {
 		return nil
@@ -461,7 +470,7 @@ func buildNamedFields(fields []scan.NamedField) []NamedLocation {
 }
 
 func buildNamedField(field scan.NamedField) NamedLocation {
-	named := namedLocation{location: location{file: field.File, line: field.Line, column: field.Column}, text: field.Text, inline: field.Inline}
+	named := namedLocation{location: location{file: field.File, line: field.Line, column: field.Column}, text: field.Text, inline: field.Inline, referenceType: field.ReferenceType}
 	loc := field.StructDecl.Location()
 	if loc.Line > 0 && loc.Column > 0 {
 		loc := location{file: loc.File, line: loc.Line, column: loc.Column}
