@@ -3,30 +3,19 @@ package scan
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	treesitter "github.com/tree-sitter/go-tree-sitter"
 	tstypescript "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
-
-	"rat/internal/lspclient"
-	"rat/internal/tsgobin"
-)
-
-var (
-	typescriptMu      sync.Mutex
-	typescriptClients = map[string]*lspclient.Client{}
 )
 
 type typescriptBuilder struct {
 	file       string
 	source     []byte
-	client     *lspclient.Client
 	result     *Result
-	declByKey  map[string]string
 	declByNode map[uintptr]string
+	declParent map[string]string
 	declNames  map[string]struct{}
 	seenRef    map[string]struct{}
 	next       int
@@ -56,20 +45,12 @@ func buildTypeScript(file string) (*Result, error) {
 	}
 	defer tree.Close()
 
-	client, err := defaultTypeScriptLSP(languageIDForTypeScriptFile(abs))
-	if err != nil {
-		return nil, err
-	}
-	if err := client.SyncDocumentContent(abs, string(source)); err != nil {
-		return nil, err
-	}
 	b := &typescriptBuilder{
 		file:       abs,
 		source:     source,
-		client:     client,
 		result:     &Result{File: abs, Tokens: collectTypeScriptTokens(abs, source)},
-		declByKey:  map[string]string{},
 		declByNode: map[uintptr]string{},
+		declParent: map[string]string{},
 		declNames:  map[string]struct{}{},
 		seenRef:    map[string]struct{}{},
 	}
@@ -78,45 +59,6 @@ func buildTypeScript(file string) (*Result, error) {
 	b.collectDeclarations(root, nil)
 	b.collectReferences(root, nil)
 	return b.result, nil
-}
-
-func defaultTypeScriptLSP(languageID string) (*lspclient.Client, error) {
-	typescriptMu.Lock()
-	defer typescriptMu.Unlock()
-	if client := typescriptClients[languageID]; client != nil {
-		return client, nil
-	}
-	cmd := strings.TrimSpace(os.Getenv("TSGO_BIN"))
-	if cmd == "" {
-		if path, err := tsgobin.Path(); err == nil {
-			cmd = path
-		}
-	}
-	if cmd == "" {
-		if _, err := os.Stat("./tsgo"); err == nil {
-			cmd = "./tsgo"
-		}
-	}
-	if cmd == "" {
-		var err error
-		cmd, err = exec.LookPath("tsgo")
-		if err != nil {
-			return nil, fmt.Errorf("tsgo not found; set TSGO_BIN, build the embedded tsgo artifact, or include tsgo in PATH")
-		}
-	}
-	client, err := lspclient.Start(lspclient.Config{Name: "tsgo", Command: cmd, Args: []string{"--lsp", "--stdio"}, LanguageID: languageID})
-	if err != nil {
-		return nil, err
-	}
-	typescriptClients[languageID] = client
-	return client, nil
-}
-
-func languageIDForTypeScriptFile(file string) string {
-	if strings.EqualFold(filepath.Ext(file), ".tsx") {
-		return "typescriptreact"
-	}
-	return "typescript"
 }
 
 func (b *typescriptBuilder) collectCommentsAndReturns(node *treesitter.Node) {
@@ -201,8 +143,10 @@ func (b *typescriptBuilder) newDeclaration(nameNode *treesitter.Node, kind strin
 		Kind:     kind,
 		Location: Location{File: b.file, Line: int(pos.Row) + 1, Column: int(pos.Column) + 1},
 	}
-	b.declByKey[locationKey(decl.File, decl.Line, decl.Column)] = decl.ID
 	b.declNames[decl.Name] = struct{}{}
+	if parent != nil {
+		b.declParent[decl.ID] = parent.ID
+	}
 	return decl
 }
 
@@ -236,20 +180,53 @@ func (b *typescriptBuilder) addReference(node *treesitter.Node, parent *Declarat
 		return
 	}
 	b.seenRef[key] = struct{}{}
-	loc, ok, err := b.client.DefinitionInSyncedDocument(b.file, line, col)
-	if err != nil || !ok {
+	decl := b.findVisibleDeclaration(text, parent, line, col)
+	if decl == nil {
 		return
 	}
-	ref := Reference{Location: Location{File: b.file, Line: line, Column: col}, Text: text, Kind: KindVariable}
-	if id := b.declByKey[locationKey(loc.File, loc.Line, loc.Column)]; id != "" {
-		ref.DeclarationID = id
-		if decl := b.findDeclaration(id, b.result.Declarations); decl != nil {
-			ref.Kind = decl.Kind
-		}
-	} else {
-		ref.Declaration = definitionLocation{file: loc.File, line: loc.Line, column: loc.Column}
-	}
+	ref := Reference{Location: Location{File: b.file, Line: line, Column: col}, Text: text, Kind: decl.Kind, DeclarationID: decl.ID}
 	parent.References = append(parent.References, ref)
+}
+
+func (b *typescriptBuilder) findVisibleDeclaration(name string, parent *Declaration, line, col int) *Declaration {
+	var best *Declaration
+	for scope := parent; scope != nil; scope = b.parentDeclaration(scope.ID) {
+		if scope.Name == name && beforeOrAt(scope.Location, line, col) {
+			best = newerDeclaration(best, scope)
+		}
+		best = b.newerNamedChild(best, scope.Declarations, name, line, col)
+	}
+	best = b.newerNamedChild(best, b.result.Declarations, name, line, col)
+	return best
+}
+
+func (b *typescriptBuilder) parentDeclaration(id string) *Declaration {
+	parentID := b.declParent[id]
+	if parentID == "" {
+		return nil
+	}
+	return b.findDeclaration(parentID, b.result.Declarations)
+}
+
+func (b *typescriptBuilder) newerNamedChild(best *Declaration, decls []Declaration, name string, line, col int) *Declaration {
+	for i := range decls {
+		decl := &decls[i]
+		if decl.Name == name && beforeOrAt(decl.Location, line, col) {
+			best = newerDeclaration(best, decl)
+		}
+	}
+	return best
+}
+
+func newerDeclaration(best, candidate *Declaration) *Declaration {
+	if best == nil || beforeOrAt(best.Location, candidate.Line, candidate.Column) {
+		return candidate
+	}
+	return best
+}
+
+func beforeOrAt(loc Location, line, col int) bool {
+	return loc.Line < line || loc.Line == line && loc.Column <= col
 }
 
 func (b *typescriptBuilder) findDeclaration(id string, decls []Declaration) *Declaration {
@@ -299,10 +276,28 @@ func isDeclarationIdentifier(node *treesitter.Node) bool {
 	if parent == nil {
 		return false
 	}
-	name := parent.ChildByFieldName("name")
-	return name != nil && name.Id() == node.Id()
+	return fieldContainsNode(parent, "name", node) || fieldContainsNode(parent, "pattern", node)
 }
 
-func locationKey(file string, line, column int) string {
-	return fmt.Sprintf("%s:%d:%d", filepath.Clean(file), line, column)
+func fieldContainsNode(parent *treesitter.Node, field string, node *treesitter.Node) bool {
+	fieldNode := parent.ChildByFieldName(field)
+	if fieldNode == nil {
+		return false
+	}
+	return containsNode(fieldNode, node)
+}
+
+func containsNode(root *treesitter.Node, target *treesitter.Node) bool {
+	if root == nil || target == nil {
+		return false
+	}
+	if root.Id() == target.Id() {
+		return true
+	}
+	for i := uint(0); i < root.NamedChildCount(); i++ {
+		if containsNode(root.NamedChild(i), target) {
+			return true
+		}
+	}
+	return false
 }

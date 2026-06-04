@@ -35,7 +35,7 @@ Agent-maintained. Update when product behavior, architecture, data flows, comman
 - A VS Code extension in `vscode-text-semantic` that consumes spans from the local `rat` server.
 - Deployment/site support under `infra/`.
 
-Core behavior is semantic highlighting, not plain syntax highlighting. Preserve spans, declaration/reference coloring, control-flow coloring, and shared output behavior across terminal, HTTP, and VS Code consumers. Go semantic parsing uses Go AST/type information and `gopls`; TypeScript parsing uses tree-sitter plus the TypeScript LSP.
+Core behavior is semantic highlighting, not plain syntax highlighting. Preserve spans, declaration/reference coloring, control-flow coloring, and shared output behavior across terminal, HTTP, and VS Code consumers. Go semantic parsing uses Go AST/type information and `gopls`; TypeScript parsing uses tree-sitter plus same-file declaration/reference resolution.
 
 ### Key Areas
 
@@ -59,8 +59,8 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 
 - Go `1.26` per `go.mod` and `go.work`; workspace rooted via `go.work`.
 - `github.com/stretchr/testify` is replaced with `./third_party/testify`; keep unless dependency strategy changes intentionally.
-- TypeScript highlighting uses embedded `tsgo` from `github.com/microsoft/typescript-go`; `TSGO_BIN` can override the binary.
-- Node/npm are used for the VS Code extension, TypeScript LSP tooling, and Pulumi infra.
+- TypeScript highlighting uses tree-sitter plus same-file declaration/reference resolution; it does not require a TypeScript LSP server.
+- Node/npm are used for the VS Code extension and Pulumi infra.
 
 ## Commands
 
