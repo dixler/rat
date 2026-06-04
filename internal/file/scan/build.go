@@ -170,6 +170,8 @@ const (
 	BlockKindElseIf = "elseif"
 	BlockKindElse   = "else"
 	BlockKindFor    = "for"
+	BlockKindWhile  = "while"
+	BlockKindDo     = "do"
 	BlockKindSwitch = "switch"
 	BlockKindSelect = "select"
 	BlockKindCase   = "case"
@@ -186,6 +188,7 @@ const (
 	TokenKindLiteral            = "literal"
 	TokenKindPackageName        = "package-name"
 	TokenKindLoopOperator       = "loop-operator"
+	TokenKindBuiltin            = "builtin"
 )
 
 func Build(file string) (*Result, error) {
@@ -734,7 +737,7 @@ func controlFlowBlockHasTerminalStatement(block ControlFlowBlock) bool {
 
 func isTerminalControlFlowKind(kind string) bool {
 	switch kind {
-	case "return", "continue", "break", "goto", "panic":
+	case "return", "throw", "continue", "break", "goto", "panic":
 		return true
 	default:
 		return false

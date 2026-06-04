@@ -35,7 +35,9 @@ Agent-maintained. Update when product behavior, architecture, data flows, comman
 - A VS Code extension in `vscode-text-semantic` that consumes spans from the local `rat` server.
 - Deployment/site support under `infra/`.
 
-Core behavior is semantic highlighting, not plain syntax highlighting. Preserve spans, declaration/reference coloring, control-flow coloring, and shared output behavior across terminal, HTTP, and VS Code consumers. Go semantic parsing uses Go AST/type information and `gopls`; TypeScript parsing uses tree-sitter plus same-file declaration/reference resolution.
+Core behavior is semantic highlighting, not plain syntax highlighting. Preserve spans, declaration/reference coloring, control-flow coloring, and shared output behavior across terminal, HTTP, and VS Code consumers. Go semantic coloring is the baseline: when TypeScript can express the same semantic signal with tree-sitter and same-file resolution, match Go's coloring categories and control-flow treatment. Go semantic parsing uses Go AST/type information and `gopls`; TypeScript parsing uses tree-sitter plus same-file lexical declaration/reference resolution, not a TypeScript LSP.
+
+TypeScript fixtures should exercise Go fixture concepts where tree-sitter same-file resolution can support them: lexical shadowing, nested block/control-flow declarations, imports, class/interface/type members, function and method parameters, destructuring bindings, catch parameters, top-level references, comments, literals, and keyword coloring. Do not imply TypeScript currently has cross-file/package resolution, Go-style reference-type framing, named struct field analysis, indirect-call analysis, or typed return-error classification.
 
 ### Key Areas
 
@@ -59,7 +61,7 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 
 - Go `1.26` per `go.mod` and `go.work`; workspace rooted via `go.work`.
 - `github.com/stretchr/testify` is replaced with `./third_party/testify`; keep unless dependency strategy changes intentionally.
-- TypeScript highlighting uses tree-sitter plus same-file declaration/reference resolution; it does not require a TypeScript LSP server.
+- TypeScript highlighting uses tree-sitter plus same-file lexical declaration/reference resolution; it does not require a TypeScript LSP server.
 - Node/npm are used for the VS Code extension and Pulumi infra.
 
 ## Commands

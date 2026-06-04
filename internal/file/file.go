@@ -151,6 +151,7 @@ const (
 	TokenKindLiteral            TokenKind = "literal"
 	TokenKindPackageName        TokenKind = "package-name"
 	TokenKindLoopOperator       TokenKind = "loop-operator"
+	TokenKindBuiltin            TokenKind = "builtin"
 )
 
 type Token interface {

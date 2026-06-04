@@ -2,7 +2,7 @@
 
 You've seen `cat`, you've seen `bat`, but have you seen `rat`?
 
-`rat` is an experimental semantic highlighter for Go. It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
+`rat` is an experimental semantic highlighter for Go and TypeScript. It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
 
 Run it on a file:
 
@@ -32,7 +32,7 @@ The harder questions are usually semantic:
 
 ## Semantic Highlighting Behavior
 
-`rat` colors Go code by what each token means, not just by what kind of token it is. It asks questions like:
+`rat` colors Go and TypeScript code by what each token means, not just by what kind of token it is. It asks questions like:
 
 - Where was this name declared?
 - Is this value local, project-level, or external?
@@ -40,6 +40,8 @@ The harder questions are usually semantic:
 - Is this call direct, or does the target depend on runtime dispatch?
 
 The CLI, HTML output, HTTP API, and VS Code extension all use the same span engine, so they should show the same highlighting decisions.
+
+Go highlighting uses Go AST/type information plus `gopls` where needed. TypeScript highlighting uses tree-sitter and same-file lexical declaration/reference resolution; it does not require a TypeScript LSP server and does not currently resolve declarations across TypeScript files or packages.
 
 ### Relationship Colors
 
@@ -67,6 +69,8 @@ Declarations use an inverted/background style so definitions stand out from uses
 - Other declarations fall back to their kind style: type, variable, parameter, function, package, or file.
 
 References to locally declared functions are treated as same-function or same-file references according to their declaration relationship, not as a separate function color.
+
+TypeScript declarations include functions, classes, interfaces, type aliases, enums, imports, class/interface members, simple variable declarations, destructuring bindings, function/method parameters, catch parameters, and loop bindings. TypeScript member/property reads such as `reader.read` are not treated as local identifier references unless the property itself is declared in the visible lexical scope.
 
 ### Reference-Like Types
 
@@ -216,12 +220,14 @@ Print ANSI-colored output:
 
 ```bash
 rat path/to/file.go
+rat path/to/file.ts
 ```
 
 Generate HTML:
 
 ```bash
 rat -format html path/to/file.go
+rat -format html path/to/file.ts
 ```
 
 Run the local HTTP server used by the VS Code extension:
@@ -235,6 +241,8 @@ The server accepts `POST /spans`:
 ```json
 { "path": "/absolute/path/to/file.go" }
 ```
+
+The path may point to a supported Go, TypeScript, or TSX source file.
 
 It returns flattened JSON spans grouped by 1-based line number:
 

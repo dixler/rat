@@ -169,7 +169,7 @@ func buildBlock(raw scan.ControlFlowBlock) Block {
 		return buildIfBlock(raw)
 	case scan.BlockKindElseIf, scan.BlockKindElse:
 		return &anonymousBlock{blockBase: blockBase}
-	case scan.BlockKindFor:
+	case scan.BlockKindFor, scan.BlockKindWhile, scan.BlockKindDo:
 		return &loopBlock{blockBase: blockBase, kind: raw.Kind, mayBreak: raw.MayBreak, mayReturn: raw.MayReturn}
 	case scan.BlockKindSwitch, scan.BlockKindSelect:
 		return &switchBlock{blockBase: blockBase, kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}

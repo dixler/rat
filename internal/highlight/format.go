@@ -428,6 +428,7 @@ func collectControlFlowMarks(f file.File) []controlFlowMark {
 	for _, decl := range f.Declarations() {
 		collectDeclarationControlFlowMarks(decl, &marks)
 	}
+	marks = compactControlFlowMarks(marks)
 	sort.Slice(marks, func(i, j int) bool {
 		if marks[i].loc.Line() != marks[j].loc.Line() {
 			return marks[i].loc.Line() < marks[j].loc.Line()
@@ -435,6 +436,28 @@ func collectControlFlowMarks(f file.File) []controlFlowMark {
 		return marks[i].loc.Column() < marks[j].loc.Column()
 	})
 	return marks
+}
+
+func compactControlFlowMarks(marks []controlFlowMark) []controlFlowMark {
+	out := marks[:0]
+	for _, mark := range marks {
+		if validLocation(mark.loc) {
+			out = append(out, mark)
+		}
+	}
+	return out
+}
+
+func validLocation(loc file.Location) (ok bool) {
+	if loc == nil {
+		return false
+	}
+	defer func() {
+		if recover() != nil {
+			ok = false
+		}
+	}()
+	return loc.Line() > 0 && loc.Column() > 0
 }
 
 func newControlFlowMark(loc file.Location, text string, style display.Style) controlFlowMark {
@@ -528,7 +551,7 @@ func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
 				*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
 			}
 			switch stmt.Kind() {
-			case "return":
+			case "return", "throw":
 				color := blue
 				if stmt.ReturnsError() {
 					color = plain
@@ -560,10 +583,10 @@ func appendBraceMarks(marks *[]controlFlowMark, open, close file.Location, style
 	if marks == nil || style == nil {
 		return
 	}
-	if open != nil {
+	if validLocation(open) {
 		*marks = append(*marks, newControlFlowMark(open, "{", style))
 	}
-	if close != nil {
+	if validLocation(close) {
 		*marks = append(*marks, newControlFlowMark(close, "}", style))
 	}
 }
@@ -613,6 +636,7 @@ var tokenKindStyles = map[file.TokenKind]display.Style{
 	file.TokenKindEscapeKeyword:      display.LightRed,
 	file.TokenKindLiteral:            display.LightPink,
 	file.TokenKindPackageName:        _relationStyles[_relSamePackage],
+	file.TokenKindBuiltin:            display.MutedOrange,
 }
 
 func collectLexicalTokenSpans(out map[int][]Span, sourceLines []string, tokens []file.Token, loopStyles map[string]display.Style) {
