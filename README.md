@@ -106,7 +106,7 @@ Top-level and non-inline struct field declarations are inverted. Inline struct l
 
 Control-flow colors show whether a block can affect how execution leaves that block. Matching braces for recognized blocks get the same color as the block keyword.
 
-For `if`, `else if`, and `else` branches:
+For `if`, `else if`, and `else` branches and `case` and `default` branches:
 
 - Muted orange: branch contains terminal control flow: `return`, `continue`, `break`, `goto`, or `panic`.
 - Blue: no terminal control-flow statement was found in that branch.
@@ -121,9 +121,6 @@ For `switch`, type `switch`, and `select`:
 
 - Green: the block has a `default` clause, so `rat` treats it as exhaustive.
 - Muted orange: no `default` clause was found.
-- `default` clauses are green.
-- Ordinary `case` and communication clauses are muted orange.
-- `case` clauses containing direct `fallthrough` are blue.
 
 For control-flow statements:
 

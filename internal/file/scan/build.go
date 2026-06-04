@@ -35,11 +35,16 @@ func Build(file string) (*Result, error) {
 	if scanner == nil {
 		return nil, fmt.Errorf("unsupported file type %q", filepath.Ext(file))
 	}
-	return scanner.Build(file)
+	result, err := scanner.Build(file)
+	if result != nil && len(result.Nodes) == 0 {
+		result.Nodes = BuildNodes(result)
+	}
+	return result, err
 }
 
 type Result struct {
 	File              string
+	Nodes             []Node
 	Declarations      []Declaration
 	PackageReferences []PackageReference
 	Packages          []Package
@@ -48,6 +53,79 @@ type Result struct {
 	IndirectCalls     []IndirectCall
 	Comments          []Comment
 	Tokens            []Token
+}
+
+type Span struct {
+	Line   int
+	Column int
+	Length int
+}
+
+type Node interface {
+	Spans() []Span
+}
+
+type IdentRole int
+
+const (
+	IdentRoleDeclaration IdentRole = iota + 1
+	IdentRoleReference
+)
+
+type IdentNode struct {
+	Span          Span
+	Role          IdentRole
+	Kind          string
+	Escapes       bool
+	ReferenceType bool
+}
+
+func (n IdentNode) Spans() []Span { return oneSpan(n.Span) }
+
+type CondNode struct {
+	NodeSpans []Span
+	IsGuard   bool
+}
+
+func (n CondNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type MatchNode struct {
+	NodeSpans  []Span
+	HasDefault bool
+}
+
+func (n MatchNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type LoopNode struct {
+	NodeSpans []Span
+	HasExit   bool
+}
+
+func (n LoopNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type JumpKind int
+
+const (
+	JumpKindExit JumpKind = iota + 1
+	JumpKindErrorExit
+	JumpKindContinue
+	JumpKindBreak
+	JumpKindEscape
+	JumpKindFallthrough
+)
+
+type JumpNode struct {
+	Span Span
+	Kind JumpKind
+}
+
+func (n JumpNode) Spans() []Span { return oneSpan(n.Span) }
+
+func oneSpan(span Span) []Span {
+	if span.Line < 1 || span.Column < 1 || span.Length < 1 {
+		return nil
+	}
+	return []Span{span}
 }
 
 type Location struct {

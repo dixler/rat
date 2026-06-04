@@ -167,6 +167,7 @@ type File interface {
 	Name() string
 	Source() string
 	Tree() Declaration
+	Nodes() []scan.Node
 	PackageReferences() []PackageReference
 	Declarations() []Declaration
 	Returns() []Location
@@ -179,6 +180,7 @@ type file struct {
 	name          string
 	source        string
 	root          *declaration
+	nodes         []scan.Node
 	packageRefs   []PackageReference
 	decls         []Declaration
 	namedFields   []NamedLocation
@@ -327,9 +329,10 @@ func New(name string) (File, error) {
 	return buildTree(abs, string(src), raw)
 }
 
-func (f *file) Name() string      { return f.name }
-func (f *file) Source() string    { return f.source }
-func (f *file) Tree() Declaration { return f.root }
+func (f *file) Name() string       { return f.name }
+func (f *file) Source() string     { return f.source }
+func (f *file) Tree() Declaration  { return f.root }
+func (f *file) Nodes() []scan.Node { return append([]scan.Node(nil), f.nodes...) }
 func (f *file) PackageReferences() []PackageReference {
 	return append([]PackageReference(nil), f.packageRefs...)
 }

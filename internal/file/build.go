@@ -81,6 +81,7 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		name:          abs,
 		source:        src,
 		root:          root,
+		nodes:         append([]scan.Node(nil), raw.Nodes...),
 		packageRefs:   pkgRefs,
 		decls:         decls,
 		namedFields:   buildNamedFields(raw.NamedFields),
