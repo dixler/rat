@@ -110,9 +110,17 @@ func buildTypeScript(file string) (*Result, error) {
 		defsByPos:   map[string]definitionLocation{},
 	}
 	b.rootScope = &typescriptScope{}
+	if b.client != nil {
+		defer b.client.Close()
+	}
 	root := tree.RootNode()
 	b.collectCommentsAndReturns(root)
 	b.collectDeclarations(root, nil, b.rootScope)
+	if b.client != nil {
+		if err := b.client.SyncDocument(abs); err != nil {
+			b.client = nil
+		}
+	}
 	b.collectReferences(root, nil, b.rootScope)
 	b.collectControlFlow(root)
 	return b.result, nil
@@ -511,7 +519,7 @@ func (b *typescriptBuilder) collectReferences(node *treesitter.Node, parent *Dec
 	if declID := b.declByNode[node.Id()]; declID != "" {
 		parent = b.findDeclaration(declID, b.result.Declarations)
 	}
-	if isIdentifierNode(node) && !isDeclarationIdentifier(node) && !isPropertyReferenceIdentifier(node) {
+	if isIdentifierNode(node) && !isDeclarationIdentifier(node) && !isObjectLiteralKeyIdentifier(node) {
 		b.addReference(node, parent, scope)
 	}
 	for i := uint(0); i < node.NamedChildCount(); i++ {
@@ -526,9 +534,6 @@ func (b *typescriptBuilder) addReference(node *treesitter.Node, parent *Declarat
 	}
 	_, knownDeclarationName := b.declNames[text]
 	_, knownBuiltinName := builtinNames[text]
-	if !knownDeclarationName && !knownBuiltinName {
-		return
-	}
 	pos := node.StartPosition()
 	line, col := int(pos.Row)+1, int(pos.Column)+1
 	key := fmt.Sprintf("%d:%d:%s", line, col, text)
@@ -536,12 +541,18 @@ func (b *typescriptBuilder) addReference(node *treesitter.Node, parent *Declarat
 		return
 	}
 	b.seenRef[key] = struct{}{}
+	if b.addLSPReference(node, parent, text, line, col) {
+		return
+	}
 	decl := b.findVisibleDeclaration(text, scope, line, col)
 	if decl == nil && knownBuiltinName {
 		b.addBuiltinReference(parent, text, line, col)
 		return
 	}
 	if decl == nil {
+		if !knownDeclarationName {
+			return
+		}
 		return
 	}
 	if parent == nil {
@@ -549,6 +560,35 @@ func (b *typescriptBuilder) addReference(node *treesitter.Node, parent *Declarat
 	}
 	ref := Reference{Location: Location{File: b.file, Line: line, Column: col}, Text: text, Kind: decl.Kind, DeclarationID: decl.ID}
 	parent.References = append(parent.References, ref)
+}
+
+func (b *typescriptBuilder) addLSPReference(node *treesitter.Node, parent *Declaration, text string, line, col int) bool {
+	loc, ok := b.definitionForNode(node)
+	if !ok {
+		return false
+	}
+	if decl := b.findDeclarationAt(text, loc, b.result.Declarations); decl != nil {
+		if parent == nil {
+			parent = decl
+		}
+		parent.References = append(parent.References, Reference{
+			Location:      Location{File: b.file, Line: line, Column: col},
+			Text:          text,
+			Kind:          decl.Kind,
+			DeclarationID: decl.ID,
+		})
+		return true
+	}
+	if parent == nil {
+		return false
+	}
+	parent.References = append(parent.References, Reference{
+		Location:    Location{File: b.file, Line: line, Column: col},
+		Text:        text,
+		Kind:        referenceKindForNode(node),
+		Declaration: loc,
+	})
+	return true
 }
 
 func (b *typescriptBuilder) addBuiltinReference(parent *Declaration, text string, line, col int) {
@@ -601,6 +641,19 @@ func (b *typescriptBuilder) findDeclaration(id string, decls []Declaration) *Dec
 			return &decls[i]
 		}
 		if found := b.findDeclaration(id, decls[i].Declarations); found != nil {
+			return found
+		}
+	}
+	return nil
+}
+
+func (b *typescriptBuilder) findDeclarationAt(name string, loc definitionLocation, decls []Declaration) *Declaration {
+	for i := range decls {
+		decl := &decls[i]
+		if decl.Name == name && decl.File == loc.File && decl.Line == loc.Line && decl.Column == loc.Column {
+			return decl
+		}
+		if found := b.findDeclarationAt(name, loc, decl.Declarations); found != nil {
 			return found
 		}
 	}
@@ -796,16 +849,40 @@ func nodeFieldHasID(node *treesitter.Node, field string, id uintptr) bool {
 	return fieldNode != nil && fieldNode.Id() == id
 }
 
-func isPropertyReferenceIdentifier(node *treesitter.Node) bool {
+func isObjectLiteralKeyIdentifier(node *treesitter.Node) bool {
 	parent := node.Parent()
 	if parent == nil {
 		return false
 	}
 	switch parent.Kind() {
-	case "member_expression", "subscript_expression":
-		return nodeFieldHasID(parent, "property", node.Id())
 	case "pair", "property_assignment":
 		return nodeFieldHasID(parent, "key", node.Id())
+	}
+	return false
+}
+
+func referenceKindForNode(node *treesitter.Node) string {
+	if isCallTargetIdentifier(node) {
+		return KindFunction
+	}
+	return KindVariable
+}
+
+func isCallTargetIdentifier(node *treesitter.Node) bool {
+	for curr := node; curr != nil; curr = curr.Parent() {
+		parent := curr.Parent()
+		if parent == nil {
+			return false
+		}
+		if parent.Kind() == "call_expression" {
+			return nodeFieldHasID(parent, "function", curr.Id())
+		}
+		switch parent.Kind() {
+		case "member_expression", "subscript_expression", "chain_expression", "parenthesized_expression", "non_null_expression":
+			continue
+		default:
+			return false
+		}
 	}
 	return false
 }

@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 type Location struct {
@@ -22,10 +23,11 @@ type Location struct {
 }
 
 type Config struct {
-	Name       string
-	Command    string
-	Args       []string
-	LanguageID string
+	Name           string
+	Command        string
+	Args           []string
+	LanguageID     string
+	RequestTimeout time.Duration
 }
 
 type Client struct {
@@ -33,10 +35,14 @@ type Client struct {
 	languageID string
 	stdin      io.WriteCloser
 	stdout     *bufio.Reader
+	stdoutPipe io.Closer
+	cmd        *exec.Cmd
+	timeout    time.Duration
 
-	mu     sync.Mutex
-	nextID int
-	opened map[string]openDocument
+	mu        sync.Mutex
+	closeOnce sync.Once
+	nextID    int
+	opened    map[string]openDocument
 }
 
 type openDocument struct {
@@ -50,6 +56,10 @@ func Start(config Config) (*Client, error) {
 	}
 	if strings.TrimSpace(config.LanguageID) == "" {
 		return nil, fmt.Errorf("missing LSP language id")
+	}
+	timeout := config.RequestTimeout
+	if timeout == 0 {
+		timeout = 5 * time.Second
 	}
 	name := strings.TrimSpace(config.Name)
 	if name == "" {
@@ -68,13 +78,26 @@ func Start(config Config) (*Client, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	c := &Client{name: name, languageID: config.LanguageID, stdin: stdin, stdout: bufio.NewReader(stdout), opened: map[string]openDocument{}}
+	c := &Client{name: name, languageID: config.LanguageID, stdin: stdin, stdout: bufio.NewReader(stdout), stdoutPipe: stdout, cmd: cmd, timeout: timeout, opened: map[string]openDocument{}}
 	if err := c.initialize(); err != nil {
-		_ = cmd.Process.Kill()
-		_ = cmd.Wait()
+		_ = c.Close()
 		return nil, err
 	}
 	return c, nil
+}
+
+func (c *Client) Close() error {
+	c.closeOnce.Do(func() {
+		_ = c.stdin.Close()
+		if c.stdoutPipe != nil {
+			_ = c.stdoutPipe.Close()
+		}
+		if c.cmd != nil && c.cmd.Process != nil {
+			_ = c.cmd.Process.Kill()
+			_ = c.cmd.Wait()
+		}
+	})
+	return nil
 }
 
 func (c *Client) initialize() error {
@@ -190,6 +213,25 @@ func (c *Client) SyncDocumentContent(file, content string) error {
 }
 
 func (c *Client) request(method string, params any) (json.RawMessage, error) {
+	type response struct {
+		result json.RawMessage
+		err    error
+	}
+	done := make(chan response, 1)
+	go func() {
+		result, err := c.requestBlocking(method, params)
+		done <- response{result: result, err: err}
+	}()
+	select {
+	case response := <-done:
+		return response.result, response.err
+	case <-time.After(c.timeout):
+		_ = c.Close()
+		return nil, fmt.Errorf("%s %s timed out after %s", c.name, method, c.timeout)
+	}
+}
+
+func (c *Client) requestBlocking(method string, params any) (json.RawMessage, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.nextID++
@@ -203,7 +245,7 @@ func (c *Client) request(method string, params any) (json.RawMessage, error) {
 			return nil, err
 		}
 		var envelope struct {
-			ID     *int            `json:"id"`
+			ID     json.RawMessage `json:"id"`
 			Method string          `json:"method"`
 			Result json.RawMessage `json:"result"`
 			Error  *struct {
@@ -214,7 +256,12 @@ func (c *Client) request(method string, params any) (json.RawMessage, error) {
 		if err := json.Unmarshal(msg, &envelope); err != nil {
 			return nil, err
 		}
-		if envelope.ID == nil || *envelope.ID != id {
+		if !matchesResponseID(envelope.ID, id) {
+			if isServerRequest(envelope.ID, envelope.Method) {
+				if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "id": envelope.ID, "result": serverRequestResult(envelope.Method)}); err != nil {
+					return nil, err
+				}
+			}
 			continue
 		}
 		if envelope.Error != nil {
@@ -222,6 +269,32 @@ func (c *Client) request(method string, params any) (json.RawMessage, error) {
 		}
 		return envelope.Result, nil
 	}
+}
+
+func isServerRequest(id json.RawMessage, method string) bool {
+	return len(id) > 0 && method != ""
+}
+
+func serverRequestResult(method string) any {
+	if method == "workspace/configuration" {
+		return []any{}
+	}
+	return nil
+}
+
+func matchesResponseID(raw json.RawMessage, id int) bool {
+	if len(raw) == 0 {
+		return false
+	}
+	var numericID int
+	if err := json.Unmarshal(raw, &numericID); err == nil {
+		return numericID == id
+	}
+	var stringID string
+	if err := json.Unmarshal(raw, &stringID); err == nil {
+		return stringID == strconv.Itoa(id)
+	}
+	return false
 }
 
 func (c *Client) notify(method string, params any) error {
@@ -275,23 +348,21 @@ func parseDefinition(raw json.RawMessage) (Location, bool, error) {
 	if len(raw) == 0 || string(raw) == "null" {
 		return Location{}, false, nil
 	}
+	type lspPosition struct {
+		Line      int `json:"line"`
+		Character int `json:"character"`
+	}
+	type lspRange struct {
+		Start lspPosition `json:"start"`
+	}
 	type lspLocation struct {
-		URI   string `json:"uri"`
-		Range struct {
-			Start struct {
-				Line      int `json:"line"`
-				Character int `json:"character"`
-			} `json:"start"`
-		} `json:"range"`
+		URI   string   `json:"uri"`
+		Range lspRange `json:"range"`
 	}
 	type lspLocationLink struct {
-		TargetURI   string `json:"targetUri"`
-		TargetRange struct {
-			Start struct {
-				Line      int `json:"line"`
-				Character int `json:"character"`
-			} `json:"start"`
-		} `json:"targetRange"`
+		TargetURI            string    `json:"targetUri"`
+		TargetRange          lspRange  `json:"targetRange"`
+		TargetSelectionRange *lspRange `json:"targetSelectionRange"`
 	}
 	var one lspLocation
 	if err := json.Unmarshal(raw, &one); err == nil && one.URI != "" {
@@ -303,7 +374,11 @@ func parseDefinition(raw json.RawMessage) (Location, bool, error) {
 	}
 	var links []lspLocationLink
 	if err := json.Unmarshal(raw, &links); err == nil && len(links) > 0 && links[0].TargetURI != "" {
-		return Location{File: fromURI(links[0].TargetURI), Line: links[0].TargetRange.Start.Line + 1, Column: links[0].TargetRange.Start.Character + 1}, true, nil
+		rangeStart := links[0].TargetRange.Start
+		if links[0].TargetSelectionRange != nil {
+			rangeStart = links[0].TargetSelectionRange.Start
+		}
+		return Location{File: fromURI(links[0].TargetURI), Line: rangeStart.Line + 1, Column: rangeStart.Character + 1}, true, nil
 	}
 	return Location{}, false, fmt.Errorf("unsupported LSP definition response")
 }

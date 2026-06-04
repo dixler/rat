@@ -2,17 +2,19 @@ package typescript
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"rat/internal/file/scan"
 	"rat/internal/lspclient"
+	"rat/internal/tsgobin"
+
+	treesitter "github.com/tree-sitter/go-tree-sitter"
 )
 
 func defaultLSPClient(file string) *lspclient.Client {
-	command := strings.TrimSpace(os.Getenv("RAT_TYPESCRIPT_LSP"))
-	if command == "" {
+	command, err := tsgobin.Path()
+	if err != nil {
 		return nil
 	}
 	languageID := "typescript"
@@ -23,7 +25,7 @@ func defaultLSPClient(file string) *lspclient.Client {
 	client, err := lspclient.Start(lspclient.Config{
 		Name:       "typescript",
 		Command:    command,
-		Args:       strings.Fields(os.Getenv("RAT_TYPESCRIPT_LSP_ARGS")),
+		Args:       []string{"--lsp", "--stdio"},
 		LanguageID: languageID,
 	})
 	if err != nil {
@@ -41,7 +43,7 @@ func (b *typescriptBuilder) definitionFor(line, column int) (definitionLocation,
 		b.defsByPos[key] = definitionLocation{}
 		return definitionLocation{}, false
 	}
-	target, ok, err := b.client.Definition(b.file, line, column)
+	target, ok, err := b.client.DefinitionInSyncedDocument(b.file, line, column)
 	if err != nil || !ok {
 		b.defsByPos[key] = definitionLocation{}
 		return definitionLocation{}, false
@@ -49,4 +51,26 @@ func (b *typescriptBuilder) definitionFor(line, column int) (definitionLocation,
 	loc := scan.NewDefinitionLocation(target.File, target.Line, target.Column)
 	b.defsByPos[key] = loc
 	return loc, loc.OK
+}
+
+func (b *typescriptBuilder) definitionForNode(node *treesitter.Node) (definitionLocation, bool) {
+	if node == nil {
+		return definitionLocation{}, false
+	}
+	start := node.StartPosition()
+	end := node.EndPosition()
+	line := int(start.Row) + 1
+	startCol := int(start.Column) + 1
+	if loc, ok := b.definitionFor(line, startCol); ok {
+		return loc, true
+	}
+	if start.Row != end.Row {
+		return definitionLocation{}, false
+	}
+	for col := startCol + 1; col <= int(end.Column); col++ {
+		if loc, ok := b.definitionFor(line, col); ok {
+			return loc, true
+		}
+	}
+	return definitionLocation{}, false
 }

@@ -41,7 +41,7 @@ The harder questions are usually semantic:
 
 The CLI, HTML output, HTTP API, and VS Code extension all use the same span engine, so they should show the same highlighting decisions.
 
-Go highlighting uses Go AST/type information plus `gopls` where needed. TypeScript highlighting uses tree-sitter and same-file lexical declaration/reference resolution; it does not require a TypeScript LSP server and does not currently resolve declarations across TypeScript files or packages.
+Go highlighting uses Go AST/type information plus `gopls` where needed. TypeScript highlighting uses tree-sitter and same-file lexical declaration/reference resolution; unresolved references fall back to definition lookup through the embedded TypeScript LSP server.
 
 ### Relationship Colors
 
@@ -70,7 +70,7 @@ Declarations use an inverted/background style so definitions stand out from uses
 
 References to locally declared functions are treated as same-function or same-file references according to their declaration relationship, not as a separate function color.
 
-TypeScript declarations include functions, classes, interfaces, type aliases, enums, imports, class/interface members, simple variable declarations, destructuring bindings, function/method parameters, catch parameters, and loop bindings. TypeScript member/property reads such as `reader.read` are not treated as local identifier references unless the property itself is declared in the visible lexical scope.
+TypeScript declarations include functions, classes, interfaces, type aliases, enums, imports, class/interface members, simple variable declarations, destructuring bindings, function/method parameters, catch parameters, and loop bindings. TypeScript member/property reads such as `reader.read` are colored when same-file lexical resolution or the embedded TypeScript LSP definition fallback can resolve the property.
 
 ### Reference-Like Types
 
