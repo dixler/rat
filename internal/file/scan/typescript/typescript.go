@@ -1,4 +1,4 @@
-package scan
+package typescript
 
 import (
 	"fmt"
@@ -6,9 +6,54 @@ import (
 	"path/filepath"
 	"strings"
 
+	"rat/internal/file/scan"
+	"rat/internal/lspclient"
+
 	treesitter "github.com/tree-sitter/go-tree-sitter"
 	tstypescript "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
 )
+
+type Result = scan.Result
+type Location = scan.Location
+type Comment = scan.Comment
+type Token = scan.Token
+type Return = scan.Return
+type Declaration = scan.Declaration
+type ControlFlowStatement = scan.ControlFlowStatement
+type ControlFlowBlock = scan.ControlFlowBlock
+type Reference = scan.Reference
+type NamedFieldTypeDeclaration = scan.NamedFieldTypeDeclaration
+type definitionLocation = scan.DefinitionLocation
+
+const (
+	KindType      = scan.KindType
+	KindVariable  = scan.KindVariable
+	KindParameter = scan.KindParameter
+	KindFunction  = scan.KindFunction
+
+	BlockKindBase    = scan.BlockKindBase
+	BlockKindIf      = scan.BlockKindIf
+	BlockKindElseIf  = scan.BlockKindElseIf
+	BlockKindElse    = scan.BlockKindElse
+	BlockKindFor     = scan.BlockKindFor
+	BlockKindWhile   = scan.BlockKindWhile
+	BlockKindDo      = scan.BlockKindDo
+	BlockKindSwitch  = scan.BlockKindSwitch
+	BlockKindCase    = scan.BlockKindCase
+	BlockKindTry     = scan.BlockKindTry
+	BlockKindCatch   = scan.BlockKindCatch
+	BlockKindFinally = scan.BlockKindFinally
+)
+
+type Scanner struct{}
+
+func init() {
+	scan.Register(Scanner{})
+}
+
+func (Scanner) Extensions() []string { return []string{".ts", ".tsx", ".js", ".jsx"} }
+
+func (Scanner) Build(file string) (*scan.Result, error) { return buildTypeScript(file) }
 
 type typescriptBuilder struct {
 	file        string
@@ -19,6 +64,8 @@ type typescriptBuilder struct {
 	declNames   map[string]struct{}
 	seenRef     map[string]struct{}
 	rootScope   *typescriptScope
+	client      *lspclient.Client
+	defsByPos   map[string]definitionLocation
 	next        int
 }
 
@@ -54,11 +101,13 @@ func buildTypeScript(file string) (*Result, error) {
 	b := &typescriptBuilder{
 		file:        abs,
 		source:      source,
-		result:      &Result{File: abs, Tokens: collectTypeScriptTokens(abs, source)},
+		result:      &Result{File: abs, Tokens: collectTypeScriptTokens(abs, source, tree.RootNode())},
 		declByNode:  map[uintptr]string{},
 		scopeByNode: map[uintptr]*typescriptScope{},
 		declNames:   map[string]struct{}{},
 		seenRef:     map[string]struct{}{},
+		client:      defaultLSPClient(abs),
+		defsByPos:   map[string]definitionLocation{},
 	}
 	b.rootScope = &typescriptScope{}
 	root := tree.RootNode()
@@ -141,6 +190,8 @@ func (b *typescriptBuilder) buildTypeScriptBlock(node *treesitter.Node) (Control
 		return b.buildTypeScriptLoopBlock(node, BlockKindDo), true
 	case "switch_statement":
 		return b.buildTypeScriptSwitchBlock(node), true
+	case "try_statement":
+		return b.buildTypeScriptTryBlock(node), true
 	default:
 		statements := b.collectTypeScriptControlFlowStatements(node)
 		blocks := b.buildTypeScriptBlocks(node)
@@ -151,6 +202,41 @@ func (b *typescriptBuilder) buildTypeScriptBlock(node *treesitter.Node) (Control
 		block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 		return block, true
 	}
+}
+
+func (b *typescriptBuilder) buildTypeScriptTryBlock(node *treesitter.Node) ControlFlowBlock {
+	body := firstChildKind(node, "statement_block")
+	block := ControlFlowBlock{Kind: BlockKindTry, Location: b.nodeLocation(node), IfChainID: b.tryChainID(node), IfStep: 0}
+	b.setTypeScriptBlockBraces(&block, body)
+	block.Statements = b.collectTypeScriptControlFlowStatements(body)
+	block.Blocks = b.buildTypeScriptBlocks(body)
+	step := 1
+	for i := uint(0); i < node.NamedChildCount(); i++ {
+		child := node.NamedChild(i)
+		if child == nil {
+			continue
+		}
+		switch child.Kind() {
+		case "catch_clause":
+			block.Blocks = append(block.Blocks, b.buildTypeScriptTryBranch(child, BlockKindCatch, block.IfChainID, step))
+			step++
+		case "finally_clause":
+			block.Blocks = append(block.Blocks, b.buildTypeScriptTryBranch(child, BlockKindFinally, block.IfChainID, step))
+			step++
+		}
+	}
+	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	return block
+}
+
+func (b *typescriptBuilder) buildTypeScriptTryBranch(node *treesitter.Node, kind, chainID string, step int) ControlFlowBlock {
+	body := firstChildKind(node, "statement_block")
+	block := ControlFlowBlock{Kind: kind, Location: b.nodeLocation(node), IfChainID: chainID, IfStep: step}
+	b.setTypeScriptBlockBraces(&block, body)
+	block.Statements = b.collectTypeScriptControlFlowStatements(body)
+	block.Blocks = b.buildTypeScriptBlocks(body)
+	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	return block
 }
 
 func (b *typescriptBuilder) buildTypeScriptIfBlock(node *treesitter.Node, kind, chainID string, step int) ControlFlowBlock {
@@ -268,6 +354,11 @@ func (b *typescriptBuilder) nodeLocation(node *treesitter.Node) Location {
 func (b *typescriptBuilder) ifChainID(node *treesitter.Node) string {
 	loc := b.nodeLocation(node)
 	return fmt.Sprintf("ts-if:%d:%d", loc.Line, loc.Column)
+}
+
+func (b *typescriptBuilder) tryChainID(node *treesitter.Node) string {
+	loc := b.nodeLocation(node)
+	return fmt.Sprintf("ts-try:%d:%d", loc.Line, loc.Column)
 }
 
 func (b *typescriptBuilder) collectDeclarations(node *treesitter.Node, parent *Declaration, scope *typescriptScope) {
@@ -433,7 +524,9 @@ func (b *typescriptBuilder) addReference(node *treesitter.Node, parent *Declarat
 	if text == "" {
 		return
 	}
-	if _, ok := b.declNames[text]; !ok {
+	_, knownDeclarationName := b.declNames[text]
+	_, knownBuiltinName := builtinNames[text]
+	if !knownDeclarationName && !knownBuiltinName {
 		return
 	}
 	pos := node.StartPosition()
@@ -444,6 +537,10 @@ func (b *typescriptBuilder) addReference(node *treesitter.Node, parent *Declarat
 	}
 	b.seenRef[key] = struct{}{}
 	decl := b.findVisibleDeclaration(text, scope, line, col)
+	if decl == nil && knownBuiltinName {
+		b.addBuiltinReference(parent, text, line, col)
+		return
+	}
 	if decl == nil {
 		return
 	}
@@ -451,6 +548,23 @@ func (b *typescriptBuilder) addReference(node *treesitter.Node, parent *Declarat
 		parent = decl
 	}
 	ref := Reference{Location: Location{File: b.file, Line: line, Column: col}, Text: text, Kind: decl.Kind, DeclarationID: decl.ID}
+	parent.References = append(parent.References, ref)
+}
+
+func (b *typescriptBuilder) addBuiltinReference(parent *Declaration, text string, line, col int) {
+	if parent == nil {
+		return
+	}
+	decl := scan.BuiltinDefinitionLocation("typescript")
+	if loc, ok := b.definitionFor(line, col); ok {
+		decl = loc
+	}
+	ref := Reference{
+		Location:    Location{File: b.file, Line: line, Column: col},
+		Text:        text,
+		Kind:        KindVariable,
+		Declaration: decl,
+	}
 	parent.References = append(parent.References, ref)
 }
 
@@ -514,6 +628,19 @@ func firstIdentifier(node *treesitter.Node) *treesitter.Node {
 	for i := uint(0); i < node.NamedChildCount(); i++ {
 		if found := firstIdentifier(node.NamedChild(i)); found != nil {
 			return found
+		}
+	}
+	return nil
+}
+
+func firstChildKind(node *treesitter.Node, kind string) *treesitter.Node {
+	if node == nil {
+		return nil
+	}
+	for i := uint(0); i < node.NamedChildCount(); i++ {
+		child := node.NamedChild(i)
+		if child != nil && child.Kind() == kind {
+			return child
 		}
 	}
 	return nil

@@ -2,13 +2,13 @@ package highlight
 
 import (
 	"fmt"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"rat/internal/display"
 	"rat/internal/file"
+	"rat/internal/file/scan"
 )
 
 type relation string
@@ -270,8 +270,7 @@ func packageDeclarationStyle(root string, target interface{ Location() file.Loca
 }
 
 func isBuiltin(target file.Declaration) bool {
-	p := path.Clean(target.Location().File())
-	return p == "" || strings.Contains(p, "/src/builtin")
+	return scan.IsBuiltinFile(target.Location().File())
 }
 
 func sameFunction(left, right file.Declaration) bool {
@@ -738,8 +737,7 @@ func isBuiltinLocation(loc file.Location) bool {
 	if loc == nil {
 		return false
 	}
-	p := path.Clean(loc.File())
-	return p == "" || strings.Contains(p, "/src/builtin")
+	return scan.IsBuiltinFile(loc.File())
 }
 
 func sameFileLocation(left, right file.Location) bool {

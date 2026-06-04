@@ -164,16 +164,16 @@ func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
 
 func buildBlock(raw scan.ControlFlowBlock) Block {
 	blockBase := buildBlockBase(raw)
-	switch raw.Kind {
-	case scan.BlockKindIf:
+	switch scan.BlockConstructKind(raw.Kind) {
+	case scan.ConstructKindBranch:
 		return buildIfBlock(raw)
-	case scan.BlockKindElseIf, scan.BlockKindElse:
+	case scan.ConstructKindBranchAlternative:
 		return &anonymousBlock{blockBase: blockBase}
-	case scan.BlockKindFor, scan.BlockKindWhile, scan.BlockKindDo:
+	case scan.ConstructKindLoop:
 		return &loopBlock{blockBase: blockBase, kind: raw.Kind, mayBreak: raw.MayBreak, mayReturn: raw.MayReturn}
-	case scan.BlockKindSwitch, scan.BlockKindSelect:
+	case scan.ConstructKindExhaustiveMatch:
 		return &switchBlock{blockBase: blockBase, kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}
-	case scan.BlockKindCase:
+	case scan.ConstructKindCase:
 		return &caseBlock{blockBase: blockBase, isDefault: raw.HasDefault}
 	default:
 		return &anonymousBlock{blockBase: blockBase}
@@ -227,14 +227,14 @@ func buildBranch(raw scan.ControlFlowBlock) (IfBranch, *ifBranchBase) {
 		step:      raw.IfStep,
 	}
 	switch raw.Kind {
-	case scan.BlockKindIf:
-		branch := &ifBranch{ifBranchBase: base}
+	case scan.BlockKindIf, scan.BlockKindTry:
+		branch := &ifBranch{ifBranchBase: base, keyword: raw.Kind}
 		return branch, &branch.ifBranchBase
 	case scan.BlockKindElseIf:
-		branch := &ifBranch{ifBranchBase: base, elseIf: true}
+		branch := &ifBranch{ifBranchBase: base, elseIf: true, keyword: "else if"}
 		return branch, &branch.ifBranchBase
-	case scan.BlockKindElse:
-		branch := &elseBranch{ifBranchBase: base}
+	case scan.BlockKindElse, scan.BlockKindCatch, scan.BlockKindFinally:
+		branch := &elseBranch{ifBranchBase: base, keyword: raw.Kind}
 		return branch, &branch.ifBranchBase
 	default:
 		panic("unexpected control flow block in collectIfBranches")
@@ -245,7 +245,7 @@ func (ifb *ifBlock) collectIfBranches(raw scan.ControlFlowBlock) {
 	branch, base := buildBranch(raw)
 	for _, child := range raw.Blocks {
 		switch child.Kind {
-		case scan.BlockKindElseIf, scan.BlockKindElse:
+		case scan.BlockKindElseIf, scan.BlockKindElse, scan.BlockKindCatch, scan.BlockKindFinally:
 			ifb.collectIfBranches(child)
 		default:
 			base.blocks = append(base.blocks, buildBlock(child))

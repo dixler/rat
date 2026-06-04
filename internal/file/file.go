@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 
 	"rat/internal/file/scan"
+	"rat/internal/file/scan/golang"
+	_ "rat/internal/file/scan/typescript"
 )
 
 type Kind string
@@ -226,11 +228,13 @@ type ifBlock struct {
 
 type ifBranch struct {
 	ifBranchBase
-	elseIf bool
+	elseIf  bool
+	keyword string
 }
 
 type elseBranch struct {
 	ifBranchBase
+	keyword string
 }
 
 type ifBranchBase struct {
@@ -420,14 +424,22 @@ func (b *ifBranchBase) HasTerminalControlFlowStatement() bool {
 func (b *ifBranchBase) Keyword() string { return "if" }
 func (b *ifBranch) IsElseIf() bool      { return b.elseIf }
 func (b *ifBranch) Keyword() string {
+	if b.keyword != "" {
+		return b.keyword
+	}
 	if b.elseIf {
 		return "else if"
 	}
 	return "if"
 }
 
-func (b *elseBranch) IsElse() bool                { return true }
-func (b *elseBranch) Keyword() string             { return "else" }
+func (b *elseBranch) IsElse() bool { return true }
+func (b *elseBranch) Keyword() string {
+	if b.keyword != "" {
+		return b.keyword
+	}
+	return "else"
+}
 func (b *loopBlock) LoopKind() string             { return b.kind }
 func (b *loopBlock) MayBreak() bool               { return b.mayBreak }
 func (b *loopBlock) MayReturn() bool              { return b.mayReturn }
@@ -493,7 +505,7 @@ func TopLevelNamedFields(f File) []NamedLocation {
 	}
 
 	var out []NamedLocation
-	for _, field := range scan.TopLevelNamedFields(f.Name(), f.Source()) {
+	for _, field := range golang.TopLevelNamedFields(f.Name(), f.Source()) {
 		out = append(out, buildNamedField(field))
 	}
 
