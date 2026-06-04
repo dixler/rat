@@ -32,6 +32,7 @@ type Result struct {
 	Returns           []Return
 	IndirectCalls     []IndirectCall
 	Comments          []Comment
+	Tokens            []Token
 }
 
 type Location struct {
@@ -45,6 +46,14 @@ type Comment struct {
 	StartColumn int
 	EndLine     int
 	EndColumn   int
+}
+
+type Token struct {
+	Location
+	Text         string
+	Kind         string
+	AnchorLine   int
+	AnchorColumn int
 }
 
 type IndirectCall struct {
@@ -170,7 +179,27 @@ const (
 	StatementKindPanic = "panic"
 )
 
+const (
+	TokenKindDeclarationKeyword = "declaration-keyword"
+	TokenKindControlKeyword     = "control-keyword"
+	TokenKindEscapeKeyword      = "escape-keyword"
+	TokenKindLiteral            = "literal"
+	TokenKindPackageName        = "package-name"
+	TokenKindLoopOperator       = "loop-operator"
+)
+
 func Build(file string) (*Result, error) {
+	switch strings.ToLower(filepath.Ext(file)) {
+	case ".go":
+		return buildGo(file)
+	case ".ts", ".tsx":
+		return buildTypeScript(file)
+	default:
+		return nil, fmt.Errorf("unsupported file type %q", filepath.Ext(file))
+	}
+}
+
+func buildGo(file string) (*Result, error) {
 	fset := token.NewFileSet()
 	parsed, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
 	if err != nil {
@@ -203,7 +232,7 @@ func Build(file string) (*Result, error) {
 		goplsByPos:    map[string]definitionLocation{},
 		seen:          map[string]struct{}{},
 	}
-	res := &Result{File: file}
+	res := &Result{File: file, Tokens: collectGoTokens(file)}
 	for _, imp := range parsed.Imports {
 		path := strings.Trim(imp.Path.Value, "\"")
 		name := importedPackageName(imp)

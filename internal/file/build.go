@@ -63,6 +63,20 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		})
 	}
 
+	var tokens []Token
+	for _, t := range raw.Tokens {
+		var anchor *location
+		if t.AnchorLine > 0 && t.AnchorColumn > 0 {
+			anchor = &location{t.File, t.AnchorLine, t.AnchorColumn}
+		}
+		tokens = append(tokens, lexicalToken{
+			location:       location{t.File, t.Line, t.Column},
+			anchorLocation: anchor,
+			text:           t.Text,
+			kind:           TokenKind(t.Kind),
+		})
+	}
+
 	return &file{
 		name:          abs,
 		source:        src,
@@ -73,6 +87,7 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		returns:       returns,
 		indirectCalls: indirectCalls,
 		comments:      comments,
+		tokens:        tokens,
 	}, nil
 }
 

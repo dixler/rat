@@ -142,6 +142,24 @@ type Comment interface {
 	End() Location
 }
 
+type TokenKind string
+
+const (
+	TokenKindDeclarationKeyword TokenKind = "declaration-keyword"
+	TokenKindControlKeyword     TokenKind = "control-keyword"
+	TokenKindEscapeKeyword      TokenKind = "escape-keyword"
+	TokenKindLiteral            TokenKind = "literal"
+	TokenKindPackageName        TokenKind = "package-name"
+	TokenKindLoopOperator       TokenKind = "loop-operator"
+)
+
+type Token interface {
+	Location() Location
+	AnchorLocation() Location
+	Text() string
+	Kind() TokenKind
+}
+
 type File interface {
 	Name() string
 	Source() string
@@ -151,6 +169,7 @@ type File interface {
 	Returns() []Location
 	IndirectCalls() []IndirectCall
 	Comments() []Comment
+	Tokens() []Token
 }
 
 type file struct {
@@ -163,6 +182,7 @@ type file struct {
 	returns       []Location
 	indirectCalls []IndirectCall
 	comments      []Comment
+	tokens        []Token
 }
 
 type location struct {
@@ -275,6 +295,13 @@ type commentSpan struct {
 	end   location
 }
 
+type lexicalToken struct {
+	location       location
+	anchorLocation *location
+	text           string
+	kind           TokenKind
+}
+
 func Analyze(name string) (File, error) {
 	return New(name)
 }
@@ -305,6 +332,7 @@ func (f *file) Declarations() []Declaration   { return append([]Declaration(nil)
 func (f *file) Returns() []Location           { return append([]Location(nil), f.returns...) }
 func (f *file) IndirectCalls() []IndirectCall { return append([]IndirectCall(nil), f.indirectCalls...) }
 func (f *file) Comments() []Comment           { return append([]Comment(nil), f.comments...) }
+func (f *file) Tokens() []Token               { return append([]Token(nil), f.tokens...) }
 
 func (l location) File() string { return l.file }
 func (l location) Line() int    { return l.line }
@@ -445,6 +473,16 @@ func (n namedLocation) Inline() bool { return n.inline }
 func (c commentSpan) Start() Location { return c.start }
 func (c commentSpan) End() Location   { return c.end }
 
+func (t lexicalToken) Location() Location { return t.location }
+func (t lexicalToken) AnchorLocation() Location {
+	if t.anchorLocation == nil {
+		return nil
+	}
+	return *t.anchorLocation
+}
+func (t lexicalToken) Text() string    { return t.text }
+func (t lexicalToken) Kind() TokenKind { return t.kind }
+
 func TopLevelNamedFields(f File) []NamedLocation {
 	if f == nil {
 		return nil
@@ -513,7 +551,7 @@ func ProjectRoot(path string) string {
 		dir = filepath.Dir(dir)
 	}
 	for {
-		if pathExists(filepath.Join(dir, ".git")) || pathExists(filepath.Join(dir, "go.mod")) {
+		if pathExists(filepath.Join(dir, ".git")) || pathExists(filepath.Join(dir, "go.mod")) || pathExists(filepath.Join(dir, "package.json")) {
 			return dir
 		}
 		parent := filepath.Dir(dir)

@@ -41,7 +41,7 @@ func main() {
 	}
 
 	if len(flag.Args()) != 1 {
-		die("usage: rat [-format ansi|html] <file.go>")
+		die("usage: rat [-format ansi|html] <file>")
 	}
 	outputMode := OutputMode(*mode)
 	if outputMode != ModeANSI && outputMode != ModeHTML {

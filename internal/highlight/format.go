@@ -2,8 +2,6 @@ package highlight
 
 import (
 	"fmt"
-	"go/scanner"
-	gotoken "go/token"
 	"path"
 	"path/filepath"
 	"sort"
@@ -364,7 +362,7 @@ func ParseFormats(f file.File) ParseResult {
 	root := file.ProjectRoot(f.Name())
 	controlFlowMarks := collectControlFlowMarks(f)
 	collectCommentSpans(result.SourceSpans, sourceLines, f)
-	collectLexicalTokenSpans(result.SourceSpans, f.Source(), sourceLines, loopStyleByLocation(controlFlowMarks))
+	collectLexicalTokenSpans(result.SourceSpans, sourceLines, f.Tokens(), loopStyleByLocation(controlFlowMarks))
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
 
@@ -609,88 +607,31 @@ func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Lo
 	}
 }
 
-var keywordStyles = map[gotoken.Token]display.Style{
-	gotoken.TYPE:      display.MutedOrange,
-	gotoken.STRUCT:    display.MutedOrange,
-	gotoken.FUNC:      display.MutedOrange,
-	gotoken.INTERFACE: display.MutedOrange,
-	gotoken.MAP:       display.MutedOrange,
-	gotoken.VAR:       display.MutedOrange,
-	gotoken.PACKAGE:   display.MutedOrange,
-	gotoken.IMPORT:    display.MutedOrange,
-	gotoken.DEFER:     display.Blue,
-	gotoken.GO:        display.Blue,
-	gotoken.CONST:     display.Blue,
-	gotoken.GOTO:      display.LightRed,
+var tokenKindStyles = map[file.TokenKind]display.Style{
+	file.TokenKindDeclarationKeyword: display.MutedOrange,
+	file.TokenKindControlKeyword:     display.Blue,
+	file.TokenKindEscapeKeyword:      display.LightRed,
+	file.TokenKindLiteral:            display.LightPink,
+	file.TokenKindPackageName:        _relationStyles[_relSamePackage],
 }
 
-var literalTokens = map[gotoken.Token]bool{
-	gotoken.CHAR:   true,
-	gotoken.FLOAT:  true,
-	gotoken.IMAG:   true,
-	gotoken.INT:    true,
-	gotoken.STRING: true,
-}
-
-func collectLexicalTokenSpans(out map[int][]Span, source string, sourceLines []string, loopStyles map[string]display.Style) {
-	fset := gotoken.NewFileSet()
-	file := fset.AddFile("", fset.Base(), len(source))
-	var s scanner.Scanner
-	s.Init(file, []byte(source), nil, 0)
-
-	var pendingForStyle display.Style
-	pendingPackageName := false
-	pendingImportSpec := false
-	importBlockDepth := 0
-	for {
-		pos, tok, lit := s.Scan()
-		if tok == gotoken.EOF {
-			break
-		}
-
-		p := fset.Position(pos)
-		text := lit
-		if text == "" {
-			text = tok.String()
-		}
-
-		if tok == gotoken.FOR {
-			pendingForStyle = loopStyles[locationMapKey(p.Line, p.Column)]
-		}
-		if tok == gotoken.PACKAGE {
-			pendingPackageName = true
-		}
-		if tok == gotoken.IMPORT {
-			pendingImportSpec = true
-		}
-		if pendingImportSpec && tok == gotoken.LPAREN {
-			importBlockDepth = 1
-			pendingImportSpec = false
-		} else if importBlockDepth > 0 && tok == gotoken.LPAREN {
-			importBlockDepth++
-		} else if importBlockDepth > 0 && tok == gotoken.RPAREN {
-			importBlockDepth--
-		}
-
-		style, ok := keywordStyles[tok]
-		if pendingPackageName && tok == gotoken.IDENT {
-			style, ok = _relationStyles[_relSamePackage], true
-			pendingPackageName = false
-		} else if tok == gotoken.RANGE && pendingForStyle != nil {
-			style, ok = pendingForStyle, true
-			pendingForStyle = nil
-		} else if tok == gotoken.STRING && (pendingImportSpec || importBlockDepth > 0) {
-			ok = false
-		} else if literalTokens[tok] {
-			style, ok = display.LightPink, true
-		}
-		if pendingImportSpec && (tok == gotoken.STRING || tok == gotoken.SEMICOLON) {
-			pendingImportSpec = false
-		}
-		if !ok || text == "" {
+func collectLexicalTokenSpans(out map[int][]Span, sourceLines []string, tokens []file.Token, loopStyles map[string]display.Style) {
+	for _, tok := range tokens {
+		if tok == nil || tok.Location() == nil || tok.Text() == "" {
 			continue
 		}
-		addTokenSpan(out, sourceLines, p.Line, p.Column, text, Span{Style: style})
+		style, ok := tokenKindStyles[tok.Kind()]
+		if tok.Kind() == file.TokenKindLoopOperator {
+			anchor := tok.AnchorLocation()
+			if anchor == nil {
+				anchor = tok.Location()
+			}
+			style, ok = loopStyles[locationMapKey(anchor.Line(), anchor.Column())]
+		}
+		if !ok || style == nil {
+			continue
+		}
+		addTokenSpan(out, sourceLines, tok.Location().Line(), tok.Location().Column(), tok.Text(), Span{Style: style})
 	}
 }
 

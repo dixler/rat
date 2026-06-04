@@ -27,7 +27,7 @@ Agent-maintained. Update when product behavior, architecture, data flows, comman
 
 ### Project Overview
 
-`rat` is an experimental semantic highlighter for Go with:
+`rat` is an experimental semantic highlighter for Go and TypeScript with:
 
 - A CLI and local HTTP server in `cmd/rat`.
 - Shared highlighting, file loading, rendering, `gopls`, and API logic under `internal/`.
@@ -35,12 +35,12 @@ Agent-maintained. Update when product behavior, architecture, data flows, comman
 - A VS Code extension in `vscode-text-semantic` that consumes spans from the local `rat` server.
 - Deployment/site support under `infra/`.
 
-Core behavior is semantic highlighting, not plain syntax highlighting. Preserve spans, declaration/reference coloring, control-flow coloring, and shared output behavior across terminal, HTTP, and VS Code consumers.
+Core behavior is semantic highlighting, not plain syntax highlighting. Preserve spans, declaration/reference coloring, control-flow coloring, and shared output behavior across terminal, HTTP, and VS Code consumers. Go semantic parsing uses Go AST/type information and `gopls`; TypeScript parsing uses tree-sitter plus the TypeScript LSP.
 
 ### Key Areas
 
 - `cmd/rat/`: CLI, local server, and pipeline golden tests.
-- `internal/`: shared highlighting, file loading, rendering, `gopls`, and API logic.
+- `internal/`: shared highlighting, file loading, rendering, generic LSP, `gopls`, TypeScript parsing, and API logic.
 - `testdata/`: golden outputs used by tests.
 - `vscode-text-semantic/`: VS Code extension and extension tests.
 - `infra/`: Pulumi deployment code and static site assets.
@@ -59,7 +59,8 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 
 - Go `1.26` per `go.mod` and `go.work`; workspace rooted via `go.work`.
 - `github.com/stretchr/testify` is replaced with `./third_party/testify`; keep unless dependency strategy changes intentionally.
-- Node/npm are used for the VS Code extension and Pulumi infra.
+- TypeScript highlighting uses embedded `tsgo` from `github.com/microsoft/typescript-go`; `TSGO_BIN` can override the binary.
+- Node/npm are used for the VS Code extension, TypeScript LSP tooling, and Pulumi infra.
 
 ## Commands
 
