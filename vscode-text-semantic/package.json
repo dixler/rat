@@ -6,7 +6,7 @@
   "publisher": "local",
   "engines": { "vscode": "^1.90.0" },
   "categories": ["Other"],
-  "activationEvents": ["onLanguage:go", "onStartupFinished", "onCommand:textSemanticHighlight.toggle"],
+  "activationEvents": ["onLanguage:go", "onLanguage:typescript", "onLanguage:typescriptreact", "onStartupFinished", "onCommand:textSemanticHighlight.toggle"],
   "main": "./extension.js",
   "repository": "https://github.com/dixler/rat",
   "devDependencies": {
@@ -23,7 +23,7 @@
       "properties": {
         "textSemanticHighlight.enabled": { "type": "boolean", "default": true },
         "textSemanticHighlight.serverUrl": { "type": "string", "default": "http://localhost:8081" },
-        "textSemanticHighlight.languages": { "type": "array", "items": { "type": "string" }, "default": ["go"] },
+        "textSemanticHighlight.languages": { "type": "array", "items": { "type": "string" }, "default": ["go", "typescript", "typescriptreact"] },
         "textSemanticHighlight.autoStartServer": { "type": "boolean", "default": true },
         "textSemanticHighlight.serverCommand": { "type": "string", "default": "rat" },
         "textSemanticHighlight.serverArgs": { "type": "array", "items": { "type": "string" }, "default": ["--serve", "--addr", ":8081"] },

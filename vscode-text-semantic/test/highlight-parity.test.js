@@ -8,7 +8,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
-const fixturesRoot = path.join(repoRoot, 'testdata', 'rat');
+const fixturesRoot = path.join(repoRoot, 'testdata', 'go');
 
 const originalLoad = Module._load;
 Module._load = function load(request, parent, isMain) {
@@ -61,7 +61,9 @@ function walkGoFiles(dir) {
 function makeDocument(filePath, source) {
   const lines = source.split('\n');
   return {
+    uri: { scheme: 'file' },
     fileName: filePath,
+    languageId: path.extname(filePath) === '.go' ? 'go' : 'typescript',
     lineCount: lines.length,
     lineAt(lineIndex) {
       return { text: lines[lineIndex], range: { end: { character: lines[lineIndex].length } } };
@@ -217,6 +219,14 @@ test('ANSI text decorations can be combined and reset independently', () => {
   assert.equal(extension.decorationOptions('\x1b[4;9m').textDecoration, 'underline line-through');
   assert.equal(extension.decorationOptions('\x1b[4;9;24m').textDecoration, 'line-through');
   assert.equal(extension.decorationOptions('\x1b[4;9;29m').textDecoration, 'underline');
+});
+
+test('supports TypeScript documents by default', () => {
+  assert.equal(extension.isSupportedDocument(makeDocument('/tmp/sample.ts', 'const x = 1;')), true);
+  assert.equal(extension.isSupportedDocument({
+    ...makeDocument('/tmp/sample.tsx', 'export const X = () => <div />;'),
+    languageId: 'typescriptreact'
+  }), true);
 });
 
 function fetchSpans(port, filePath) {
