@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 
 	"rat/internal/file/scan"
+	"rat/internal/file/scan/golang"
+	_ "rat/internal/file/scan/typescript"
 )
 
 type Kind string
@@ -44,76 +46,8 @@ type Declaration interface {
 	Location() Location
 	References() []Reference
 	Declarations() []Declaration
-	Blocks() []Block
 	Parent() Declaration
 	ReferenceType() bool
-}
-
-type ControlFlowStatement interface {
-	Kind() string
-	Location() Location
-	ReturnsError() bool
-}
-
-type Block interface {
-	Location() Location
-	OpenBrace() Location
-	CloseBrace() Location
-	Blocks() []Block
-	Statements() []ControlFlowStatement
-	ControlFlowStatements() []ControlFlowStatement
-	HasTerminalControlFlowStatement() bool
-	HasStatementKind(kind string) bool
-	HasDirectReturn() bool
-	HasFallthrough() bool
-}
-
-type IfBlock interface {
-	Block
-	IfChainID() string
-	Branches() []IfBranch
-}
-
-type IfBranch interface {
-	Location() Location
-	OpenBrace() Location
-	CloseBrace() Location
-	Step() int
-	Blocks() []Block
-	Statements() []ControlFlowStatement
-	HasTerminalControlFlowStatement() bool
-	Keyword() string
-}
-
-type ConditionalBranch interface {
-	IfBranch
-	IsElseIf() bool
-}
-
-type ElseBranch interface {
-	IfBranch
-	IsElse() bool
-}
-
-type LoopBlock interface {
-	Block
-	LoopKind() string
-	MayBreak() bool
-	MayReturn() bool
-	HasEscapingControlFlow() bool
-}
-
-type SwitchBlock interface {
-	Block
-	SwitchKind() string
-	CaseCount() int
-	HasDefault() bool
-	IsExhaustive() bool
-}
-
-type CaseBlock interface {
-	Block
-	IsDefault() bool
 }
 
 type PackageReference interface {
@@ -130,7 +64,6 @@ type PackageDeclaration interface {
 type NamedLocation interface {
 	Location() Location
 	Text() string
-	DeclarationLocation() Location
 	DeclarationLocations() []Location
 	DistanceLocation() Location
 	Inline() bool
@@ -146,9 +79,9 @@ type File interface {
 	Name() string
 	Source() string
 	Tree() Declaration
+	Nodes() []scan.Node
 	PackageReferences() []PackageReference
 	Declarations() []Declaration
-	Returns() []Location
 	IndirectCalls() []IndirectCall
 	Comments() []Comment
 }
@@ -157,10 +90,10 @@ type file struct {
 	name          string
 	source        string
 	root          *declaration
+	nodes         []scan.Node
 	packageRefs   []PackageReference
 	decls         []Declaration
 	namedFields   []NamedLocation
-	returns       []Location
 	indirectCalls []IndirectCall
 	comments      []Comment
 }
@@ -178,66 +111,7 @@ type declaration struct {
 	referenceType bool
 	references    []Reference
 	declarations  []Declaration
-	blocks        []Block
 	parent        Declaration
-}
-
-type controlFlowStatement struct {
-	kind         string
-	location     location
-	returnsError bool
-}
-
-type blockBase struct {
-	location                        Location
-	openBrace                       *location
-	closeBrace                      *location
-	blocks                          []Block
-	statements                      []ControlFlowStatement
-	hasTerminalControlFlowStatement bool
-}
-
-type ifBlock struct {
-	blockBase
-	ifChainID string
-	branches  []IfBranch
-}
-
-type ifBranch struct {
-	ifBranchBase
-	elseIf bool
-}
-
-type elseBranch struct {
-	ifBranchBase
-}
-
-type ifBranchBase struct {
-	blockBase
-	step int
-}
-
-type loopBlock struct {
-	blockBase
-	kind      string
-	mayBreak  bool
-	mayReturn bool
-}
-
-type switchBlock struct {
-	blockBase
-	kind       string
-	caseCount  int
-	hasDefault bool
-}
-
-type caseBlock struct {
-	blockBase
-	isDefault bool
-}
-
-type anonymousBlock struct {
-	blockBase
 }
 
 type reference struct {
@@ -266,17 +140,12 @@ type namedLocation struct {
 	inline               bool
 	referenceType        bool
 	distanceLocation     *location
-	declarationLocation  *location
 	declarationLocations []Location
 }
 
 type commentSpan struct {
 	start location
 	end   location
-}
-
-func Analyze(name string) (File, error) {
-	return New(name)
 }
 
 func New(name string) (File, error) {
@@ -295,14 +164,14 @@ func New(name string) (File, error) {
 	return buildTree(abs, string(src), raw)
 }
 
-func (f *file) Name() string      { return f.name }
-func (f *file) Source() string    { return f.source }
-func (f *file) Tree() Declaration { return f.root }
+func (f *file) Name() string       { return f.name }
+func (f *file) Source() string     { return f.source }
+func (f *file) Tree() Declaration  { return f.root }
+func (f *file) Nodes() []scan.Node { return append([]scan.Node(nil), f.nodes...) }
 func (f *file) PackageReferences() []PackageReference {
 	return append([]PackageReference(nil), f.packageRefs...)
 }
 func (f *file) Declarations() []Declaration   { return append([]Declaration(nil), f.decls...) }
-func (f *file) Returns() []Location           { return append([]Location(nil), f.returns...) }
 func (f *file) IndirectCalls() []IndirectCall { return append([]IndirectCall(nil), f.indirectCalls...) }
 func (f *file) Comments() []Comment           { return append([]Comment(nil), f.comments...) }
 
@@ -317,97 +186,8 @@ func (d *declaration) References() []Reference { return append([]Reference(nil),
 func (d *declaration) Declarations() []Declaration {
 	return append([]Declaration(nil), d.declarations...)
 }
-func (d *declaration) Blocks() []Block     { return append([]Block(nil), d.blocks...) }
 func (d *declaration) Parent() Declaration { return d.parent }
 func (d *declaration) ReferenceType() bool { return d.referenceType }
-
-func (s *controlFlowStatement) Kind() string       { return s.kind }
-func (s *controlFlowStatement) Location() Location { return s.location }
-func (s *controlFlowStatement) ReturnsError() bool { return s.returnsError }
-
-func (b *blockBase) Location() Location { return b.location }
-func (b *blockBase) OpenBrace() Location {
-	if b == nil {
-		return nil
-	}
-	return b.openBrace
-}
-func (b *blockBase) CloseBrace() Location {
-	if b == nil {
-		return nil
-	}
-	return b.closeBrace
-}
-func (b *blockBase) Blocks() []Block {
-	return append([]Block(nil), b.blocks...)
-}
-func (b *blockBase) Statements() []ControlFlowStatement {
-	return append([]ControlFlowStatement(nil), b.statements...)
-}
-func (b *blockBase) ControlFlowStatements() []ControlFlowStatement {
-	out := append([]ControlFlowStatement(nil), b.statements...)
-	for _, child := range b.blocks {
-		out = append(out, child.ControlFlowStatements()...)
-	}
-	return out
-}
-func (b *blockBase) HasTerminalControlFlowStatement() bool { return b.hasTerminalControlFlowStatement }
-func (b *blockBase) HasStatementKind(kind string) bool {
-	for _, stmt := range b.statements {
-		if stmt != nil && stmt.Kind() == kind {
-			return true
-		}
-	}
-	return false
-}
-func (b *blockBase) HasDirectReturn() bool { return b.HasStatementKind("return") }
-func (b *blockBase) HasFallthrough() bool  { return b.HasStatementKind("fallthrough") }
-
-func (b *ifBlock) IfChainID() string { return b.ifChainID }
-func (b *ifBlock) Branches() []IfBranch {
-	return append([]IfBranch(nil), b.branches...)
-}
-func (b *ifBranchBase) Location() Location { return b.location }
-func (b *ifBranchBase) OpenBrace() Location {
-	if b == nil {
-		return nil
-	}
-	return b.openBrace
-}
-func (b *ifBranchBase) CloseBrace() Location {
-	if b == nil {
-		return nil
-	}
-	return b.closeBrace
-}
-func (b *ifBranchBase) Step() int       { return b.step }
-func (b *ifBranchBase) Blocks() []Block { return append([]Block(nil), b.blocks...) }
-func (b *ifBranchBase) Statements() []ControlFlowStatement {
-	return append([]ControlFlowStatement(nil), b.statements...)
-}
-func (b *ifBranchBase) HasTerminalControlFlowStatement() bool {
-	return b.hasTerminalControlFlowStatement
-}
-func (b *ifBranchBase) Keyword() string { return "if" }
-func (b *ifBranch) IsElseIf() bool      { return b.elseIf }
-func (b *ifBranch) Keyword() string {
-	if b.elseIf {
-		return "else if"
-	}
-	return "if"
-}
-
-func (b *elseBranch) IsElse() bool                { return true }
-func (b *elseBranch) Keyword() string             { return "else" }
-func (b *loopBlock) LoopKind() string             { return b.kind }
-func (b *loopBlock) MayBreak() bool               { return b.mayBreak }
-func (b *loopBlock) MayReturn() bool              { return b.mayReturn }
-func (b *loopBlock) HasEscapingControlFlow() bool { return b.mayBreak || b.mayReturn }
-func (b *switchBlock) SwitchKind() string         { return b.kind }
-func (b *switchBlock) CaseCount() int             { return b.caseCount }
-func (b *switchBlock) HasDefault() bool           { return b.hasDefault }
-func (b *switchBlock) IsExhaustive() bool         { return b.hasDefault }
-func (b *caseBlock) IsDefault() bool              { return b.isDefault }
 
 func (r *reference) Parent() Declaration      { return r.parent }
 func (r *reference) Declaration() Declaration { return r.declaration }
@@ -425,12 +205,6 @@ func (p *packageDeclaration) Files() []Declaration { return append([]Declaration
 func (n namedLocation) Location() Location  { return n.location }
 func (n namedLocation) Text() string        { return n.text }
 func (n namedLocation) ReferenceType() bool { return n.referenceType }
-func (n namedLocation) DeclarationLocation() Location {
-	if n.declarationLocation == nil {
-		return nil
-	}
-	return *n.declarationLocation
-}
 func (n namedLocation) DeclarationLocations() []Location {
 	return append([]Location(nil), n.declarationLocations...)
 }
@@ -454,7 +228,7 @@ func TopLevelNamedFields(f File) []NamedLocation {
 	}
 
 	var out []NamedLocation
-	for _, field := range scan.TopLevelNamedFields(f.Name(), f.Source()) {
+	for _, field := range golang.TopLevelNamedFields(f.Name(), f.Source()) {
 		out = append(out, buildNamedField(field))
 	}
 
@@ -471,7 +245,7 @@ func buildNamedFields(fields []scan.NamedField) []NamedLocation {
 
 func buildNamedField(field scan.NamedField) NamedLocation {
 	named := namedLocation{location: location{file: field.File, line: field.Line, column: field.Column}, text: field.Text, inline: field.Inline, referenceType: field.ReferenceType}
-	loc := field.StructDecl.Location()
+	loc := field.StructDecl
 	if loc.Line > 0 && loc.Column > 0 {
 		loc := location{file: loc.File, line: loc.Line, column: loc.Column}
 		named.distanceLocation = &loc
@@ -483,12 +257,8 @@ func buildNamedField(field scan.NamedField) NamedLocation {
 		loc := location{file: decl.File, line: decl.Line, column: decl.Column}
 		named.declarationLocations = append(named.declarationLocations, loc)
 	}
-	if len(named.declarationLocations) > 0 {
-		loc := named.declarationLocations[0].(location)
-		named.declarationLocation = &loc
-	} else if field.Declaration.Line > 0 && field.Declaration.Column > 0 {
+	if len(named.declarationLocations) == 0 && field.Declaration.Line > 0 && field.Declaration.Column > 0 {
 		loc := location{file: field.Declaration.File, line: field.Declaration.Line, column: field.Declaration.Column}
-		named.declarationLocation = &loc
 		named.declarationLocations = append(named.declarationLocations, loc)
 	}
 	return named
@@ -513,7 +283,7 @@ func ProjectRoot(path string) string {
 		dir = filepath.Dir(dir)
 	}
 	for {
-		if pathExists(filepath.Join(dir, ".git")) || pathExists(filepath.Join(dir, "go.mod")) {
+		if pathExists(filepath.Join(dir, ".git")) || pathExists(filepath.Join(dir, "go.mod")) || pathExists(filepath.Join(dir, "package.json")) {
 			return dir
 		}
 		parent := filepath.Dir(dir)

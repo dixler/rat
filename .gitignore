@@ -1,4 +1,5 @@
 /rat
 cmd/rat/rat
 internal/goplsbin/gopls
+internal/tsgobin/tsgo
 **/node_modules

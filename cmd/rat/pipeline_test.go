@@ -14,15 +14,14 @@ import (
 func TestRenderFixtures(t *testing.T) {
 	t.Parallel()
 
-	root := fixtureRoot(t)
-	fixturesDir := root
+	root := testdataRoot(t)
 
-	cases := fixtureSources(t, fixturesDir)
+	cases := fixtureSources(t, root)
 	require.True(t, len(cases) > 0, "no fixture source files found")
 
 	accept := os.Getenv("ACCEPT") == "1"
 	for _, sourcePath := range cases {
-		rel, err := filepath.Rel(fixturesDir, sourcePath)
+		rel, err := filepath.Rel(root, sourcePath)
 		require.NoError(t, err)
 
 		t.Run(rel, func(t *testing.T) {
@@ -47,41 +46,57 @@ func TestRenderFixtures(t *testing.T) {
 	}
 }
 
-func fixtureRoot(t *testing.T) string {
+func testdataRoot(t *testing.T) string {
 	t.Helper()
 	wd, err := os.Getwd()
 	require.NoError(t, err)
-	return filepath.Join(wd, "..", "..", "testdata", "rat")
+	return filepath.Join(wd, "..", "..", "testdata")
 }
 
 func fixtureSources(t *testing.T, root string) []string {
 	t.Helper()
-	entries, err := os.ReadDir(root)
-	require.NoError(t, err)
-
-	out := make([]string, 0, len(entries))
-	var walk func(string)
-	walk = func(dir string) {
-		dirEntries, err := os.ReadDir(dir)
-		require.NoError(t, err)
-		for _, entry := range dirEntries {
-			path := filepath.Join(dir, entry.Name())
-			if entry.IsDir() {
-				walk(path)
-				continue
-			}
-			if filepath.Ext(path) == ".go" {
-				out = append(out, path)
-			}
-		}
+	fixtureRoots := []string{
+		filepath.Join(root, "go"),
+		filepath.Join(root, "typescript"),
 	}
-	walk(root)
+
+	out := []string{}
+	for _, fixtureRoot := range fixtureRoots {
+		entries, err := os.ReadDir(fixtureRoot)
+		require.NoError(t, err)
+		walkFixtureSources(t, fixtureRoot, entries, &out)
+	}
 	sort.Strings(out)
 	return out
 }
 
+func walkFixtureSources(t *testing.T, dir string, entries []os.DirEntry, out *[]string) {
+	t.Helper()
+	for _, entry := range entries {
+		path := filepath.Join(dir, entry.Name())
+		if entry.IsDir() {
+			dirEntries, err := os.ReadDir(path)
+			require.NoError(t, err)
+			walkFixtureSources(t, path, dirEntries, out)
+			continue
+		}
+		if isFixtureSource(path) {
+			*out = append(*out, path)
+		}
+	}
+}
+
+func isFixtureSource(path string) bool {
+	switch filepath.Ext(path) {
+	case ".go", ".ts", ".tsx":
+		return true
+	default:
+		return false
+	}
+}
+
 func normalizeOutput(output, sourcePath, rel string) string {
-	relPath := filepath.ToSlash(filepath.Join("testdata", "rat", rel))
+	relPath := filepath.ToSlash(filepath.Join("testdata", rel))
 	absPath := filepath.ToSlash(sourcePath)
 	normalized := filepath.ToSlash(output)
 	normalized = replaceAll(normalized, absPath, relPath)

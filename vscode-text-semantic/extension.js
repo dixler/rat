@@ -3,6 +3,8 @@ const cp = require('child_process');
 const fs = require('fs');
 
 const output = vscode.window.createOutputChannel('Text Semantic Highlight');
+const DEFAULT_LANGUAGES = ['go', 'typescript', 'typescriptreact'];
+const SUPPORTED_EXTENSIONS = new Set(['.go', '.ts', '.tsx']);
 
 let serverProc;
 const decorationStates = new Map();
@@ -245,8 +247,8 @@ function clearAll() {
 
 function isSupportedDocument(document) {
   if (document.uri.scheme !== 'file') return false;
-  if (!document.fileName.endsWith('.go')) return false;
-  return new Set(cfg().get('languages', ['go'])).has(document.languageId);
+  if (![...SUPPORTED_EXTENSIONS].some((extension) => document.fileName.endsWith(extension))) return false;
+  return new Set(cfg().get('languages', DEFAULT_LANGUAGES)).has(document.languageId);
 }
 
 function normalizeSpans(payload) {
@@ -281,7 +283,7 @@ function refreshSignature(document) {
   const configuration = cfg();
   return JSON.stringify({
     enabled: configuration.get('enabled', true),
-    languages: configuration.get('languages', ['go']),
+    languages: configuration.get('languages', DEFAULT_LANGUAGES),
     serverUrl: configuration.get('serverUrl', 'http://localhost:8081'),
     fileName: document.fileName,
     version: document.version
@@ -470,6 +472,7 @@ module.exports = {
     ansiColor,
     buildDecorationSpecs,
     decorationOptions,
+    isSupportedDocument,
     normalizeSpans,
     parseAnsiStyle,
     spanRange,

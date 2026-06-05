@@ -2,7 +2,7 @@
 
 You've seen `cat`, you've seen `bat`, but have you seen `rat`?
 
-`rat` is an experimental semantic highlighter for Go. It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
+`rat` is an experimental semantic highlighter for Go and TypeScript. It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
 
 Run it on a file:
 
@@ -30,90 +30,136 @@ The harder questions are usually semantic:
 
 `rat` tries to put that information directly on the page.
 
-## Reference Coloring
+## Semantic Highlighting Behavior
 
-Reference colors are based on the relationship between the place where a name is used and the place where that name is declared.
+`rat` colors Go and TypeScript code by what each token means, not just by what kind of token it is. It asks questions like:
 
-- Vibrant orange: same function/local reference.
-- Magenta: parameter.
-- Green: same file, outside the current function.
-- Light blue: same package, different file.
-- Blue: same project/repository, different package.
-- Purple: external dependency or unknown target.
-- White: Go built-in. (or I just didn't color it yet).
+- Where was this name declared?
+- Is this value local, project-level, or external?
+- Can this branch, loop, or switch change how execution exits?
+- Is this call direct, or does the target depend on runtime dispatch?
 
-Declarations use an inverted/background style. That makes definitions stand out from references.
+The CLI, HTML output, HTTP API, and VS Code extension all use the same span engine, so they should show the same highlighting decisions.
 
-Struct field names are colored by the relationship between the struct type declaration and the field type declaration. For struct literals whose type is declared outside the current package, package-level resolution is used: brown for built-ins, green for the struct type's package, blue for the same project, and purple for external dependencies or unknown targets.
+Go highlighting uses Go AST/type information plus `gopls` where needed. TypeScript highlighting uses tree-sitter and same-file lexical declaration/reference resolution; unresolved references fall back to definition lookup through the embedded TypeScript LSP server.
 
-Examples:
+### Relationship Colors
 
-- A local variable used later in the same function is vibrant orange.
-- A package-level identifier in the same file is green.
-- A symbol imported from another package in your module is blue.
-- A symbol from a different repository is purple.
+Most identifier colors show how far the reference is from its declaration.
 
-## Block Coloring
+- Vibrant orange: declaration and use are inside the same function.
+- Hot magenta: parameters and type parameters.
+- Light green: declaration and use are in the same file, but not the same function.
+- Green: declaration and use are in different files in the same package directory.
+- Blue: declaration and use are in different packages under the same project root.
+- Purple: external dependency, unresolved declaration, or unknown target.
+- Muted orange: Go built-in declarations from `builtin`.
 
-Control-flow colors are meant as a shorthand for how a block behaves.
+The project root is the nearest parent directory containing `.git` or `go.mod`. Same-package means the files are in the same directory. Same-project means both files are under the same project root but in different package directories.
 
-### `if`, `else if`, and `else`
+### Declarations
 
-- Brown: the branch contains terminal control flow like `return`, `break`, `continue`, `goto`, or `panic`.
-- Blue: the branch can exit normally and continue after the block.
+Declarations use an inverted/background style so definitions stand out from uses.
 
-This makes guard clauses visually distinct from ordinary branches.
+- Top-level declarations use the same-file declaration style.
+- Top-level function declarations also use the same-file declaration style.
+- Declarations nested under top-level type declarations, such as struct fields and interface methods, use the same-file declaration style.
+- Local variable declarations inside functions use the same-function declaration style.
+- Parameters and type parameters use the parameter declaration style.
+- Other declarations fall back to their kind style: type, variable, parameter, function, package, or file.
 
-### `for` and `range`
+References to locally declared functions are treated as same-function or same-file references according to their declaration relationship, not as a separate function color.
 
-- Brown: the loop may escape through `break` or `return`.
-- Blue: no escaping `break` or `return` was found by `rat`.
+TypeScript declarations include functions, classes, interfaces, type aliases, enums, imports, class/interface members, simple variable declarations, destructuring bindings, function/method parameters, catch parameters, and loop bindings. TypeScript member/property reads such as `reader.read` are colored when same-file lexical resolution or the embedded TypeScript LSP definition fallback can resolve the property.
 
-`continue` is highlighted separately, but it does not make the loop itself brown because it stays inside the loop.
+### Reference-Like Types
 
-### `switch` and type `switch`
+Names are underlined when their type behaves like a reference.
 
-- Green: the switch has a `default` case, so `rat` treats it as exhaustive.
-- Brown: the switch has no `default` case.
+- Reference-like types include pointers, slices, maps, channels, interfaces, arrays containing reference-like elements, named types whose underlying type is reference-like, and structs containing any reference-like field.
+- The underline applies to declarations, references, and named struct fields when the resolved type is reference-like.
 
-Cases also get colored:
+### Imports And Packages
 
-- Green: `default` case.
-- Blue: case with `fallthrough`.
-- Brown: ordinary case.
+Import names use inverted package colors.
 
-### `select`
+- Imports that resolve to files under the current project root are blue/inverted.
+- Imports that resolve outside the project root, including standard-library and third-party packages, are purple/inverted.
+- Selector qualifiers that name imported packages are colored with the same package relationship rules.
+- Dot imports and blank imports are parsed but do not create a normal package-name reference.
 
-`select` uses the same model as `switch`:
+### Struct Fields
 
-- Green: has a `default` case.
-- Brown: has no `default` case.
+Named struct fields are colored by where the field's type comes from.
 
-Its communication clauses are displayed as cases:
+- Muted orange: field type is built in.
+- Light green: field type is declared in the same file.
+- Green: field type is declared in the same package.
+- Blue: field type is declared elsewhere in the same project.
+- Purple: field type is external or unknown.
 
-- Green: `default` clause.
-- Brown: ordinary communication clause.
+This applies to top-level struct fields, nested struct fields, inline struct literal fields, named struct literals that can be tied back to a local struct type, and typed struct literals resolved by `go/types`.
 
-### Other Control Flow
+Top-level and non-inline struct field declarations are inverted. Inline struct literal field names are not inverted. If a field's type mentions multiple named types, `rat` uses the farthest relationship so a field involving an external type still looks external. For struct literals whose struct type is declared outside the current package, `rat` uses package-level resolution instead of same-file resolution to avoid noisy external-package coloring.
 
-- `return`: brown when returning a non-`nil` error, blue otherwise.
-- `break`: brown.
-- `continue`: blue.
-- `fallthrough`: blue.
-- Matching braces for recognized blocks get the same color as the block keyword.
+### Control Flow Blocks
 
-## Indirect Calls
+Control-flow colors show whether a block can affect how execution leaves that block. Matching braces for recognized blocks get the same color as the block keyword.
 
-Indirect calls are magenta.
+For `if`, `else if`, and `else` branches and `case` and `default` branches:
 
-That includes calls through interfaces or function values. The color is intentionally loud because the concrete target is less obvious from the call site than a direct function call.
+- Muted orange: branch contains terminal control flow: `return`, `continue`, `break`, `goto`, or `panic`.
+- Blue: no terminal control-flow statement was found in that branch.
 
-## Other Highlighting
+For `for` and `range` loops:
 
-- Comments are gray.
-- Top-level named struct fields are highlighted like declarations.
-- Imports are colored by whether the imported package resolves inside the project or outside it.
-- Unhighlighted text stays white in terminal output. In VS Code, only spans returned by `rat` are decorated so editor syntax colors do not cover rat span colors.
+- Muted orange: the loop may escape through a `break` that targets the loop or through a `return` inside the loop.
+- Blue: no escaping `break` or `return` was found.
+- `continue` is highlighted separately and does not make the loop itself muted orange.
+
+For `switch`, type `switch`, and `select`:
+
+- Green: the block has a `default` clause, so `rat` treats it as exhaustive.
+- Muted orange: no `default` clause was found.
+
+For control-flow statements:
+
+- `return` is muted orange when it returns a non-`nil` value in a result position typed as `error`; otherwise it is blue.
+- Bare `return` in a function with an `error` result is treated as returning an error.
+- `break` is muted orange.
+- `continue` is blue.
+- `fallthrough` is blue.
+- `goto` is light red.
+- `panic` is light red as a statement mark. It can also make an enclosing branch terminal.
+
+### Indirect Calls
+
+Indirect calls are hot magenta because the concrete target is not obvious from the call site.
+
+- Calls through function values are indirect.
+- Calls through interface receivers are indirect.
+- Calls through indexed call expressions are indirect.
+- Direct package-qualified function calls are not treated as indirect.
+- `rat` uses `go/types` first, then falls back to `gopls` definition and hover data when static information is incomplete.
+
+### Lexical Tokens
+
+`rat` also colors a few plain lexical tokens so the semantic colors have enough context.
+
+- Comments are gray, including multi-line comment spans.
+- Literal tokens, including strings outside import specs, numbers, chars, floats, and imaginary literals, are light pink.
+- `type`, `struct`, `func`, `interface`, `map`, `var`, `package`, and `import` are muted orange.
+- The package name following a `package` keyword is green.
+- `defer`, `go`, and `const` are blue.
+- `goto` is light red.
+- `range` inherits the color of its enclosing `for` loop when `rat` has a loop mark for it.
+- Import path strings are intentionally left unhighlighted so the import name/package signal remains clearer.
+
+### Span Priority And Output
+
+When multiple spans could apply to the same text, `rat` keeps one. Spans are sorted by start column, then by priority, then by end column. The first accepted span wins, and later overlapping spans are skipped. Same-function references and control-flow marks use higher priority than ordinary spans.
+
+When a resolved location does not exactly match the token text in the source line, `rat` searches for the closest occurrence of that text on the line. Unhighlighted text stays white in terminal output. In VS Code, only spans returned by `rat` are decorated, so editor syntax colors do not cover `rat` span colors.
 
 ## Requirements
 
@@ -171,12 +217,14 @@ Print ANSI-colored output:
 
 ```bash
 rat path/to/file.go
+rat path/to/file.ts
 ```
 
 Generate HTML:
 
 ```bash
 rat -format html path/to/file.go
+rat -format html path/to/file.ts
 ```
 
 Run the local HTTP server used by the VS Code extension:
@@ -190,6 +238,8 @@ The server accepts `POST /spans`:
 ```json
 { "path": "/absolute/path/to/file.go" }
 ```
+
+The path may point to a supported Go, TypeScript, or TSX source file.
 
 It returns flattened JSON spans grouped by 1-based line number:
 

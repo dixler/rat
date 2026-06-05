@@ -22,7 +22,7 @@ func ProcessPipeline(filepath string, mode OutputMode) (string, error) {
 		return "", err
 	}
 
-	ansi := highlight.RenderSource(program.Source, program.SourceSpans, program.LineSpans, program.LineMarkers)
+	ansi := highlight.RenderSource(program)
 	if mode == ModeHTML {
 		return ansihtml.Convert(ansi), nil
 	}
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	if len(flag.Args()) != 1 {
-		die("usage: rat [-format ansi|html] <file.go>")
+		die("usage: rat [-format ansi|html] <file>")
 	}
 	outputMode := OutputMode(*mode)
 	if outputMode != ModeANSI && outputMode != ModeHTML {

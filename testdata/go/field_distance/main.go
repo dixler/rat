@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"rat/internal/highlight"
-	"rat/testdata/rat/field_distance/other"
+	"rat/testdata/go/field_distance/other"
 )
 
 type SameFileType struct{}

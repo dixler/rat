@@ -16,25 +16,17 @@ type Span struct {
 	Priority int           `json:"priority,omitempty"`
 }
 
-func RenderSource(src string, spans map[int][]Span, lineNumberStyles map[int]display.Style, lineMarkers map[int]string) string {
-	if src == "" {
+func RenderSource(program ParseResult) string {
+	if program.Source == "" {
 		return ""
 	}
 	var b strings.Builder
-	lines := strings.Split(src, "\n")
+	lines := strings.Split(program.Source, "\n")
 	lineNumberWidth := len(strconv.Itoa(len(lines)))
 	for i, line := range lines {
 		lineNo := i + 1
-		marker := ""
-		if lineMarkers != nil {
-			marker = lineMarkers[lineNo]
-		}
-		if marker != "" {
-			pad := strings.Repeat(" ", lineNumberWidth)
-			fmt.Fprintf(&b, " %s%s %s\n", display.Reset, pad, marker)
-		}
 		lineNumber := fmt.Sprintf("%*d", lineNumberWidth, lineNo)
-		fmt.Fprintf(&b, " %s%s %s\n", display.Reset, lineNumber, colorLine(line, spans[lineNo]))
+		fmt.Fprintf(&b, " %s%s %s\n", display.Reset, lineNumber, colorLine(line, program.SourceSpans[lineNo]))
 	}
 	return strings.ReplaceAll(b.String(), "\t", strings.Repeat(" ", 4))
 }

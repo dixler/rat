@@ -2,15 +2,13 @@ package highlight
 
 import (
 	"fmt"
-	"go/scanner"
-	gotoken "go/token"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"rat/internal/display"
 	"rat/internal/file"
+	"rat/internal/file/scan"
 )
 
 type relation string
@@ -43,13 +41,11 @@ var _relationStyles = map[relation]display.BasicStyle{
 type ParseResult struct {
 	Source      string
 	SourceSpans map[int][]Span
-	LineSpans   map[int]display.Style
-	LineMarkers map[int]string
 }
 
 type controlFlowMark struct {
 	loc       file.Location
-	text      string
+	span      scan.Span
 	textStyle display.Style
 	lineStyle display.Style
 }
@@ -187,6 +183,30 @@ func addSpan(out map[int][]Span, sourceLines []string, loc file.Location, text s
 	out[line] = append(out[line], span)
 }
 
+func addScanSpan(out map[int][]Span, sourceLines []string, src scan.Span, span Span) {
+	if src.Line < 1 || src.Line > len(sourceLines) || src.Column < 1 || src.Length < 1 {
+		return
+	}
+	line := sourceLines[src.Line-1]
+	start := src.Column - 1
+	if start < 0 {
+		start = 0
+	}
+	if start > len(line) {
+		start = len(line)
+	}
+	end := start + src.Length
+	if end > len(line) {
+		end = len(line)
+	}
+	if end <= start {
+		return
+	}
+	span.Start = start
+	span.End = end
+	out[src.Line] = append(out[src.Line], span)
+}
+
 func closestOccurrenceIndex(line, text string, anchor int) int {
 	if text == "" || line == "" {
 		return -1
@@ -272,8 +292,7 @@ func packageDeclarationStyle(root string, target interface{ Location() file.Loca
 }
 
 func isBuiltin(target file.Declaration) bool {
-	p := path.Clean(target.Location().File())
-	return p == "" || strings.Contains(p, "/src/builtin")
+	return scan.IsBuiltinFile(target.Location().File())
 }
 
 func sameFunction(left, right file.Declaration) bool {
@@ -323,7 +342,7 @@ func locationKey(loc file.Location) string {
 }
 
 func Analyze(path string) (ParseResult, error) {
-	f, err := file.Analyze(path)
+	f, err := file.New(path)
 	if err != nil {
 		return ParseResult{}, err
 	}
@@ -357,14 +376,12 @@ func ParseFormats(f file.File) ParseResult {
 	result := ParseResult{
 		Source:      f.Source(),
 		SourceSpans: map[int][]Span{},
-		LineSpans:   map[int]display.Style{},
-		LineMarkers: map[int]string{},
 	}
 	sourceLines := strings.Split(f.Source(), "\n")
 	root := file.ProjectRoot(f.Name())
-	controlFlowMarks := collectControlFlowMarks(f)
+	controlFlowMarks := collectNodeControlFlowMarks(f.Nodes())
 	collectCommentSpans(result.SourceSpans, sourceLines, f)
-	collectLexicalTokenSpans(result.SourceSpans, f.Source(), sourceLines, loopStyleByLocation(controlFlowMarks))
+	collectLexicalNodeSpans(result.SourceSpans, sourceLines, f.Nodes(), loopStyleByLocation(controlFlowMarks))
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
 
@@ -380,8 +397,7 @@ func ParseFormats(f file.File) ParseResult {
 		if mark.loc == nil || mark.loc.Line() < 1 {
 			continue
 		}
-		result.LineSpans[mark.loc.Line()] = mark.lineStyle
-		addSpan(result.SourceSpans, sourceLines, mark.loc, mark.text, Span{Style: mark.textStyle, Priority: 2})
+		addScanSpan(result.SourceSpans, sourceLines, mark.span, Span{Style: mark.textStyle, Priority: 2})
 	}
 
 	for line := range result.SourceSpans {
@@ -398,7 +414,7 @@ func ParseFormats(f file.File) ParseResult {
 func loopStyleByLocation(marks []controlFlowMark) map[string]display.Style {
 	out := map[string]display.Style{}
 	for _, mark := range marks {
-		if mark.loc == nil || mark.text != "for" {
+		if mark.loc == nil {
 			continue
 		}
 		out[locationMapKey(mark.loc.Line(), mark.loc.Column())] = mark.textStyle
@@ -411,6 +427,77 @@ func collectPackageReferenceSpans(root string, out map[int][]Span, sourceLines [
 		addImportReferenceSpan(out, sourceLines, ref, packageDeclarationStyle(root, ref.Package()).Invert())
 	}
 }
+
+func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
+	marks := make([]controlFlowMark, 0, len(nodes))
+	plain := display.MutedOrange
+	blue := display.Blue
+	exhaustive := display.Green
+
+	for _, node := range nodes {
+		var style display.Style
+		switch n := node.(type) {
+		case scan.CondNode:
+			style = blue
+			if !n.IsGuard {
+				style = plain
+			}
+		case scan.MatchNode:
+			style = plain
+			if n.HasDefault {
+				style = exhaustive
+			}
+		case scan.LoopNode:
+			style = blue
+			if n.HasExit {
+				style = plain
+			}
+		case scan.JumpNode:
+			switch n.Kind {
+			case scan.JumpKindExit:
+				style = blue
+			case scan.JumpKindErrorExit:
+				style = plain
+			case scan.JumpKindContinue:
+				style = blue
+			case scan.JumpKindBreak:
+				style = plain
+			case scan.JumpKindEscape:
+				style = display.LightRed
+			case scan.JumpKindFallthrough:
+				style = blue
+			}
+		default:
+			continue
+		}
+		if style == nil {
+			continue
+		}
+		for _, span := range node.Spans() {
+			if span.Line < 1 || span.Column < 1 || span.Length < 1 {
+				continue
+			}
+			loc := scanNodeLocation{line: span.Line, column: span.Column}
+			marks = append(marks, controlFlowMark{loc: loc, span: span, textStyle: style, lineStyle: style})
+		}
+	}
+	sort.Slice(marks, func(i, j int) bool {
+		if marks[i].loc.Line() != marks[j].loc.Line() {
+			return marks[i].loc.Line() < marks[j].loc.Line()
+		}
+		return marks[i].loc.Column() < marks[j].loc.Column()
+	})
+	return marks
+}
+
+type scanNodeLocation struct {
+	line   int
+	column int
+}
+
+func (l scanNodeLocation) File() string { return "" }
+func (l scanNodeLocation) Line() int    { return l.line }
+func (l scanNodeLocation) Column() int  { return l.column }
 
 func addImportReferenceSpan(out map[int][]Span, sourceLines []string, ref file.PackageReference, style display.Style) {
 	loc := ref.Location()
@@ -425,151 +512,6 @@ func addImportReferenceSpan(out map[int][]Span, sourceLines []string, ref file.P
 	out[loc.Line()] = append(out[loc.Line()], Span{Start: start, End: start + len(ref.Text()), Style: style})
 }
 
-func collectControlFlowMarks(f file.File) []controlFlowMark {
-	marks := make([]controlFlowMark, 0)
-	for _, decl := range f.Declarations() {
-		collectDeclarationControlFlowMarks(decl, &marks)
-	}
-	sort.Slice(marks, func(i, j int) bool {
-		if marks[i].loc.Line() != marks[j].loc.Line() {
-			return marks[i].loc.Line() < marks[j].loc.Line()
-		}
-		return marks[i].loc.Column() < marks[j].loc.Column()
-	})
-	return marks
-}
-
-func newControlFlowMark(loc file.Location, text string, style display.Style) controlFlowMark {
-	return controlFlowMark{
-		loc:       loc,
-		text:      text,
-		textStyle: style,
-		lineStyle: style,
-	}
-}
-
-func collectDeclarationControlFlowMarks(decl file.Declaration, marks *[]controlFlowMark) {
-	if decl == nil {
-		return
-	}
-	if decl.Kind() == file.KindFunction {
-		collectFunctionControlFlowMarks(decl, marks)
-	}
-	for _, child := range decl.Declarations() {
-		collectDeclarationControlFlowMarks(child, marks)
-	}
-}
-
-func collectFunctionControlFlowMarks(decl file.Declaration, marks *[]controlFlowMark) {
-	blocks := decl.Blocks()
-	if len(blocks) == 0 {
-		return
-	}
-	collectBlockMarks(blocks, marks)
-}
-
-func collectBlockMarks(blocks []file.Block, marks *[]controlFlowMark) {
-
-	plain := display.MutedOrange
-	blue := display.Blue
-	exhaustive := display.Green
-
-	for _, block := range blocks {
-		switch b := block.(type) {
-		case file.IfBlock:
-			for _, branch := range b.Branches() {
-				addBranchMark := func(style display.Style) {
-					*marks = append(*marks, newControlFlowMark(branch.Location(), branch.Keyword(), style))
-					appendBraceMarks(marks, branch.OpenBrace(), branch.CloseBrace(), style)
-				}
-				color := blue
-				if branch.HasTerminalControlFlowStatement() {
-					color = plain
-				}
-				addBranchMark(color)
-			}
-		case file.LoopBlock:
-			addLoopMark := func(style display.Style) {
-				*marks = append(*marks, newControlFlowMark(block.Location(), b.LoopKind(), style))
-				appendBraceMarks(marks, block.OpenBrace(), block.CloseBrace(), style)
-			}
-			color := blue
-			if b.HasEscapingControlFlow() {
-				color = plain
-			}
-			addLoopMark(color)
-		case file.SwitchBlock:
-			addSwitchMark := func(style display.Style) {
-				*marks = append(*marks, newControlFlowMark(b.Location(), b.SwitchKind(), style))
-				appendBraceMarks(marks, block.OpenBrace(), block.CloseBrace(), style)
-			}
-			color := plain
-			if b.IsExhaustive() {
-				color = exhaustive
-			}
-			addSwitchMark(color)
-			for _, child := range b.Blocks() {
-				if caseBlock, ok := child.(file.CaseBlock); ok {
-					addCaseMark := func(keyword string, style display.Style) {
-						*marks = append(*marks, newControlFlowMark(child.Location(), keyword, style))
-					}
-					switch {
-					case caseBlock.IsDefault():
-						addCaseMark("default", exhaustive)
-					case caseBlock.HasFallthrough():
-						addCaseMark("case", display.Blue)
-					default:
-						addCaseMark("case", plain)
-					}
-				}
-			}
-		}
-		collectBlockMarks(block.Blocks(), marks)
-		for _, stmt := range block.Statements() {
-			addMark := func(style display.Style) {
-				*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
-			}
-			switch stmt.Kind() {
-			case "return":
-				color := blue
-				if stmt.ReturnsError() {
-					color = plain
-				}
-				addMark(color)
-			case "fallthrough":
-				addMark(blue)
-			case "panic":
-				addMark(display.LightRed)
-			}
-		}
-		for _, stmt := range block.ControlFlowStatements() {
-			addMark := func(style display.Style) {
-				*marks = append(*marks, newControlFlowMark(stmt.Location(), stmt.Kind(), style))
-			}
-			switch stmt.Kind() {
-			case "break":
-				addMark(plain)
-			case "continue":
-				addMark(blue)
-			case "goto", "panic":
-				addMark(display.LightRed)
-			}
-		}
-	}
-}
-
-func appendBraceMarks(marks *[]controlFlowMark, open, close file.Location, style display.Style) {
-	if marks == nil || style == nil {
-		return
-	}
-	if open != nil {
-		*marks = append(*marks, newControlFlowMark(open, "{", style))
-	}
-	if close != nil {
-		*marks = append(*marks, newControlFlowMark(close, "}", style))
-	}
-}
-
 func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
 		distanceLoc := named.DistanceLocation()
@@ -581,7 +523,7 @@ func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sou
 		if named.ReferenceType() {
 			style = frameStyle(style)
 		}
-		addSpan(out, sourceLines, named.Location(), named.Text(), Span{Style: style, Priority: 1})
+		addSpan(out, sourceLines, named.Location(), named.Text(), Span{Style: style, Priority: 2})
 	}
 }
 
@@ -609,125 +551,40 @@ func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Lo
 	}
 }
 
-var keywordStyles = map[gotoken.Token]display.Style{
-	gotoken.TYPE:      display.MutedOrange,
-	gotoken.STRUCT:    display.MutedOrange,
-	gotoken.FUNC:      display.MutedOrange,
-	gotoken.INTERFACE: display.MutedOrange,
-	gotoken.MAP:       display.MutedOrange,
-	gotoken.VAR:       display.MutedOrange,
-	gotoken.PACKAGE:   display.MutedOrange,
-	gotoken.IMPORT:    display.MutedOrange,
-	gotoken.DEFER:     display.Blue,
-	gotoken.GO:        display.Blue,
-	gotoken.CONST:     display.Blue,
-	gotoken.GOTO:      display.LightRed,
-}
-
-var literalTokens = map[gotoken.Token]bool{
-	gotoken.CHAR:   true,
-	gotoken.FLOAT:  true,
-	gotoken.IMAG:   true,
-	gotoken.INT:    true,
-	gotoken.STRING: true,
-}
-
-func collectLexicalTokenSpans(out map[int][]Span, source string, sourceLines []string, loopStyles map[string]display.Style) {
-	fset := gotoken.NewFileSet()
-	file := fset.AddFile("", fset.Base(), len(source))
-	var s scanner.Scanner
-	s.Init(file, []byte(source), nil, 0)
-
-	var pendingForStyle display.Style
-	pendingPackageName := false
-	pendingImportSpec := false
-	importBlockDepth := 0
-	for {
-		pos, tok, lit := s.Scan()
-		if tok == gotoken.EOF {
-			break
-		}
-
-		p := fset.Position(pos)
-		text := lit
-		if text == "" {
-			text = tok.String()
-		}
-
-		if tok == gotoken.FOR {
-			pendingForStyle = loopStyles[locationMapKey(p.Line, p.Column)]
-		}
-		if tok == gotoken.PACKAGE {
-			pendingPackageName = true
-		}
-		if tok == gotoken.IMPORT {
-			pendingImportSpec = true
-		}
-		if pendingImportSpec && tok == gotoken.LPAREN {
-			importBlockDepth = 1
-			pendingImportSpec = false
-		} else if importBlockDepth > 0 && tok == gotoken.LPAREN {
-			importBlockDepth++
-		} else if importBlockDepth > 0 && tok == gotoken.RPAREN {
-			importBlockDepth--
-		}
-
-		style, ok := keywordStyles[tok]
-		if pendingPackageName && tok == gotoken.IDENT {
-			style, ok = _relationStyles[_relSamePackage], true
-			pendingPackageName = false
-		} else if tok == gotoken.RANGE && pendingForStyle != nil {
-			style, ok = pendingForStyle, true
-			pendingForStyle = nil
-		} else if tok == gotoken.STRING && (pendingImportSpec || importBlockDepth > 0) {
-			ok = false
-		} else if literalTokens[tok] {
-			style, ok = display.LightPink, true
-		}
-		if pendingImportSpec && (tok == gotoken.STRING || tok == gotoken.SEMICOLON) {
-			pendingImportSpec = false
-		}
-		if !ok || text == "" {
+func collectLexicalNodeSpans(out map[int][]Span, sourceLines []string, nodes []scan.Node, loopStyles map[string]display.Style) {
+	for _, node := range nodes {
+		style := lexicalNodeStyle(node, loopStyles)
+		if style == nil {
 			continue
 		}
-		addTokenSpan(out, sourceLines, p.Line, p.Column, text, Span{Style: style})
+		for _, span := range node.Spans() {
+			addScanSpan(out, sourceLines, span, Span{Style: style})
+		}
 	}
 }
 
-func addTokenSpan(out map[int][]Span, sourceLines []string, line, col int, text string, span Span) {
-	if line < 1 || col < 1 || text == "" {
-		return
-	}
-	parts := strings.Split(text, "\n")
-	for i, part := range parts {
-		lineNo := line + i
-		if lineNo < 1 || lineNo > len(sourceLines) {
-			continue
+func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) display.Style {
+	switch n := node.(type) {
+	case scan.DeclarationSyntaxNode:
+		return display.MutedOrange
+	case scan.ProgramSyntaxNode:
+		return display.Blue
+	case scan.EscapeSyntaxNode:
+		return display.LightRed
+	case scan.LiteralNode:
+		return display.LightPink
+	case scan.PackageNameNode:
+		return _relationStyles[_relSamePackage]
+	case scan.BuiltinNode:
+		return display.MutedOrange
+	case scan.LoopOperatorNode:
+		anchor := n.Anchor
+		if anchor.Line < 1 || anchor.Column < 1 {
+			anchor = n.Span
 		}
-		lineText := sourceLines[lineNo-1]
-		start := 0
-		if i == 0 {
-			start = col - 1
-			if start < 0 {
-				start = 0
-			}
-			if start > len(lineText) {
-				start = len(lineText)
-			}
-		}
-		end := len(lineText)
-		if i == len(parts)-1 {
-			end = start + len(part)
-			if end > len(lineText) {
-				end = len(lineText)
-			}
-		}
-		if end <= start {
-			continue
-		}
-		span.Start = start
-		span.End = end
-		out[lineNo] = append(out[lineNo], span)
+		return loopStyles[locationMapKey(anchor.Line, anchor.Column)]
+	default:
+		return nil
 	}
 }
 
@@ -773,8 +630,7 @@ func isBuiltinLocation(loc file.Location) bool {
 	if loc == nil {
 		return false
 	}
-	p := path.Clean(loc.File())
-	return p == "" || strings.Contains(p, "/src/builtin")
+	return scan.IsBuiltinFile(loc.File())
 }
 
 func sameFileLocation(left, right file.Location) bool {

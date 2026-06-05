@@ -27,4 +27,4 @@ Config keys:
 
 1. Open the repo/workspace in VS Code.
 2. Press `F5`.
-3. Open/save a Go file to refresh decorations.
+3. Open/save a Go or TypeScript file to refresh decorations.

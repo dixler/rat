@@ -42,11 +42,6 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		pkgRefs = append(pkgRefs, pkgRef)
 	}
 
-	var returns []Location
-	for _, r := range raw.Returns {
-		returns = append(returns, location{r.File, r.Line, r.Column})
-	}
-
 	var indirectCalls []IndirectCall
 	for _, c := range raw.IndirectCalls {
 		indirectCalls = append(indirectCalls, &indirectCall{
@@ -67,27 +62,22 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		name:          abs,
 		source:        src,
 		root:          root,
+		nodes:         append([]scan.Node(nil), raw.Nodes...),
 		packageRefs:   pkgRefs,
 		decls:         decls,
 		namedFields:   buildNamedFields(raw.NamedFields),
-		returns:       returns,
 		indirectCalls: indirectCalls,
 		comments:      comments,
 	}, nil
 }
 
 func toDeclaration(src scan.Declaration, parent Declaration, declMap map[string]*declaration) *declaration {
-	blocks := make([]Block, 0, len(src.ControlFlow))
-	for _, block := range src.ControlFlow {
-		blocks = append(blocks, buildBlock(block))
-	}
 	d := &declaration{
 		name:          src.Name,
 		kind:          Kind(src.Kind),
 		location:      location{src.File, src.Line, src.Column},
 		referenceType: src.ReferenceType,
 		parent:        parent,
-		blocks:        blocks,
 	}
 	declMap[src.ID] = d
 	for _, child := range src.Declarations {
@@ -114,7 +104,7 @@ func attachDeclarationReferences(raw scan.Declaration, declMap map[string]*decla
 		}
 		if rr.DeclarationID != "" {
 			ref.declaration = declMap[rr.DeclarationID]
-		} else if loc := rr.Declaration.Location(); loc.File != "" && loc.Line > 0 && loc.Column > 0 {
+		} else if scan.HasLocation(rr.Declaration) {
 			ref.declaration = externalDeclaration(rr, declMap)
 		}
 		decl.references = append(decl.references, ref)
@@ -125,7 +115,7 @@ func attachDeclarationReferences(raw scan.Declaration, declMap map[string]*decla
 }
 
 func externalDeclaration(raw scan.Reference, declMap map[string]*declaration) *declaration {
-	loc := raw.Declaration.Location()
+	loc := raw.Declaration
 	key := fmt.Sprintf("external:%s:%d:%d:%s", loc.File, loc.Line, loc.Column, raw.Kind)
 	if decl := declMap[key]; decl != nil {
 		return decl
@@ -145,96 +135,4 @@ func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
 		p.files = append(p.files, fd)
 	}
 	return p
-}
-
-func buildBlock(raw scan.ControlFlowBlock) Block {
-	blockBase := buildBlockBase(raw)
-	switch raw.Kind {
-	case scan.BlockKindIf:
-		return buildIfBlock(raw)
-	case scan.BlockKindElseIf, scan.BlockKindElse:
-		return &anonymousBlock{blockBase: blockBase}
-	case scan.BlockKindFor:
-		return &loopBlock{blockBase: blockBase, kind: raw.Kind, mayBreak: raw.MayBreak, mayReturn: raw.MayReturn}
-	case scan.BlockKindSwitch, scan.BlockKindSelect:
-		return &switchBlock{blockBase: blockBase, kind: raw.Kind, caseCount: raw.CaseCount, hasDefault: raw.HasDefault}
-	case scan.BlockKindCase:
-		return &caseBlock{blockBase: blockBase, isDefault: raw.HasDefault}
-	default:
-		return &anonymousBlock{blockBase: blockBase}
-	}
-}
-
-func buildIfBlock(raw scan.ControlFlowBlock) Block {
-	ifb := &ifBlock{ifChainID: raw.IfChainID}
-	ifb.collectIfBranches(raw)
-	// If statement has to have at least 1 branch.
-	ifb.location = ifb.branches[0].Location()
-	for _, branch := range ifb.branches {
-		ifb.blocks = append(ifb.blocks, branch.Blocks()...)
-	}
-	return ifb
-}
-
-func buildBlockBase(raw scan.ControlFlowBlock) blockBase {
-	var openBrace, closeBrace *location
-	if raw.OpenBraceLine > 0 && raw.OpenBraceColumn > 0 {
-		openBrace = &location{raw.File, raw.OpenBraceLine, raw.OpenBraceColumn}
-	}
-	if raw.CloseBraceLine > 0 && raw.CloseBraceColumn > 0 {
-		closeBrace = &location{raw.File, raw.CloseBraceLine, raw.CloseBraceColumn}
-	}
-	statements := make([]ControlFlowStatement, 0, len(raw.Statements))
-	for _, stmt := range raw.Statements {
-		statements = append(statements, &controlFlowStatement{
-			kind:         stmt.Kind,
-			location:     location{stmt.File, stmt.Line, stmt.Column},
-			returnsError: stmt.ReturnsError,
-		})
-	}
-	blocks := make([]Block, 0, len(raw.Blocks))
-	for _, child := range raw.Blocks {
-		blocks = append(blocks, buildBlock(child))
-	}
-	return blockBase{
-		location:                        location{raw.File, raw.Line, raw.Column},
-		openBrace:                       openBrace,
-		closeBrace:                      closeBrace,
-		hasTerminalControlFlowStatement: raw.HasTerminalControlFlowStatement,
-		statements:                      statements,
-		blocks:                          blocks,
-	}
-}
-
-func buildBranch(raw scan.ControlFlowBlock) (IfBranch, *ifBranchBase) {
-	base := ifBranchBase{
-		blockBase: buildBlockBase(raw),
-		step:      raw.IfStep,
-	}
-	switch raw.Kind {
-	case scan.BlockKindIf:
-		branch := &ifBranch{ifBranchBase: base}
-		return branch, &branch.ifBranchBase
-	case scan.BlockKindElseIf:
-		branch := &ifBranch{ifBranchBase: base, elseIf: true}
-		return branch, &branch.ifBranchBase
-	case scan.BlockKindElse:
-		branch := &elseBranch{ifBranchBase: base}
-		return branch, &branch.ifBranchBase
-	default:
-		panic("unexpected control flow block in collectIfBranches")
-	}
-}
-
-func (ifb *ifBlock) collectIfBranches(raw scan.ControlFlowBlock) {
-	branch, base := buildBranch(raw)
-	for _, child := range raw.Blocks {
-		switch child.Kind {
-		case scan.BlockKindElseIf, scan.BlockKindElse:
-			ifb.collectIfBranches(child)
-		default:
-			base.blocks = append(base.blocks, buildBlock(child))
-		}
-	}
-	ifb.branches = append(ifb.branches, branch)
 }
