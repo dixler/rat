@@ -21,6 +21,8 @@ github.com/mattn/go-pointer v0.0.1 h1:n+XhsuGeVO6MEAp7xyEukFINEa+Quek5psIR/ylA6o
 github.com/mattn/go-pointer v0.0.1/go.mod h1:2zXcozF6qYGgmsG+SeTZz3oAbFLdD3OWqnUbNvJZAlc=
 github.com/microsoft/typescript-go v0.0.0-20260604004240-70b87f0321de h1:H20NkYOM3957KrIKbOAeua0B0f2X30Cj68JO/8HAVNI=
 github.com/microsoft/typescript-go v0.0.0-20260604004240-70b87f0321de/go.mod h1:pwW0oaaaUr5x/yidoC+Lbr1R6GNrs7mDk60QDOzyPKk=
+github.com/microsoft/typescript-go v0.0.0-20260604205727-69d658da1a63 h1:4xyeRBCdRGAh5ZUGIVVAsJnHn9u6mhTtSRaKs3Ia+eY=
+github.com/microsoft/typescript-go v0.0.0-20260604205727-69d658da1a63/go.mod h1:pwW0oaaaUr5x/yidoC+Lbr1R6GNrs7mDk60QDOzyPKk=
 github.com/modelcontextprotocol/go-sdk v0.8.0 h1:jdsBtGzBLY287WKSIjYovOXAqtJkP+HtFQFKrZd4a6c=
 github.com/modelcontextprotocol/go-sdk v0.8.0/go.mod h1:nYtYQroQ2KQiM0/SbyEPUWQ6xs4B95gJjEalc9AQyOs=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

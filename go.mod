@@ -15,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/jsonschema-go v0.3.0 // indirect
 	github.com/mattn/go-pointer v0.0.1 // indirect
-	github.com/microsoft/typescript-go v0.0.0-20260604004240-70b87f0321de // indirect
+	github.com/microsoft/typescript-go v0.0.0-20260604205727-69d658da1a63 // indirect
 	github.com/modelcontextprotocol/go-sdk v0.8.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/tree-sitter/go-tree-sitter v0.25.0 // indirect
