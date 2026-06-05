@@ -49,7 +49,6 @@ type Result struct {
 	PackageReferences []PackageReference
 	Packages          []Package
 	NamedFields       []NamedField
-	Returns           []Return
 	IndirectCalls     []IndirectCall
 	Comments          []Comment
 }
@@ -63,23 +62,6 @@ type Span struct {
 type Node interface {
 	Spans() []Span
 }
-
-type IdentRole int
-
-const (
-	IdentRoleDeclaration IdentRole = iota + 1
-	IdentRoleReference
-)
-
-type IdentNode struct {
-	Span          Span
-	Role          IdentRole
-	Kind          string
-	Escapes       bool
-	ReferenceType bool
-}
-
-func (n IdentNode) Spans() []Span { return oneSpan(n.Span) }
 
 type CondNode struct {
 	NodeSpans []Span
@@ -195,16 +177,11 @@ type IndirectCall struct {
 	Text string
 }
 
-type Return struct {
-	Location
-}
-
 type Declaration struct {
 	Location
 	ID            string
 	Name          string
 	Kind          string
-	Escapes       bool
 	ReferenceType bool
 	References    []Reference
 	Declarations  []Declaration
@@ -225,11 +202,8 @@ type ControlFlowBlock struct {
 	CloseBraceLine                  int
 	CloseBraceColumn                int
 	HasTerminalControlFlowStatement bool
-	IfChainID                       string
-	IfStep                          int
 	Statements                      []ControlFlowStatement
 	Blocks                          []ControlFlowBlock
-	CaseCount                       int
 	HasDefault                      bool
 	MayBreak                        bool
 	MayReturn                       bool
@@ -238,10 +212,9 @@ type ControlFlowBlock struct {
 type Reference struct {
 	Location
 	DeclarationID string
-	Declaration   DefinitionLocation
+	Declaration   Location
 	Text          string
 	Kind          string
-	Escapes       bool
 	ReferenceType bool
 }
 
@@ -275,7 +248,7 @@ type NamedField struct {
 	Text             string
 	Inline           bool
 	ReferenceType    bool
-	StructDecl       DefinitionLocation
+	StructDecl       Location
 	Declaration      NamedFieldTypeDeclaration
 	TypeDeclarations []NamedFieldTypeDeclaration
 }
@@ -284,26 +257,12 @@ type NamedFieldTypeDeclaration struct {
 	Location
 }
 
-type DefinitionLocation struct {
-	File   string
-	Line   int
-	Column int
-	OK     bool
+func HasLocation(loc Location) bool {
+	return loc.File != "" && loc.Line > 0 && loc.Column > 0
 }
 
-func NewDefinitionLocation(file string, line, column int) DefinitionLocation {
-	return DefinitionLocation{File: file, Line: line, Column: column, OK: file != "" && line > 0 && column > 0}
-}
-
-func BuiltinDefinitionLocation(language string) DefinitionLocation {
-	return NewDefinitionLocation(BuiltinFile+"/"+language, 1, 1)
-}
-
-func (l DefinitionLocation) Location() Location {
-	if !l.OK {
-		return Location{}
-	}
-	return Location{File: l.File, Line: l.Line, Column: l.Column}
+func BuiltinLocation(language string) Location {
+	return Location{File: BuiltinFile + "/" + language, Line: 1, Column: 1}
 }
 
 const (

@@ -25,12 +25,6 @@ func RenderSource(program ParseResult) string {
 	lineNumberWidth := len(strconv.Itoa(len(lines)))
 	for i, line := range lines {
 		lineNo := i + 1
-		if program.LineMarkers != nil {
-			if marker := program.LineMarkers[lineNo]; marker != "" {
-				pad := strings.Repeat(" ", lineNumberWidth)
-				fmt.Fprintf(&b, " %s%s %s\n", display.Reset, pad, marker)
-			}
-		}
 		lineNumber := fmt.Sprintf("%*d", lineNumberWidth, lineNo)
 		fmt.Fprintf(&b, " %s%s %s\n", display.Reset, lineNumber, colorLine(line, program.SourceSpans[lineNo]))
 	}

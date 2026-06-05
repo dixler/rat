@@ -28,7 +28,6 @@ type Result = scan.Result
 type Location = scan.Location
 type Comment = scan.Comment
 type IndirectCall = scan.IndirectCall
-type Return = scan.Return
 type Declaration = scan.Declaration
 type ControlFlowStatement = scan.ControlFlowStatement
 type ControlFlowBlock = scan.ControlFlowBlock
@@ -39,7 +38,7 @@ type PackageFile = scan.PackageFile
 type DeclarationSummary = scan.DeclarationSummary
 type NamedField = scan.NamedField
 type NamedFieldTypeDeclaration = scan.NamedFieldTypeDeclaration
-type definitionLocation = scan.DefinitionLocation
+type definitionLocation = scan.Location
 
 type namedFieldInfo struct {
 	ReferenceType    bool
@@ -138,15 +137,6 @@ func buildGo(file string) (*Result, error) {
 	}
 	ast.Inspect(parsed, func(n ast.Node) bool {
 		switch node := n.(type) {
-		case *ast.ReturnStmt:
-			pos := fset.Position(node.Return)
-			res.Returns = append(res.Returns, Return{
-				Location: Location{
-					File:   file,
-					Line:   pos.Line,
-					Column: pos.Column,
-				},
-			})
 		case *ast.CallExpr:
 			name, startPos := indirectCallTarget(node.Fun, fset)
 			if name == "" || startPos == token.NoPos {
@@ -476,7 +466,6 @@ type controlFlowBuilder struct {
 	returnErrors map[token.Pos]bool
 	labels       map[string]*ControlFlowBlock
 	breakStack   []*ControlFlowBlock
-	ifChainSeq   int
 }
 
 func (b *controlFlowBuilder) buildBlocks(stmts []ast.Stmt) []ControlFlowBlock {
@@ -506,8 +495,7 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	case *ast.BlockStmt:
 		block.Blocks = b.buildBlocks(s.List)
 	case *ast.IfStmt:
-		b.ifChainSeq++
-		block = b.buildIfChain(s, fmt.Sprintf("if-chain-%d", b.ifChainSeq), 1, BlockKindIf, s.If)
+		block = b.buildIfChain(s, BlockKindIf, s.If)
 	case *ast.ForStmt:
 		block = b.buildForBlock(s.Pos(), s.Body, "")
 	case *ast.RangeStmt:
@@ -525,9 +513,9 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	return block
 }
 
-func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step int, kind string, keywordPos token.Pos) ControlFlowBlock {
+func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, kind string, keywordPos token.Pos) ControlFlowBlock {
 	pos := b.fset.Position(keywordPos)
-	block := ControlFlowBlock{Kind: kind, Location: Location{b.file, pos.Line, pos.Column}, IfChainID: chainID, IfStep: step}
+	block := ControlFlowBlock{Kind: kind, Location: Location{b.file, pos.Line, pos.Column}}
 	block.Statements = b.collectControlFlowStatements(stmt.Init, stmt.Cond)
 	if stmt.Body != nil {
 		setBlockBracesFromStmt(b.fset, &block, stmt.Body)
@@ -537,10 +525,10 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, chainID string, step
 		elsePos := stmt.Else.Pos()
 		switch e := stmt.Else.(type) {
 		case *ast.IfStmt:
-			block.Blocks = append(block.Blocks, b.buildIfChain(e, chainID, step+1, BlockKindElseIf, elsePos))
+			block.Blocks = append(block.Blocks, b.buildIfChain(e, BlockKindElseIf, elsePos))
 		case *ast.BlockStmt:
 			elseLoc := b.fset.Position(elsePos)
-			elseBlock := ControlFlowBlock{Kind: BlockKindElse, Location: Location{b.file, elseLoc.Line, elseLoc.Column}, IfChainID: chainID, IfStep: step + 1}
+			elseBlock := ControlFlowBlock{Kind: BlockKindElse, Location: Location{b.file, elseLoc.Line, elseLoc.Column}}
 			setBlockBracesFromStmt(b.fset, &elseBlock, e)
 			elseBlock.Blocks = b.buildBlocks(e.List)
 			elseBlock.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(elseBlock)
@@ -668,7 +656,6 @@ func (b *controlFlowBuilder) appendCaseBlock(parent *ControlFlowBlock, casePos t
 	if hasDefault {
 		parent.HasDefault = true
 	}
-	parent.CaseCount++
 	p := b.fset.Position(casePos)
 	caseBlock := ControlFlowBlock{Kind: BlockKindCase, Location: Location{b.file, p.Line, p.Column}, HasDefault: hasDefault}
 	caseNodes := make([]ast.Node, 0, len(body))
@@ -1019,7 +1006,7 @@ func (b *builder) typeNameLocation(obj *types.TypeName) (definitionLocation, boo
 		return definitionLocation{}, false
 	}
 	if obj.Pkg() == nil {
-		return definitionLocation{File: "", Line: 1, Column: 1, OK: true}, true
+		return definitionLocation{File: "", Line: 1, Column: 1}, true
 	}
 	if obj.Pkg().Path() != filepath.Dir(b.file) {
 		if loc, ok := b.packageTypeDefinition(obj.Pkg().Path(), obj.Name()); ok {
@@ -1029,7 +1016,7 @@ func (b *builder) typeNameLocation(obj *types.TypeName) (definitionLocation, boo
 	if obj.Pos() != token.NoPos {
 		pos := b.fset.Position(obj.Pos())
 		if pos.Filename != "" && pos.Line > 0 && pos.Column > 0 {
-			return definitionLocation{File: pos.Filename, Line: pos.Line, Column: pos.Column, OK: true}, true
+			return definitionLocation{File: pos.Filename, Line: pos.Line, Column: pos.Column}, true
 		}
 	}
 	return b.packageTypeDefinition(obj.Pkg().Path(), obj.Name())
@@ -1039,7 +1026,7 @@ func (b *builder) packageTypeDefinition(importPath, name string) (definitionLoca
 	for _, file := range loadPackageFiles(importPath) {
 		for _, decl := range file.Declarations {
 			if decl.Kind == KindType && decl.Name == name {
-				return definitionLocation{File: decl.File, Line: decl.Line, Column: decl.Column, OK: true}, true
+				return definitionLocation{File: decl.File, Line: decl.Line, Column: decl.Column}, true
 			}
 		}
 	}
@@ -1052,7 +1039,7 @@ func (b *builder) appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclarati
 		return
 	}
 	b.seen[key] = struct{}{}
-	*out = append(*out, NamedFieldTypeDeclaration{Location: loc.Location()})
+	*out = append(*out, NamedFieldTypeDeclaration{Location: loc})
 }
 
 func (b *builder) typeDeclarationsFor(expr ast.Expr) []definitionLocation {
@@ -1133,11 +1120,11 @@ func (b *builder) typeDeclarationForIdent(id *ast.Ident) (definitionLocation, bo
 	}
 	if obj := b.info.Uses[id]; obj != nil {
 		if obj.Parent() == types.Universe {
-			return definitionLocation{File: "", Line: 1, Column: 1, OK: true}, true
+			return definitionLocation{File: "", Line: 1, Column: 1}, true
 		}
 		objPos := b.fset.Position(obj.Pos())
 		if objPos.Filename != "" && objPos.Line > 0 && objPos.Column > 0 {
-			return definitionLocation{File: objPos.Filename, Line: objPos.Line, Column: objPos.Column, OK: true}, true
+			return definitionLocation{File: objPos.Filename, Line: objPos.Line, Column: objPos.Column}, true
 		}
 	}
 	return definitionLocation{}, false
@@ -1195,6 +1182,10 @@ func isReferenceTypeSeen(t types.Type, seen map[types.Type]bool) bool {
 
 func (b *builder) collectReferences(node ast.Node, decl *Declaration) {
 	ast.Inspect(node, func(n ast.Node) bool {
+		if field, ok := n.(*ast.Field); ok {
+			b.collectReferences(field.Type, decl)
+			return false
+		}
 		if selector, ok := n.(*ast.SelectorExpr); ok {
 			if id, ok := selector.X.(*ast.Ident); ok && b.info.Uses[id] == nil {
 				if importPath := b.pkgPathByName[id.Name]; importPath != "" {
@@ -1242,7 +1233,7 @@ func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, impo
 			}
 		}
 	}
-	if ref.Declaration.File == "" {
+	if !scan.HasLocation(ref.Declaration) {
 		if target, ok := b.definitionFor(id.Pos()); ok {
 			ref.Declaration = target
 		}
@@ -1254,7 +1245,7 @@ func (b *builder) definitionFor(pos token.Pos) (definitionLocation, bool) {
 	position := b.fset.Position(pos)
 	key := fmt.Sprintf("%s:%d:%d", position.Filename, position.Line, position.Column)
 	if cached, ok := b.goplsByPos[key]; ok {
-		return cached, cached.OK
+		return cached, scan.HasLocation(cached)
 	}
 	if b.client == nil {
 		b.goplsByPos[key] = definitionLocation{}
@@ -1265,9 +1256,9 @@ func (b *builder) definitionFor(pos token.Pos) (definitionLocation, bool) {
 		b.goplsByPos[key] = definitionLocation{}
 		return definitionLocation{}, false
 	}
-	loc := definitionLocation{File: target.File, Line: target.Line, Column: target.Column, OK: target.File != "" && target.Line > 0 && target.Column > 0}
+	loc := definitionLocation{File: target.File, Line: target.Line, Column: target.Column}
 	b.goplsByPos[key] = loc
-	return loc, loc.OK
+	return loc, scan.HasLocation(loc)
 }
 
 func importedPackageName(imp *ast.ImportSpec) string {
@@ -1477,16 +1468,16 @@ func clonePackageFiles(src []PackageFile) []PackageFile {
 
 func (b *builder) packageDefinitionForImportPath(importPath string) (definitionLocation, bool) {
 	if cached, ok := b.pkgDefByPath[importPath]; ok {
-		return cached, cached.OK
+		return cached, scan.HasLocation(cached)
 	}
 	files := loadPackageFiles(importPath)
 	if len(files) == 0 {
 		b.pkgDefByPath[importPath] = definitionLocation{}
 		return definitionLocation{}, false
 	}
-	loc := definitionLocation{File: files[0].File, Line: files[0].Line, Column: files[0].Column, OK: files[0].File != "" && files[0].Line > 0 && files[0].Column > 0}
+	loc := definitionLocation{File: files[0].File, Line: files[0].Line, Column: files[0].Column}
 	b.pkgDefByPath[importPath] = loc
-	return loc, loc.OK
+	return loc, scan.HasLocation(loc)
 }
 
 func (b *builder) classifyObject(obj types.Object) string {

@@ -29,26 +29,6 @@ func readSourceLines(file string) []string {
 }
 
 func appendDeclarationNodes(nodes *[]Node, decl Declaration, sourceLines []string) {
-	if decl.Line > 0 && decl.Column > 0 && decl.Name != "" {
-		*nodes = append(*nodes, IdentNode{
-			Span:          Span{Line: decl.Line, Column: decl.Column, Length: len(decl.Name)},
-			Role:          IdentRoleDeclaration,
-			Kind:          decl.Kind,
-			Escapes:       decl.Escapes,
-			ReferenceType: decl.ReferenceType,
-		})
-	}
-	for _, ref := range decl.References {
-		if ref.Line > 0 && ref.Column > 0 && ref.Text != "" {
-			*nodes = append(*nodes, IdentNode{
-				Span:          Span{Line: ref.Line, Column: ref.Column, Length: len(ref.Text)},
-				Role:          IdentRoleReference,
-				Kind:          ref.Kind,
-				Escapes:       ref.Escapes,
-				ReferenceType: ref.ReferenceType,
-			})
-		}
-	}
 	for _, block := range decl.ControlFlow {
 		appendControlFlowNodes(nodes, block, sourceLines)
 	}

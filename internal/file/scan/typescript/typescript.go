@@ -16,13 +16,12 @@ import (
 type Result = scan.Result
 type Location = scan.Location
 type Comment = scan.Comment
-type Return = scan.Return
 type Declaration = scan.Declaration
 type ControlFlowStatement = scan.ControlFlowStatement
 type ControlFlowBlock = scan.ControlFlowBlock
 type Reference = scan.Reference
 type NamedFieldTypeDeclaration = scan.NamedFieldTypeDeclaration
-type definitionLocation = scan.DefinitionLocation
+type definitionLocation = scan.Location
 
 const (
 	KindType      = scan.KindType
@@ -113,7 +112,7 @@ func buildTypeScript(file string) (*Result, error) {
 		defer b.client.Close()
 	}
 	root := tree.RootNode()
-	b.collectCommentsAndReturns(root)
+	b.collectComments(root)
 	b.collectDeclarations(root, nil, b.rootScope)
 	if b.client != nil {
 		if err := b.client.SyncDocument(abs); err != nil {
@@ -125,21 +124,17 @@ func buildTypeScript(file string) (*Result, error) {
 	return b.result, nil
 }
 
-func (b *typescriptBuilder) collectCommentsAndReturns(node *treesitter.Node) {
+func (b *typescriptBuilder) collectComments(node *treesitter.Node) {
 	if node == nil {
 		return
 	}
-	switch node.Kind() {
-	case "comment":
+	if node.Kind() == "comment" {
 		start := node.StartPosition()
 		end := node.EndPosition()
 		b.result.Comments = append(b.result.Comments, Comment{StartLine: int(start.Row) + 1, StartColumn: int(start.Column) + 1, EndLine: int(end.Row) + 1, EndColumn: int(end.Column) + 1})
-	case "return_statement", "throw_statement":
-		pos := node.StartPosition()
-		b.result.Returns = append(b.result.Returns, Return{Location: Location{File: b.file, Line: int(pos.Row) + 1, Column: int(pos.Column) + 1}})
 	}
 	for i := uint(0); i < node.ChildCount(); i++ {
-		b.collectCommentsAndReturns(node.Child(i))
+		b.collectComments(node.Child(i))
 	}
 }
 
@@ -188,7 +183,7 @@ func (b *typescriptBuilder) buildTypeScriptBlock(node *treesitter.Node) (Control
 	}
 	switch node.Kind() {
 	case "if_statement":
-		return b.buildTypeScriptIfBlock(node, BlockKindIf, b.ifChainID(node), 0), true
+		return b.buildTypeScriptIfBlock(node, BlockKindIf), true
 	case "for_statement", "for_in_statement":
 		return b.buildTypeScriptLoopBlock(node, BlockKindFor), true
 	case "while_statement":
@@ -213,11 +208,10 @@ func (b *typescriptBuilder) buildTypeScriptBlock(node *treesitter.Node) (Control
 
 func (b *typescriptBuilder) buildTypeScriptTryBlock(node *treesitter.Node) ControlFlowBlock {
 	body := firstChildKind(node, "statement_block")
-	block := ControlFlowBlock{Kind: BlockKindTry, Location: b.nodeLocation(node), IfChainID: b.tryChainID(node), IfStep: 0}
+	block := ControlFlowBlock{Kind: BlockKindTry, Location: b.nodeLocation(node)}
 	b.setTypeScriptBlockBraces(&block, body)
 	block.Statements = b.collectTypeScriptControlFlowStatements(body)
 	block.Blocks = b.buildTypeScriptBlocks(body)
-	step := 1
 	for i := uint(0); i < node.NamedChildCount(); i++ {
 		child := node.NamedChild(i)
 		if child == nil {
@@ -225,20 +219,18 @@ func (b *typescriptBuilder) buildTypeScriptTryBlock(node *treesitter.Node) Contr
 		}
 		switch child.Kind() {
 		case "catch_clause":
-			block.Blocks = append(block.Blocks, b.buildTypeScriptTryBranch(child, BlockKindCatch, block.IfChainID, step))
-			step++
+			block.Blocks = append(block.Blocks, b.buildTypeScriptTryBranch(child, BlockKindCatch))
 		case "finally_clause":
-			block.Blocks = append(block.Blocks, b.buildTypeScriptTryBranch(child, BlockKindFinally, block.IfChainID, step))
-			step++
+			block.Blocks = append(block.Blocks, b.buildTypeScriptTryBranch(child, BlockKindFinally))
 		}
 	}
 	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
 	return block
 }
 
-func (b *typescriptBuilder) buildTypeScriptTryBranch(node *treesitter.Node, kind, chainID string, step int) ControlFlowBlock {
+func (b *typescriptBuilder) buildTypeScriptTryBranch(node *treesitter.Node, kind string) ControlFlowBlock {
 	body := firstChildKind(node, "statement_block")
-	block := ControlFlowBlock{Kind: kind, Location: b.nodeLocation(node), IfChainID: chainID, IfStep: step}
+	block := ControlFlowBlock{Kind: kind, Location: b.nodeLocation(node)}
 	b.setTypeScriptBlockBraces(&block, body)
 	block.Statements = b.collectTypeScriptControlFlowStatements(body)
 	block.Blocks = b.buildTypeScriptBlocks(body)
@@ -246,17 +238,17 @@ func (b *typescriptBuilder) buildTypeScriptTryBranch(node *treesitter.Node, kind
 	return block
 }
 
-func (b *typescriptBuilder) buildTypeScriptIfBlock(node *treesitter.Node, kind, chainID string, step int) ControlFlowBlock {
+func (b *typescriptBuilder) buildTypeScriptIfBlock(node *treesitter.Node, kind string) ControlFlowBlock {
 	body := node.ChildByFieldName("consequence")
-	block := ControlFlowBlock{Kind: kind, Location: b.nodeLocation(node), IfChainID: chainID, IfStep: step}
+	block := ControlFlowBlock{Kind: kind, Location: b.nodeLocation(node)}
 	b.setTypeScriptBlockBraces(&block, body)
 	block.Statements = b.collectTypeScriptControlFlowStatements(body)
 	block.Blocks = b.buildTypeScriptBlocks(body)
 	if alt := node.ChildByFieldName("alternative"); alt != nil {
 		if alt.Kind() == "if_statement" {
-			block.Blocks = append(block.Blocks, b.buildTypeScriptIfBlock(alt, BlockKindElseIf, chainID, step+1))
+			block.Blocks = append(block.Blocks, b.buildTypeScriptIfBlock(alt, BlockKindElseIf))
 		} else {
-			elseBlock := ControlFlowBlock{Kind: BlockKindElse, Location: b.nodeLocation(alt), IfChainID: chainID, IfStep: step + 1}
+			elseBlock := ControlFlowBlock{Kind: BlockKindElse, Location: b.nodeLocation(alt)}
 			b.setTypeScriptBlockBraces(&elseBlock, alt)
 			elseBlock.Statements = b.collectTypeScriptControlFlowStatements(alt)
 			elseBlock.Blocks = b.buildTypeScriptBlocks(alt)
@@ -295,7 +287,6 @@ func (b *typescriptBuilder) buildTypeScriptSwitchBlock(node *treesitter.Node) Co
 			caseBlock.Blocks = b.buildTypeScriptBlocks(child)
 			caseBlock.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(caseBlock)
 			block.Blocks = append(block.Blocks, caseBlock)
-			block.CaseCount++
 			block.HasDefault = block.HasDefault || caseBlock.HasDefault
 		}
 	}
@@ -356,16 +347,6 @@ func (b *typescriptBuilder) setTypeScriptBlockBraces(block *ControlFlowBlock, no
 func (b *typescriptBuilder) nodeLocation(node *treesitter.Node) Location {
 	pos := node.StartPosition()
 	return Location{File: b.file, Line: int(pos.Row) + 1, Column: int(pos.Column) + 1}
-}
-
-func (b *typescriptBuilder) ifChainID(node *treesitter.Node) string {
-	loc := b.nodeLocation(node)
-	return fmt.Sprintf("ts-if:%d:%d", loc.Line, loc.Column)
-}
-
-func (b *typescriptBuilder) tryChainID(node *treesitter.Node) string {
-	loc := b.nodeLocation(node)
-	return fmt.Sprintf("ts-try:%d:%d", loc.Line, loc.Column)
 }
 
 func (b *typescriptBuilder) collectDeclarations(node *treesitter.Node, parent *Declaration, scope *typescriptScope) {
@@ -594,7 +575,7 @@ func (b *typescriptBuilder) addBuiltinReference(parent *Declaration, text string
 	if parent == nil {
 		return
 	}
-	decl := scan.BuiltinDefinitionLocation("typescript")
+	decl := scan.BuiltinLocation("typescript")
 	if loc, ok := b.definitionFor(line, col); ok {
 		decl = loc
 	}

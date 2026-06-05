@@ -41,8 +41,6 @@ var _relationStyles = map[relation]display.BasicStyle{
 type ParseResult struct {
 	Source      string
 	SourceSpans map[int][]Span
-	LineSpans   map[int]display.Style
-	LineMarkers map[int]string
 }
 
 type controlFlowMark struct {
@@ -344,7 +342,7 @@ func locationKey(loc file.Location) string {
 }
 
 func Analyze(path string) (ParseResult, error) {
-	f, err := file.Analyze(path)
+	f, err := file.New(path)
 	if err != nil {
 		return ParseResult{}, err
 	}
@@ -378,8 +376,6 @@ func ParseFormats(f file.File) ParseResult {
 	result := ParseResult{
 		Source:      f.Source(),
 		SourceSpans: map[int][]Span{},
-		LineSpans:   map[int]display.Style{},
-		LineMarkers: map[int]string{},
 	}
 	sourceLines := strings.Split(f.Source(), "\n")
 	root := file.ProjectRoot(f.Name())
@@ -401,7 +397,6 @@ func ParseFormats(f file.File) ParseResult {
 		if mark.loc == nil || mark.loc.Line() < 1 {
 			continue
 		}
-		result.LineSpans[mark.loc.Line()] = mark.lineStyle
 		addScanSpan(result.SourceSpans, sourceLines, mark.span, Span{Style: mark.textStyle, Priority: 2})
 	}
 
@@ -528,7 +523,7 @@ func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sou
 		if named.ReferenceType() {
 			style = frameStyle(style)
 		}
-		addSpan(out, sourceLines, named.Location(), named.Text(), Span{Style: style, Priority: 1})
+		addSpan(out, sourceLines, named.Location(), named.Text(), Span{Style: style, Priority: 2})
 	}
 }
 

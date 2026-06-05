@@ -64,7 +64,6 @@ type PackageDeclaration interface {
 type NamedLocation interface {
 	Location() Location
 	Text() string
-	DeclarationLocation() Location
 	DeclarationLocations() []Location
 	DistanceLocation() Location
 	Inline() bool
@@ -83,7 +82,6 @@ type File interface {
 	Nodes() []scan.Node
 	PackageReferences() []PackageReference
 	Declarations() []Declaration
-	Returns() []Location
 	IndirectCalls() []IndirectCall
 	Comments() []Comment
 }
@@ -96,7 +94,6 @@ type file struct {
 	packageRefs   []PackageReference
 	decls         []Declaration
 	namedFields   []NamedLocation
-	returns       []Location
 	indirectCalls []IndirectCall
 	comments      []Comment
 }
@@ -143,17 +140,12 @@ type namedLocation struct {
 	inline               bool
 	referenceType        bool
 	distanceLocation     *location
-	declarationLocation  *location
 	declarationLocations []Location
 }
 
 type commentSpan struct {
 	start location
 	end   location
-}
-
-func Analyze(name string) (File, error) {
-	return New(name)
 }
 
 func New(name string) (File, error) {
@@ -180,7 +172,6 @@ func (f *file) PackageReferences() []PackageReference {
 	return append([]PackageReference(nil), f.packageRefs...)
 }
 func (f *file) Declarations() []Declaration   { return append([]Declaration(nil), f.decls...) }
-func (f *file) Returns() []Location           { return append([]Location(nil), f.returns...) }
 func (f *file) IndirectCalls() []IndirectCall { return append([]IndirectCall(nil), f.indirectCalls...) }
 func (f *file) Comments() []Comment           { return append([]Comment(nil), f.comments...) }
 
@@ -214,12 +205,6 @@ func (p *packageDeclaration) Files() []Declaration { return append([]Declaration
 func (n namedLocation) Location() Location  { return n.location }
 func (n namedLocation) Text() string        { return n.text }
 func (n namedLocation) ReferenceType() bool { return n.referenceType }
-func (n namedLocation) DeclarationLocation() Location {
-	if n.declarationLocation == nil {
-		return nil
-	}
-	return *n.declarationLocation
-}
 func (n namedLocation) DeclarationLocations() []Location {
 	return append([]Location(nil), n.declarationLocations...)
 }
@@ -260,7 +245,7 @@ func buildNamedFields(fields []scan.NamedField) []NamedLocation {
 
 func buildNamedField(field scan.NamedField) NamedLocation {
 	named := namedLocation{location: location{file: field.File, line: field.Line, column: field.Column}, text: field.Text, inline: field.Inline, referenceType: field.ReferenceType}
-	loc := field.StructDecl.Location()
+	loc := field.StructDecl
 	if loc.Line > 0 && loc.Column > 0 {
 		loc := location{file: loc.File, line: loc.Line, column: loc.Column}
 		named.distanceLocation = &loc
@@ -272,12 +257,8 @@ func buildNamedField(field scan.NamedField) NamedLocation {
 		loc := location{file: decl.File, line: decl.Line, column: decl.Column}
 		named.declarationLocations = append(named.declarationLocations, loc)
 	}
-	if len(named.declarationLocations) > 0 {
-		loc := named.declarationLocations[0].(location)
-		named.declarationLocation = &loc
-	} else if field.Declaration.Line > 0 && field.Declaration.Column > 0 {
+	if len(named.declarationLocations) == 0 && field.Declaration.Line > 0 && field.Declaration.Column > 0 {
 		loc := location{file: field.Declaration.File, line: field.Declaration.Line, column: field.Declaration.Column}
-		named.declarationLocation = &loc
 		named.declarationLocations = append(named.declarationLocations, loc)
 	}
 	return named

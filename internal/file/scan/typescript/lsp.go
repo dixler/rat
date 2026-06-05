@@ -37,7 +37,7 @@ func defaultLSPClient(file string) *lspclient.Client {
 func (b *typescriptBuilder) definitionFor(line, column int) (definitionLocation, bool) {
 	key := fmt.Sprintf("%d:%d", line, column)
 	if cached, ok := b.defsByPos[key]; ok {
-		return cached, cached.OK
+		return cached, scan.HasLocation(cached)
 	}
 	if b.client == nil {
 		b.defsByPos[key] = definitionLocation{}
@@ -48,9 +48,9 @@ func (b *typescriptBuilder) definitionFor(line, column int) (definitionLocation,
 		b.defsByPos[key] = definitionLocation{}
 		return definitionLocation{}, false
 	}
-	loc := scan.NewDefinitionLocation(target.File, target.Line, target.Column)
+	loc := scan.Location{File: target.File, Line: target.Line, Column: target.Column}
 	b.defsByPos[key] = loc
-	return loc, loc.OK
+	return loc, scan.HasLocation(loc)
 }
 
 func (b *typescriptBuilder) definitionForNode(node *treesitter.Node) (definitionLocation, bool) {
