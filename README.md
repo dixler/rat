@@ -2,7 +2,7 @@
 
 You've seen `cat`, you've seen `bat`, but have you seen `rat`?
 
-`rat` is an experimental semantic highlighter for Go and TypeScript. It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
+`rat` is an experimental semantic highlighter for Go (TypeScript work-in-progress). It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
 
 Run it on a file:
 
