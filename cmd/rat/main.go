@@ -22,7 +22,7 @@ func ProcessPipeline(filepath string, mode OutputMode) (string, error) {
 		return "", err
 	}
 
-	ansi := highlight.RenderSource(program.Source, program.SourceSpans, program.LineSpans, program.LineMarkers)
+	ansi := highlight.RenderSource(program)
 	if mode == ModeHTML {
 		return ansihtml.Convert(ansi), nil
 	}
