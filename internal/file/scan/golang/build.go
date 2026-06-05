@@ -27,7 +27,6 @@ var (
 type Result = scan.Result
 type Location = scan.Location
 type Comment = scan.Comment
-type Token = scan.Token
 type IndirectCall = scan.IndirectCall
 type Return = scan.Return
 type Declaration = scan.Declaration
@@ -57,26 +56,20 @@ const (
 )
 
 const (
-	BlockKindBase               = scan.BlockKindBase
-	BlockKindIf                 = scan.BlockKindIf
-	BlockKindElseIf             = scan.BlockKindElseIf
-	BlockKindElse               = scan.BlockKindElse
-	BlockKindFor                = scan.BlockKindFor
-	BlockKindWhile              = scan.BlockKindWhile
-	BlockKindDo                 = scan.BlockKindDo
-	BlockKindSwitch             = scan.BlockKindSwitch
-	BlockKindSelect             = scan.BlockKindSelect
-	BlockKindCase               = scan.BlockKindCase
-	BlockKindTry                = scan.BlockKindTry
-	BlockKindCatch              = scan.BlockKindCatch
-	BlockKindFinally            = scan.BlockKindFinally
-	StatementKindPanic          = scan.StatementKindPanic
-	TokenKindDeclarationKeyword = scan.TokenKindDeclarationKeyword
-	TokenKindControlKeyword     = scan.TokenKindControlKeyword
-	TokenKindEscapeKeyword      = scan.TokenKindEscapeKeyword
-	TokenKindLiteral            = scan.TokenKindLiteral
-	TokenKindPackageName        = scan.TokenKindPackageName
-	TokenKindLoopOperator       = scan.TokenKindLoopOperator
+	BlockKindBase      = scan.BlockKindBase
+	BlockKindIf        = scan.BlockKindIf
+	BlockKindElseIf    = scan.BlockKindElseIf
+	BlockKindElse      = scan.BlockKindElse
+	BlockKindFor       = scan.BlockKindFor
+	BlockKindWhile     = scan.BlockKindWhile
+	BlockKindDo        = scan.BlockKindDo
+	BlockKindSwitch    = scan.BlockKindSwitch
+	BlockKindSelect    = scan.BlockKindSelect
+	BlockKindCase      = scan.BlockKindCase
+	BlockKindTry       = scan.BlockKindTry
+	BlockKindCatch     = scan.BlockKindCatch
+	BlockKindFinally   = scan.BlockKindFinally
+	StatementKindPanic = scan.StatementKindPanic
 )
 
 type Scanner struct{}
@@ -122,7 +115,7 @@ func buildGo(file string) (*Result, error) {
 		goplsByPos:    map[string]definitionLocation{},
 		seen:          map[string]struct{}{},
 	}
-	res := &Result{File: file, Tokens: collectGoTokens(file)}
+	res := &Result{File: file, Nodes: collectGoTokenNodes(file)}
 	for _, imp := range parsed.Imports {
 		path := strings.Trim(imp.Path.Value, "\"")
 		name := importedPackageName(imp)

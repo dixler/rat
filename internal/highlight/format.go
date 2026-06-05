@@ -385,7 +385,7 @@ func ParseFormats(f file.File) ParseResult {
 	root := file.ProjectRoot(f.Name())
 	controlFlowMarks := collectNodeControlFlowMarks(f.Nodes())
 	collectCommentSpans(result.SourceSpans, sourceLines, f)
-	collectLexicalTokenSpans(result.SourceSpans, sourceLines, f.Tokens(), loopStyleByLocation(controlFlowMarks))
+	collectLexicalNodeSpans(result.SourceSpans, sourceLines, f.Nodes(), loopStyleByLocation(controlFlowMarks))
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
 
@@ -556,69 +556,40 @@ func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Lo
 	}
 }
 
-var tokenKindStyles = map[file.TokenKind]display.Style{
-	file.TokenKindDeclarationKeyword: display.MutedOrange,
-	file.TokenKindControlKeyword:     display.Blue,
-	file.TokenKindEscapeKeyword:      display.LightRed,
-	file.TokenKindLiteral:            display.LightPink,
-	file.TokenKindPackageName:        _relationStyles[_relSamePackage],
-	file.TokenKindBuiltin:            display.MutedOrange,
-}
-
-func collectLexicalTokenSpans(out map[int][]Span, sourceLines []string, tokens []file.Token, loopStyles map[string]display.Style) {
-	for _, tok := range tokens {
-		if tok == nil || tok.Location() == nil || tok.Text() == "" {
+func collectLexicalNodeSpans(out map[int][]Span, sourceLines []string, nodes []scan.Node, loopStyles map[string]display.Style) {
+	for _, node := range nodes {
+		style := lexicalNodeStyle(node, loopStyles)
+		if style == nil {
 			continue
 		}
-		style, ok := tokenKindStyles[tok.Kind()]
-		if tok.Kind() == file.TokenKindLoopOperator {
-			anchor := tok.AnchorLocation()
-			if anchor == nil {
-				anchor = tok.Location()
-			}
-			style, ok = loopStyles[locationMapKey(anchor.Line(), anchor.Column())]
+		for _, span := range node.Spans() {
+			addScanSpan(out, sourceLines, span, Span{Style: style})
 		}
-		if !ok || style == nil {
-			continue
-		}
-		addTokenSpan(out, sourceLines, tok.Location().Line(), tok.Location().Column(), tok.Text(), Span{Style: style})
 	}
 }
 
-func addTokenSpan(out map[int][]Span, sourceLines []string, line, col int, text string, span Span) {
-	if line < 1 || col < 1 || text == "" {
-		return
-	}
-	parts := strings.Split(text, "\n")
-	for i, part := range parts {
-		lineNo := line + i
-		if lineNo < 1 || lineNo > len(sourceLines) {
-			continue
+func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) display.Style {
+	switch n := node.(type) {
+	case scan.DeclarationSyntaxNode:
+		return display.MutedOrange
+	case scan.ProgramSyntaxNode:
+		return display.Blue
+	case scan.EscapeSyntaxNode:
+		return display.LightRed
+	case scan.LiteralNode:
+		return display.LightPink
+	case scan.PackageNameNode:
+		return _relationStyles[_relSamePackage]
+	case scan.BuiltinNode:
+		return display.MutedOrange
+	case scan.LoopOperatorNode:
+		anchor := n.Anchor
+		if anchor.Line < 1 || anchor.Column < 1 {
+			anchor = n.Span
 		}
-		lineText := sourceLines[lineNo-1]
-		start := 0
-		if i == 0 {
-			start = col - 1
-			if start < 0 {
-				start = 0
-			}
-			if start > len(lineText) {
-				start = len(lineText)
-			}
-		}
-		end := len(lineText)
-		if i == len(parts)-1 {
-			end = start + len(part)
-			if end > len(lineText) {
-				end = len(lineText)
-			}
-		}
-		if end <= start {
-			continue
-		}
-		span.Start = start
-		span.End = end
-		out[lineNo] = append(out[lineNo], span)
+		return loopStyles[locationMapKey(anchor.Line, anchor.Column)]
+	default:
+		return nil
 	}
 }
 

@@ -36,8 +36,8 @@ func Build(file string) (*Result, error) {
 		return nil, fmt.Errorf("unsupported file type %q", filepath.Ext(file))
 	}
 	result, err := scanner.Build(file)
-	if result != nil && len(result.Nodes) == 0 {
-		result.Nodes = BuildNodes(result)
+	if result != nil {
+		result.Nodes = append(result.Nodes, BuildNodes(result)...)
 	}
 	return result, err
 }
@@ -52,7 +52,6 @@ type Result struct {
 	Returns           []Return
 	IndirectCalls     []IndirectCall
 	Comments          []Comment
-	Tokens            []Token
 }
 
 type Span struct {
@@ -121,11 +120,61 @@ type JumpNode struct {
 
 func (n JumpNode) Spans() []Span { return oneSpan(n.Span) }
 
+type DeclarationSyntaxNode struct{ NodeSpans []Span }
+
+func (n DeclarationSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type ProgramSyntaxNode struct{ NodeSpans []Span }
+
+func (n ProgramSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type EscapeSyntaxNode struct{ NodeSpans []Span }
+
+func (n EscapeSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type LiteralNode struct{ NodeSpans []Span }
+
+func (n LiteralNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type BuiltinNode struct{ NodeSpans []Span }
+
+func (n BuiltinNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type PackageNameNode struct{ NodeSpans []Span }
+
+func (n PackageNameNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
+type LoopOperatorNode struct {
+	Span   Span
+	Anchor Span
+}
+
+func (n LoopOperatorNode) Spans() []Span { return oneSpan(n.Span) }
+
 func oneSpan(span Span) []Span {
 	if span.Line < 1 || span.Column < 1 || span.Length < 1 {
 		return nil
 	}
 	return []Span{span}
+}
+
+func SpansForText(line, column int, text string) []Span {
+	if line < 1 || column < 1 || text == "" {
+		return nil
+	}
+	parts := strings.Split(text, "\n")
+	spans := make([]Span, 0, len(parts))
+	for i, part := range parts {
+		if part == "" {
+			continue
+		}
+		col := 1
+		if i == 0 {
+			col = column
+		}
+		spans = append(spans, Span{Line: line + i, Column: col, Length: len(part)})
+	}
+	return spans
 }
 
 type Location struct {
@@ -139,14 +188,6 @@ type Comment struct {
 	StartColumn int
 	EndLine     int
 	EndColumn   int
-}
-
-type Token struct {
-	Location
-	Text         string
-	Kind         string
-	AnchorLine   int
-	AnchorColumn int
 }
 
 type IndirectCall struct {
@@ -319,16 +360,6 @@ func BlockConstructKind(kind string) string {
 const (
 	StatementKindPanic = "panic"
 	BuiltinFile        = "/src/builtin"
-)
-
-const (
-	TokenKindDeclarationKeyword = "declaration-keyword"
-	TokenKindControlKeyword     = "control-keyword"
-	TokenKindEscapeKeyword      = "escape-keyword"
-	TokenKindLiteral            = "literal"
-	TokenKindPackageName        = "package-name"
-	TokenKindLoopOperator       = "loop-operator"
-	TokenKindBuiltin            = "builtin"
 )
 
 func IsBuiltinFile(file string) bool {

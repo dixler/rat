@@ -16,7 +16,6 @@ import (
 type Result = scan.Result
 type Location = scan.Location
 type Comment = scan.Comment
-type Token = scan.Token
 type Return = scan.Return
 type Declaration = scan.Declaration
 type ControlFlowStatement = scan.ControlFlowStatement
@@ -101,7 +100,7 @@ func buildTypeScript(file string) (*Result, error) {
 	b := &typescriptBuilder{
 		file:        abs,
 		source:      source,
-		result:      &Result{File: abs, Tokens: collectTypeScriptTokens(abs, source, tree.RootNode())},
+		result:      &Result{File: abs, Nodes: collectTypeScriptTokenNodes(source, tree.RootNode())},
 		declByNode:  map[uintptr]string{},
 		scopeByNode: map[uintptr]*typescriptScope{},
 		declNames:   map[string]struct{}{},

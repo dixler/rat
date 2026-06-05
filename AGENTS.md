@@ -62,6 +62,7 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 - Go `1.26` per `go.mod` and `go.work`; workspace rooted via `go.work`.
 - `github.com/stretchr/testify` is replaced with `./third_party/testify`; keep unless dependency strategy changes intentionally.
 - TypeScript highlighting uses tree-sitter plus same-file lexical declaration/reference resolution and the embedded TypeScript LSP server.
+- `scan.Result.Nodes` carries semantic coloring nodes, including lexical syntax/literal/builtin nodes and generated declaration/control-flow nodes; avoid reintroducing file-level token adapters.
 - Node/npm are used for the VS Code extension and Pulumi infra.
 
 ## Commands

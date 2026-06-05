@@ -4,21 +4,23 @@ import (
 	"go/scanner"
 	"go/token"
 	"os"
+
+	"rat/internal/file/scan"
 )
 
 var goKeywordTokens = map[token.Token]string{
-	token.TYPE:      TokenKindDeclarationKeyword,
-	token.STRUCT:    TokenKindDeclarationKeyword,
-	token.FUNC:      TokenKindDeclarationKeyword,
-	token.INTERFACE: TokenKindDeclarationKeyword,
-	token.MAP:       TokenKindDeclarationKeyword,
-	token.VAR:       TokenKindDeclarationKeyword,
-	token.PACKAGE:   TokenKindDeclarationKeyword,
-	token.IMPORT:    TokenKindDeclarationKeyword,
-	token.DEFER:     TokenKindControlKeyword,
-	token.GO:        TokenKindControlKeyword,
-	token.CONST:     TokenKindControlKeyword,
-	token.GOTO:      TokenKindEscapeKeyword,
+	token.TYPE:      "declaration",
+	token.STRUCT:    "declaration",
+	token.FUNC:      "declaration",
+	token.INTERFACE: "declaration",
+	token.MAP:       "declaration",
+	token.VAR:       "declaration",
+	token.PACKAGE:   "declaration",
+	token.IMPORT:    "declaration",
+	token.DEFER:     "program",
+	token.GO:        "program",
+	token.CONST:     "program",
+	token.GOTO:      "escape",
 }
 
 var goLiteralTokens = map[token.Token]bool{
@@ -29,7 +31,7 @@ var goLiteralTokens = map[token.Token]bool{
 	token.STRING: true,
 }
 
-func collectGoTokens(file string) []Token {
+func collectGoTokenNodes(file string) []scan.Node {
 	source, err := readFileString(file)
 	if err != nil {
 		return nil
@@ -39,11 +41,11 @@ func collectGoTokens(file string) []Token {
 	var s scanner.Scanner
 	s.Init(f, []byte(source), nil, 0)
 
-	var out []Token
+	var out []scan.Node
 	pendingPackageName := false
 	pendingImportSpec := false
 	importBlockDepth := 0
-	var pendingLoopAnchor Location
+	var pendingLoopAnchor scan.Span
 	for {
 		pos, tok, lit := s.Scan()
 		if tok == token.EOF {
@@ -57,7 +59,7 @@ func collectGoTokens(file string) []Token {
 		}
 
 		if tok == token.FOR {
-			pendingLoopAnchor = Location{File: file, Line: p.Line, Column: p.Column}
+			pendingLoopAnchor = scan.Span{Line: p.Line, Column: p.Column, Length: len(tok.String())}
 		}
 		if tok == token.PACKAGE {
 			pendingPackageName = true
@@ -76,26 +78,39 @@ func collectGoTokens(file string) []Token {
 
 		kind, ok := goKeywordTokens[tok]
 		if pendingPackageName && tok == token.IDENT {
-			kind, ok = TokenKindPackageName, true
+			kind, ok = "package-name", true
 			pendingPackageName = false
 		} else if tok == token.RANGE {
-			kind, ok = TokenKindLoopOperator, true
+			kind, ok = "loop-operator", true
 		} else if tok == token.STRING && (pendingImportSpec || importBlockDepth > 0) {
 			ok = false
 		} else if goLiteralTokens[tok] {
-			kind, ok = TokenKindLiteral, true
+			kind, ok = "literal", true
 		}
 		if pendingImportSpec && (tok == token.STRING || tok == token.SEMICOLON) {
 			pendingImportSpec = false
 		}
 		if ok && text != "" {
-			semanticToken := Token{Location: Location{File: file, Line: p.Line, Column: p.Column}, Text: text, Kind: kind}
-			if kind == TokenKindLoopOperator {
-				semanticToken.AnchorLine = pendingLoopAnchor.Line
-				semanticToken.AnchorColumn = pendingLoopAnchor.Column
-				pendingLoopAnchor = Location{}
+			spans := scan.SpansForText(p.Line, p.Column, text)
+			if len(spans) == 0 {
+				continue
 			}
-			out = append(out, semanticToken)
+			span := spans[0]
+			switch kind {
+			case "declaration":
+				out = append(out, scan.DeclarationSyntaxNode{NodeSpans: spans})
+			case "program":
+				out = append(out, scan.ProgramSyntaxNode{NodeSpans: spans})
+			case "escape":
+				out = append(out, scan.EscapeSyntaxNode{NodeSpans: spans})
+			case "literal":
+				out = append(out, scan.LiteralNode{NodeSpans: spans})
+			case "package-name":
+				out = append(out, scan.PackageNameNode{NodeSpans: spans})
+			case "loop-operator":
+				out = append(out, scan.LoopOperatorNode{Span: span, Anchor: pendingLoopAnchor})
+				pendingLoopAnchor = scan.Span{}
+			}
 		}
 	}
 	return out

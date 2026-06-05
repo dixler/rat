@@ -7,33 +7,33 @@ import (
 )
 
 var keywordTokenKinds = map[string]string{
-	"class":     scan.TokenKindDeclarationKeyword,
-	"interface": scan.TokenKindDeclarationKeyword,
-	"type":      scan.TokenKindDeclarationKeyword,
-	"enum":      scan.TokenKindDeclarationKeyword,
-	"function":  scan.TokenKindDeclarationKeyword,
-	"let":       scan.TokenKindDeclarationKeyword,
-	"var":       scan.TokenKindDeclarationKeyword,
-	"import":    scan.TokenKindDeclarationKeyword,
-	"export":    scan.TokenKindDeclarationKeyword,
-	"from":      scan.TokenKindDeclarationKeyword,
-	"const":     scan.TokenKindControlKeyword,
-	"return":    scan.TokenKindControlKeyword,
-	"async":     scan.TokenKindControlKeyword,
-	"await":     scan.TokenKindControlKeyword,
-	"if":        scan.TokenKindControlKeyword,
-	"else":      scan.TokenKindControlKeyword,
-	"for":       scan.TokenKindControlKeyword,
-	"while":     scan.TokenKindControlKeyword,
-	"switch":    scan.TokenKindControlKeyword,
-	"case":      scan.TokenKindControlKeyword,
-	"default":   scan.TokenKindControlKeyword,
-	"try":       scan.TokenKindControlKeyword,
-	"catch":     scan.TokenKindControlKeyword,
-	"finally":   scan.TokenKindControlKeyword,
-	"continue":  scan.TokenKindControlKeyword,
-	"break":     scan.TokenKindEscapeKeyword,
-	"throw":     scan.TokenKindEscapeKeyword,
+	"class":     "declaration",
+	"interface": "declaration",
+	"type":      "declaration",
+	"enum":      "declaration",
+	"function":  "declaration",
+	"let":       "declaration",
+	"var":       "declaration",
+	"import":    "declaration",
+	"export":    "declaration",
+	"from":      "declaration",
+	"const":     "program",
+	"return":    "program",
+	"async":     "program",
+	"await":     "program",
+	"if":        "program",
+	"else":      "program",
+	"for":       "program",
+	"while":     "program",
+	"switch":    "program",
+	"case":      "program",
+	"default":   "program",
+	"try":       "program",
+	"catch":     "program",
+	"finally":   "program",
+	"continue":  "program",
+	"break":     "escape",
+	"throw":     "escape",
 }
 
 var builtinNames = map[string]struct{}{
@@ -78,26 +78,41 @@ var builtinNames = map[string]struct{}{
 	"symbol":            {},
 }
 
-func collectTypeScriptTokens(file string, source []byte, root *treesitter.Node) []Token {
-	var out []Token
-	collectTypeScriptTokensFromNode(file, source, root, &out)
+func collectTypeScriptTokenNodes(source []byte, root *treesitter.Node) []scan.Node {
+	var out []scan.Node
+	collectTypeScriptTokenNodesFromNode(source, root, &out)
 	return out
 }
 
-func collectTypeScriptTokensFromNode(file string, source []byte, node *treesitter.Node, out *[]Token) {
+func collectTypeScriptTokenNodesFromNode(source []byte, node *treesitter.Node, out *[]scan.Node) {
 	if node == nil {
 		return
 	}
 	kind, text := typeScriptNodeToken(node, source)
 	if kind != "" {
 		pos := node.StartPosition()
-		*out = append(*out, Token{Location: Location{File: file, Line: int(pos.Row) + 1, Column: int(pos.Column) + 1}, Text: text, Kind: kind})
-		if kind == scan.TokenKindLiteral {
+		spans := scan.SpansForText(int(pos.Row)+1, int(pos.Column)+1, text)
+		if len(spans) == 0 {
+			return
+		}
+		switch kind {
+		case "declaration":
+			*out = append(*out, scan.DeclarationSyntaxNode{NodeSpans: spans})
+		case "program":
+			*out = append(*out, scan.ProgramSyntaxNode{NodeSpans: spans})
+		case "escape":
+			*out = append(*out, scan.EscapeSyntaxNode{NodeSpans: spans})
+		case "literal":
+			*out = append(*out, scan.LiteralNode{NodeSpans: spans})
+		case "builtin":
+			*out = append(*out, scan.BuiltinNode{NodeSpans: spans})
+		}
+		if kind == "literal" {
 			return
 		}
 	}
 	for i := uint(0); i < node.ChildCount(); i++ {
-		collectTypeScriptTokensFromNode(file, source, node.Child(i), out)
+		collectTypeScriptTokenNodesFromNode(source, node.Child(i), out)
 	}
 }
 
@@ -110,12 +125,12 @@ func typeScriptNodeToken(node *treesitter.Node, source []byte) (string, string) 
 		return "", ""
 	}
 	if typeScriptLiteralNode(node) {
-		return scan.TokenKindLiteral, node.Utf8Text(source)
+		return "literal", node.Utf8Text(source)
 	}
 	if typeScriptBuiltinNode(node) {
 		text := node.Utf8Text(source)
 		if _, ok := builtinNames[text]; ok {
-			return scan.TokenKindBuiltin, text
+			return "builtin", text
 		}
 	}
 	return "", ""
