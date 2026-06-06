@@ -28,7 +28,7 @@ Agent-maintained. Update when product behavior, architecture, data flows, comman
 
 ### Project Overview
 
-`rat` is an experimental semantic highlighter for Go and TypeScript with:
+`rat` is an experimental semantic highlighter for Go with:
 
 - A CLI and local HTTP server in `cmd/rat`.
 - Shared highlighting, file loading, rendering, `gopls`, and API logic under `internal/`.
@@ -36,14 +36,12 @@ Agent-maintained. Update when product behavior, architecture, data flows, comman
 - A VS Code extension in `vscode-text-semantic` that consumes spans from the local `rat` server.
 - Deployment/site support under `infra/`.
 
-Core behavior is semantic highlighting, not plain syntax highlighting. Preserve spans, declaration/reference coloring, control-flow coloring, and shared output behavior across terminal, HTTP, and VS Code consumers. Go semantic coloring is the baseline: when TypeScript can express the same semantic signal with tree-sitter and same-file resolution, match Go's coloring categories and control-flow treatment. Go semantic parsing uses Go AST/type information and `gopls`; TypeScript parsing uses tree-sitter plus same-file lexical declaration/reference resolution, with embedded TypeScript LSP definition lookup for unresolved references.
-
-TypeScript fixtures should exercise Go fixture concepts where tree-sitter same-file resolution can support them: lexical shadowing, nested block/control-flow declarations, imports, class/interface/type members, function and method parameters, destructuring bindings, catch parameters, top-level references, builtin references, comments, literals, and keyword/control-flow coloring including try/catch/finally branch coloring. Do not imply TypeScript currently has cross-file/package resolution, Go-style reference-type framing, named struct field analysis, indirect-call analysis, or typed return-error classification.
+Core behavior is semantic highlighting, not plain syntax highlighting. Preserve spans, declaration/reference coloring, control-flow coloring, and shared output behavior across terminal, HTTP, and VS Code consumers. Go semantic parsing uses Go AST/type information and `gopls`.
 
 ### Key Areas
 
 - `cmd/rat/`: CLI, local server, and pipeline golden tests.
-- `internal/`: shared highlighting, file loading, rendering, generic LSP, `gopls`, TypeScript parsing, and API logic.
+- `internal/`: shared highlighting, file loading, rendering, generic LSP, `gopls`, and API logic.
 - `testdata/`: golden outputs used by tests.
 - `vscode-text-semantic/`: VS Code extension and extension tests.
 - `infra/`: Pulumi deployment code and static site assets.
@@ -62,8 +60,7 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 
 - Go `1.26` per `go.mod` and `go.work`; workspace rooted via `go.work`.
 - `github.com/stretchr/testify` is replaced with `./third_party/testify`; keep unless dependency strategy changes intentionally.
-- TypeScript highlighting uses tree-sitter plus same-file lexical declaration/reference resolution and the embedded TypeScript LSP server.
-- `scan.Result.Nodes` carries semantic coloring nodes, including lexical syntax/literal/builtin nodes and generated declaration/control-flow nodes; avoid reintroducing file-level token adapters.
+- `scan.Result.Nodes` carries semantic coloring nodes, including lexical syntax/literal/builtin nodes and generated function/control-flow nodes; avoid reintroducing file-level token adapters.
 - Node/npm are used for the VS Code extension and Pulumi infra.
 
 ## Commands
@@ -76,7 +73,7 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 - Run local server: `go run ./cmd/rat --serve --addr :8081`
 - Extension tests: from `vscode-text-semantic`, run `npm test`
 - Extension build: from `vscode-text-semantic`, run `npm run build`
-- Pulumi TypeScript build: from `infra/pulumi`, run `npm run build`
+- Pulumi build: from `infra/pulumi`, run `npm run build`
 
 ## Development Guidelines
 

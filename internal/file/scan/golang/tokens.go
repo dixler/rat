@@ -11,7 +11,6 @@ import (
 var goKeywordTokens = map[token.Token]string{
 	token.TYPE:      "declaration",
 	token.STRUCT:    "declaration",
-	token.FUNC:      "declaration",
 	token.INTERFACE: "declaration",
 	token.MAP:       "declaration",
 	token.VAR:       "declaration",

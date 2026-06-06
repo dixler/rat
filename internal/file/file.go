@@ -6,7 +6,6 @@ import (
 
 	"rat/internal/file/scan"
 	"rat/internal/file/scan/golang"
-	_ "rat/internal/file/scan/typescript"
 )
 
 type Kind string

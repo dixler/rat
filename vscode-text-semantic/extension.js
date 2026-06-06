@@ -3,8 +3,8 @@ const cp = require('child_process');
 const fs = require('fs');
 
 const output = vscode.window.createOutputChannel('Text Semantic Highlight');
-const DEFAULT_LANGUAGES = ['go', 'typescript', 'typescriptreact'];
-const SUPPORTED_EXTENSIONS = new Set(['.go', '.ts', '.tsx']);
+const DEFAULT_LANGUAGES = ['go'];
+const SUPPORTED_EXTENSIONS = new Set(['.go']);
 
 let serverProc;
 const decorationStates = new Map();

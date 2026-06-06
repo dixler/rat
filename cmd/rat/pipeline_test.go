@@ -55,10 +55,7 @@ func testdataRoot(t *testing.T) string {
 
 func fixtureSources(t *testing.T, root string) []string {
 	t.Helper()
-	fixtureRoots := []string{
-		filepath.Join(root, "go"),
-		filepath.Join(root, "typescript"),
-	}
+	fixtureRoots := []string{filepath.Join(root, "go")}
 
 	out := []string{}
 	for _, fixtureRoot := range fixtureRoots {
@@ -88,7 +85,7 @@ func walkFixtureSources(t *testing.T, dir string, entries []os.DirEntry, out *[]
 
 func isFixtureSource(path string) bool {
 	switch filepath.Ext(path) {
-	case ".go", ".ts", ".tsx":
+	case ".go":
 		return true
 	default:
 		return false
