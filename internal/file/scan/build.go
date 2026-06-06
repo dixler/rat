@@ -106,6 +106,10 @@ type DeclarationSyntaxNode struct{ NodeSpans []Span }
 
 func (n DeclarationSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
 
+type MutableTypeSyntaxNode struct{ NodeSpans []Span }
+
+func (n MutableTypeSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
 type FunctionSyntaxNode struct {
 	NodeSpans    []Span
 	ReturnsError bool

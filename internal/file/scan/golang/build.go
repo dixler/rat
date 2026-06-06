@@ -115,7 +115,10 @@ func buildGo(file string) (*Result, error) {
 		goplsByPos:    map[string]definitionLocation{},
 		seen:          map[string]struct{}{},
 	}
-	res := &Result{File: file, Nodes: append(collectGoTokenNodes(file), collectGoFunctionNodes(fset, parsed, functionErrors)...)}
+	nodes := collectGoTokenNodes(file)
+	nodes = append(nodes, collectGoTypeNodes(fset, parsed)...)
+	nodes = append(nodes, collectGoFunctionNodes(fset, parsed, functionErrors)...)
+	res := &Result{File: file, Nodes: nodes}
 	for _, imp := range parsed.Imports {
 		path := strings.Trim(imp.Path.Value, "\"")
 		name := importedPackageName(imp)

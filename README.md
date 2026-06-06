@@ -77,6 +77,7 @@ Names are underlined when their type behaves like a reference.
 
 - Reference-like types include pointers, slices, maps, channels, interfaces, function values, arrays containing reference-like elements, named or alias types whose underlying type is reference-like, and structs containing any reference-like field.
 - The underline applies to declarations, references, and named struct fields when the resolved type is reference-like.
+- Built-in mutable type constructors such as `[]`, `map`, and `chan` are also underlined.
 
 ### Imports And Packages
 
@@ -147,7 +148,7 @@ Indirect calls are hot magenta because the concrete target is not obvious from t
 
 - Comments are gray, including multi-line comment spans.
 - Literal tokens, including strings outside import specs, numbers, chars, floats, and imaginary literals, are light pink.
-- `type`, `struct`, `interface`, `map`, `var`, `package`, and `import` are muted orange.
+- `type`, `struct`, `interface`, `var`, `package`, and `import` are muted orange. Mutable type constructors such as `[]`, `map`, and `chan` are muted orange and underlined.
 - The package name following a `package` keyword is green.
 - `defer`, `go`, and `const` are blue.
 - `goto` is light red.

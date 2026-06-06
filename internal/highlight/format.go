@@ -567,6 +567,8 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) displ
 	switch n := node.(type) {
 	case scan.DeclarationSyntaxNode:
 		return display.MutedOrange
+	case scan.MutableTypeSyntaxNode:
+		return display.MutedOrange.Frame()
 	case scan.FunctionSyntaxNode:
 		if n.ReturnsError {
 			return display.MutedOrange

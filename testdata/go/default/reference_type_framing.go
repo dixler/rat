@@ -60,3 +60,13 @@ func useReferenceTypes(ptr *item, slice []item, lookup map[string]item, updates 
 	globalContainer = localLiteral
 	globalValue = localValue
 }
+
+func useValueArray(values [4]int) int {
+	localValues := values
+	return localValues[0]
+}
+
+func useReferenceArray(values [4]*int) *int {
+	localValues := values
+	return localValues[0]
+}
