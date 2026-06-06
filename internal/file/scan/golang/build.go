@@ -264,11 +264,66 @@ func functionNode(fset *token.FileSet, funcPos token.Pos, body *ast.BlockStmt, r
 	}
 	out := []scan.Node{scan.FunctionSyntaxNode{NodeSpans: spans, ReturnsError: returnsError}}
 	if inline && body != nil {
-		close := fset.Position(body.Rbrace)
-		if close.Line > 0 && close.Column > 1 {
-			out = append(out, scan.InlineFunctionIndentNode{NodeSpans: []scan.Span{{Line: close.Line, Column: 1, Length: close.Column - 1}}})
+		if indentSpans := inlineFunctionIndentSpans(fset, body); len(indentSpans) > 0 {
+			out = append(out, scan.InlineFunctionIndentNode{NodeSpans: indentSpans})
 		}
 	}
+	return out
+}
+
+func inlineFunctionIndentSpans(fset *token.FileSet, body *ast.BlockStmt) []scan.Span {
+	if fset == nil || body == nil || body.Lbrace == token.NoPos || body.Rbrace == token.NoPos {
+		return nil
+	}
+	open := fset.Position(body.Lbrace)
+	close := fset.Position(body.Rbrace)
+	if open.Line < 1 || close.Line <= open.Line || close.Column < 1 {
+		return nil
+	}
+
+	baseColumn := close.Column
+	indentWidth := 0
+	for _, stmt := range body.List {
+		if stmt == nil {
+			continue
+		}
+		pos := fset.Position(stmt.Pos())
+		if pos.Column <= baseColumn {
+			continue
+		}
+		width := pos.Column - baseColumn
+		if indentWidth == 0 || width < indentWidth {
+			indentWidth = width
+		}
+	}
+	if indentWidth < 1 {
+		return nil
+	}
+
+	lines := map[int]struct{}{}
+	addLine := func(line int) {
+		if line > open.Line && line < close.Line {
+			lines[line] = struct{}{}
+		}
+	}
+	ast.Inspect(body, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case nil:
+			return true
+		case ast.Stmt:
+			addLine(fset.Position(node.Pos()).Line)
+		}
+		if block, ok := n.(*ast.BlockStmt); ok && block != body {
+			addLine(fset.Position(block.Rbrace).Line)
+		}
+		return true
+	})
+
+	out := make([]scan.Span, 0, len(lines))
+	for line := range lines {
+		out = append(out, scan.Span{Line: line, Column: baseColumn, Length: indentWidth})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Line < out[j].Line })
 	return out
 }
 
