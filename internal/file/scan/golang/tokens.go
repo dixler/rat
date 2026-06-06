@@ -11,9 +11,9 @@ import (
 var goKeywordTokens = map[token.Token]string{
 	token.TYPE:      "declaration",
 	token.STRUCT:    "declaration",
-	token.FUNC:      "declaration",
 	token.INTERFACE: "declaration",
-	token.MAP:       "declaration",
+	token.MAP:       "mutable-type",
+	token.CHAN:      "mutable-type",
 	token.VAR:       "declaration",
 	token.PACKAGE:   "declaration",
 	token.IMPORT:    "declaration",
@@ -99,6 +99,8 @@ func collectGoTokenNodes(file string) []scan.Node {
 			switch kind {
 			case "declaration":
 				out = append(out, scan.DeclarationSyntaxNode{NodeSpans: spans})
+			case "mutable-type":
+				out = append(out, scan.MutableTypeSyntaxNode{NodeSpans: spans})
 			case "program":
 				out = append(out, scan.ProgramSyntaxNode{NodeSpans: spans})
 			case "escape":

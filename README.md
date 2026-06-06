@@ -2,7 +2,7 @@
 
 You've seen `cat`, you've seen `bat`, but have you seen `rat`?
 
-`rat` is an experimental semantic highlighter for Go (TypeScript work-in-progress). It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
+`rat` is an experimental semantic highlighter for Go. It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
 
 Run it on a file:
 
@@ -32,7 +32,7 @@ The harder questions are usually semantic:
 
 ## Semantic Highlighting Behavior
 
-`rat` colors Go and TypeScript code by what each token means, not just by what kind of token it is. It asks questions like:
+`rat` colors Go code by what each token means, not just by what kind of token it is. It asks questions like:
 
 - Where was this name declared?
 - Is this value local, project-level, or external?
@@ -41,7 +41,7 @@ The harder questions are usually semantic:
 
 The CLI, HTML output, HTTP API, and VS Code extension all use the same span engine, so they should show the same highlighting decisions.
 
-Go highlighting uses Go AST/type information plus `gopls` where needed. TypeScript highlighting uses tree-sitter and same-file lexical declaration/reference resolution; unresolved references fall back to definition lookup through the embedded TypeScript LSP server.
+Go highlighting uses Go AST/type information plus `gopls` where needed.
 
 ### Relationship Colors
 
@@ -70,14 +70,14 @@ Declarations use an inverted/background style so definitions stand out from uses
 
 References to locally declared functions are treated as same-function or same-file references according to their declaration relationship, not as a separate function color.
 
-TypeScript declarations include functions, classes, interfaces, type aliases, enums, imports, class/interface members, simple variable declarations, destructuring bindings, function/method parameters, catch parameters, and loop bindings. TypeScript member/property reads such as `reader.read` are colored when same-file lexical resolution or the embedded TypeScript LSP definition fallback can resolve the property.
 
 ### Reference-Like Types
 
 Names are underlined when their type behaves like a reference.
 
-- Reference-like types include pointers, slices, maps, channels, interfaces, arrays containing reference-like elements, named types whose underlying type is reference-like, and structs containing any reference-like field.
+- Reference-like types include pointers, slices, maps, channels, interfaces, function values, arrays containing reference-like elements, named or alias types whose underlying type is reference-like, and structs containing any reference-like field.
 - The underline applies to declarations, references, and named struct fields when the resolved type is reference-like.
+- Built-in mutable type constructors such as `[]`, `map`, and `chan` are also underlined.
 
 ### Imports And Packages
 
@@ -148,10 +148,11 @@ Indirect calls are hot magenta because the concrete target is not obvious from t
 
 - Comments are gray, including multi-line comment spans.
 - Literal tokens, including strings outside import specs, numbers, chars, floats, and imaginary literals, are light pink.
-- `type`, `struct`, `func`, `interface`, `map`, `var`, `package`, and `import` are muted orange.
+- `type`, `struct`, `interface`, `var`, `package`, and `import` are muted orange. Mutable type constructors such as `[]`, `map`, and `chan` are muted orange and underlined.
 - The package name following a `package` keyword is green.
 - `defer`, `go`, and `const` are blue.
 - `goto` is light red.
+- `func` and matching function body braces are muted orange when the function signature ends in `error`; otherwise they are blue. Inline function literals also mark their closing indentation with an inverted white span.
 - `range` inherits the color of its enclosing `for` loop when `rat` has a loop mark for it.
 - Import path strings are intentionally left unhighlighted so the import name/package signal remains clearer.
 
@@ -217,14 +218,12 @@ Print ANSI-colored output:
 
 ```bash
 rat path/to/file.go
-rat path/to/file.ts
 ```
 
 Generate HTML:
 
 ```bash
 rat -format html path/to/file.go
-rat -format html path/to/file.ts
 ```
 
 Run the local HTTP server used by the VS Code extension:
@@ -239,7 +238,7 @@ The server accepts `POST /spans`:
 { "path": "/absolute/path/to/file.go" }
 ```
 
-The path may point to a supported Go, TypeScript, or TSX source file.
+The path may point to a supported Go source file.
 
 It returns flattened JSON spans grouped by 1-based line number:
 
@@ -358,6 +357,6 @@ make .images/cli.png
 
 This is experimental and Go-specific today.
 
-Future directions could include using a more generic parser such as tree-sitter, sharing more graph logic across languages, improving dynamic call detection, and making sticky-scroll/editor integrations behave better with decorations.
+Future directions could include improving dynamic call detection and making sticky-scroll/editor integrations behave better with decorations.
 
 Contributions are welcome. Please keep changes understandable and avoid adding complexity that is not buying better signal in the editor.

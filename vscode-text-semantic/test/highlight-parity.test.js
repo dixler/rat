@@ -63,7 +63,7 @@ function makeDocument(filePath, source) {
   return {
     uri: { scheme: 'file' },
     fileName: filePath,
-    languageId: path.extname(filePath) === '.go' ? 'go' : 'typescript',
+    languageId: path.extname(filePath) === '.go' ? 'go' : 'plaintext',
     lineCount: lines.length,
     lineAt(lineIndex) {
       return { text: lines[lineIndex], range: { end: { character: lines[lineIndex].length } } };
@@ -221,12 +221,9 @@ test('ANSI text decorations can be combined and reset independently', () => {
   assert.equal(extension.decorationOptions('\x1b[4;9;29m').textDecoration, 'underline');
 });
 
-test('supports TypeScript documents by default', () => {
-  assert.equal(extension.isSupportedDocument(makeDocument('/tmp/sample.ts', 'const x = 1;')), true);
-  assert.equal(extension.isSupportedDocument({
-    ...makeDocument('/tmp/sample.tsx', 'export const X = () => <div />;'),
-    languageId: 'typescriptreact'
-  }), true);
+test('supports Go documents by default', () => {
+  assert.equal(extension.isSupportedDocument(makeDocument('/tmp/sample.go', 'package sample')), true);
+  assert.equal(extension.isSupportedDocument(makeDocument('/tmp/sample.txt', 'const x = 1;')), false);
 });
 
 function fetchSpans(port, filePath) {

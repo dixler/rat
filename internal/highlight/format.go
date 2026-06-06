@@ -558,7 +558,7 @@ func collectLexicalNodeSpans(out map[int][]Span, sourceLines []string, nodes []s
 			continue
 		}
 		for _, span := range node.Spans() {
-			addScanSpan(out, sourceLines, span, Span{Style: style})
+			addScanSpan(out, sourceLines, span, Span{Style: style, Priority: lexicalNodePriority(node)})
 		}
 	}
 }
@@ -567,6 +567,15 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) displ
 	switch n := node.(type) {
 	case scan.DeclarationSyntaxNode:
 		return display.MutedOrange
+	case scan.MutableTypeSyntaxNode:
+		return display.MutedOrange.Frame()
+	case scan.FunctionSyntaxNode:
+		if n.ReturnsError {
+			return display.MutedOrange
+		}
+		return display.Blue
+	case scan.InlineFunctionIndentNode:
+		return display.White.Invert()
 	case scan.ProgramSyntaxNode:
 		return display.Blue
 	case scan.EscapeSyntaxNode:
@@ -585,6 +594,15 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) displ
 		return loopStyles[locationMapKey(anchor.Line, anchor.Column)]
 	default:
 		return nil
+	}
+}
+
+func lexicalNodePriority(node scan.Node) int {
+	switch node.(type) {
+	case scan.FunctionSyntaxNode, scan.InlineFunctionIndentNode:
+		return 2
+	default:
+		return 0
 	}
 }
 

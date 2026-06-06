@@ -100,6 +100,7 @@ func buildGo(file string) (*Result, error) {
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
 	returnErrors := collectReturnErrorClassifications(parsed, info)
+	functionErrors := collectFunctionReturnClassifications(parsed, info)
 	b := builder{
 		file:          file,
 		fset:          fset,
@@ -114,7 +115,10 @@ func buildGo(file string) (*Result, error) {
 		goplsByPos:    map[string]definitionLocation{},
 		seen:          map[string]struct{}{},
 	}
-	res := &Result{File: file, Nodes: collectGoTokenNodes(file)}
+	nodes := collectGoTokenNodes(file)
+	nodes = append(nodes, collectGoTypeNodes(fset, parsed)...)
+	nodes = append(nodes, collectGoFunctionNodes(fset, parsed, functionErrors)...)
+	res := &Result{File: file, Nodes: nodes}
 	for _, imp := range parsed.Imports {
 		path := strings.Trim(imp.Path.Value, "\"")
 		name := importedPackageName(imp)
@@ -213,6 +217,148 @@ type builder struct {
 	goplsByPos    map[string]definitionLocation
 	seq           int
 	seen          map[string]struct{}
+}
+
+func collectFunctionReturnClassifications(parsed *ast.File, info *types.Info) map[token.Pos]bool {
+	out := map[token.Pos]bool{}
+	if parsed == nil || info == nil {
+		return out
+	}
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case *ast.FuncDecl:
+			if node.Type != nil {
+				out[node.Type.Func] = signatureLastResultIsError(funcDeclSignature(node, info))
+			}
+		case *ast.FuncLit:
+			if node.Type != nil {
+				out[node.Type.Func] = signatureLastResultIsError(funcLitSignature(node, info))
+			}
+		}
+		return true
+	})
+	return out
+}
+
+func collectGoFunctionNodes(fset *token.FileSet, parsed *ast.File, returnsError map[token.Pos]bool) []scan.Node {
+	if fset == nil || parsed == nil {
+		return nil
+	}
+	var out []scan.Node
+	ast.Inspect(parsed, func(n ast.Node) bool {
+		switch fn := n.(type) {
+		case *ast.FuncDecl:
+			out = append(out, functionNode(fset, fn.Type.Func, fn.Body, returnsError[fn.Type.Func], false)...)
+		case *ast.FuncLit:
+			out = append(out, functionNode(fset, fn.Type.Func, fn.Body, returnsError[fn.Type.Func], true)...)
+		}
+		return true
+	})
+	return out
+}
+
+func functionNode(fset *token.FileSet, funcPos token.Pos, body *ast.BlockStmt, returnsError, inline bool) []scan.Node {
+	p := fset.Position(funcPos)
+	spans := []scan.Span{{Line: p.Line, Column: p.Column, Length: len("func")}}
+	if body != nil {
+		open := fset.Position(body.Lbrace)
+		close := fset.Position(body.Rbrace)
+		spans = append(spans, scan.Span{Line: open.Line, Column: open.Column, Length: 1}, scan.Span{Line: close.Line, Column: close.Column, Length: 1})
+	}
+	out := []scan.Node{scan.FunctionSyntaxNode{NodeSpans: spans, ReturnsError: returnsError}}
+	if inline && body != nil {
+		if indentSpans := inlineFunctionIndentSpans(fset, body); len(indentSpans) > 0 {
+			out = append(out, scan.InlineFunctionIndentNode{NodeSpans: indentSpans})
+		}
+	}
+	return out
+}
+
+func inlineFunctionIndentSpans(fset *token.FileSet, body *ast.BlockStmt) []scan.Span {
+	if fset == nil || body == nil || body.Lbrace == token.NoPos || body.Rbrace == token.NoPos {
+		return nil
+	}
+	open := fset.Position(body.Lbrace)
+	close := fset.Position(body.Rbrace)
+	if open.Line < 1 || close.Line <= open.Line || close.Column < 1 {
+		return nil
+	}
+
+	baseColumn := close.Column
+	indentWidth := 0
+	for _, stmt := range body.List {
+		if stmt == nil {
+			continue
+		}
+		pos := fset.Position(stmt.Pos())
+		if pos.Column <= baseColumn {
+			continue
+		}
+		width := pos.Column - baseColumn
+		if indentWidth == 0 || width < indentWidth {
+			indentWidth = width
+		}
+	}
+	if indentWidth < 1 {
+		return nil
+	}
+
+	lines := map[int]struct{}{}
+	addLine := func(line int) {
+		if line > open.Line && line < close.Line {
+			lines[line] = struct{}{}
+		}
+	}
+	ast.Inspect(body, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case nil:
+			return true
+		case ast.Stmt:
+			addLine(fset.Position(node.Pos()).Line)
+		}
+		if block, ok := n.(*ast.BlockStmt); ok && block != body {
+			addLine(fset.Position(block.Rbrace).Line)
+		}
+		return true
+	})
+
+	out := make([]scan.Span, 0, len(lines))
+	for line := range lines {
+		out = append(out, scan.Span{Line: line, Column: baseColumn, Length: indentWidth})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Line < out[j].Line })
+	return out
+}
+
+func funcDeclSignature(fn *ast.FuncDecl, info *types.Info) *types.Signature {
+	if fn == nil || info == nil || fn.Name == nil {
+		return nil
+	}
+	obj, _ := info.Defs[fn.Name].(*types.Func)
+	if obj == nil {
+		return nil
+	}
+	sig, _ := obj.Type().(*types.Signature)
+	return sig
+}
+
+func funcLitSignature(fn *ast.FuncLit, info *types.Info) *types.Signature {
+	if fn == nil || info == nil {
+		return nil
+	}
+	tv, ok := info.Types[fn]
+	if !ok {
+		return nil
+	}
+	sig, _ := tv.Type.(*types.Signature)
+	return sig
+}
+
+func signatureLastResultIsError(sig *types.Signature) bool {
+	if sig == nil || sig.Results() == nil || sig.Results().Len() == 0 {
+		return false
+	}
+	return isErrorType(sig.Results().At(sig.Results().Len() - 1).Type())
 }
 
 func collectReturnErrorClassifications(parsed *ast.File, info *types.Info) map[token.Pos]bool {
@@ -392,13 +538,39 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 		b.appendFieldDeclarations(&decl, fn.Type.Params, KindParameter)
 		b.collectReferences(fn.Type, &decl)
 	}
-	if fn.Body == nil {
-		return decl
+	b.appendFunctionBody(&decl, fn.Body)
+	return decl
+}
+
+func (b *builder) buildFuncLit(fn *ast.FuncLit) Declaration {
+	p := b.fset.Position(fn.Type.Func)
+	decl := Declaration{ID: b.nextID(KindFunction), Kind: KindFunction, Location: Location{b.file, p.Line, p.Column}}
+	if fn.Type != nil {
+		b.appendFieldDeclarations(&decl, fn.Type.TypeParams, KindParameter)
+		b.appendFieldDeclarations(&decl, fn.Type.Params, KindParameter)
+		b.collectReferences(fn.Type, &decl)
+	}
+	b.appendFunctionBody(&decl, fn.Body)
+	return decl
+}
+
+func (b *builder) appendFunctionBody(decl *Declaration, body *ast.BlockStmt) {
+	if decl == nil || body == nil {
+		return
 	}
 	cfb := controlFlowBuilder{fset: b.fset, file: b.file, returnErrors: b.returnErrors, labels: map[string]*ControlFlowBlock{}}
-	decl.ControlFlow = cfb.buildBlocks(fn.Body.List)
-	ast.Inspect(fn.Body, func(n ast.Node) bool {
+	decl.ControlFlow = cfb.buildBlocks(body.List)
+	b.appendBodyDeclarations(decl, body)
+	b.collectReferences(body, decl)
+	sortDeclarations(decl.Declarations)
+}
+
+func (b *builder) appendBodyDeclarations(decl *Declaration, body *ast.BlockStmt) {
+	ast.Inspect(body, func(n ast.Node) bool {
 		switch x := n.(type) {
+		case *ast.FuncLit:
+			decl.Declarations = append(decl.Declarations, b.buildFuncLit(x))
+			return false
 		case *ast.DeclStmt:
 			if gd, ok := x.Decl.(*ast.GenDecl); ok {
 				for _, spec := range gd.Specs {
@@ -416,18 +588,15 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 					if !ok || id.Name == "_" {
 						continue
 					}
-					child := b.newDeclaration(id, KindVariable)
-					decl.Declarations = append(decl.Declarations, child)
+					decl.Declarations = append(decl.Declarations, b.newDeclaration(id, KindVariable))
 				}
 			}
 		case *ast.RangeStmt:
 			for _, expr := range []ast.Expr{x.Key, x.Value} {
 				id, ok := expr.(*ast.Ident)
-				if !ok || id.Name == "_" {
-					continue
+				if ok && id.Name != "_" {
+					decl.Declarations = append(decl.Declarations, b.newDeclaration(id, KindVariable))
 				}
-				child := b.newDeclaration(id, KindVariable)
-				decl.Declarations = append(decl.Declarations, child)
 			}
 		case *ast.TypeSwitchStmt:
 			assign, ok := x.Assign.(*ast.AssignStmt)
@@ -442,22 +611,15 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 			decl.Declarations = append(decl.Declarations, child)
 			for _, stmt := range x.Body.List {
 				clause, ok := stmt.(*ast.CaseClause)
-				if !ok {
+				if !ok || b.info.Implicits[clause] == nil {
 					continue
 				}
-				obj := b.info.Implicits[clause]
-				if obj == nil {
-					continue
-				}
-				b.declByObj[obj] = child.ID
-				b.kindByObj[obj] = KindVariable
+				b.declByObj[b.info.Implicits[clause]] = child.ID
+				b.kindByObj[b.info.Implicits[clause]] = KindVariable
 			}
 		}
 		return true
 	})
-	b.collectReferences(fn.Body, &decl)
-	sortDeclarations(decl.Declarations)
-	return decl
 }
 
 type controlFlowBuilder struct {
@@ -1151,14 +1313,15 @@ func (b *builder) newDeclaration(id *ast.Ident, kind string) Declaration {
 }
 
 func isReferenceType(t types.Type) bool {
-	return isReferenceTypeSeen(t, map[types.Type]bool{})
+	return isReferenceTypeSeen(types.Unalias(t), map[types.Type]bool{})
 }
 
 func isReferenceTypeSeen(t types.Type, seen map[types.Type]bool) bool {
+	t = types.Unalias(t)
 	switch t := t.(type) {
 	case nil:
 		return false
-	case *types.Pointer, *types.Slice, *types.Map, *types.Chan, *types.Interface:
+	case *types.Pointer, *types.Slice, *types.Map, *types.Chan, *types.Interface, *types.Signature:
 		return true
 	case *types.Array:
 		return isReferenceTypeSeen(t.Elem(), seen)
@@ -1174,14 +1337,15 @@ func isReferenceTypeSeen(t types.Type, seen map[types.Type]bool) bool {
 				return true
 			}
 		}
-		return false
-	default:
-		return false
 	}
+	return false
 }
 
 func (b *builder) collectReferences(node ast.Node, decl *Declaration) {
 	ast.Inspect(node, func(n ast.Node) bool {
+		if _, ok := n.(*ast.FuncLit); ok && n != node {
+			return false
+		}
 		if field, ok := n.(*ast.Field); ok {
 			b.collectReferences(field.Type, decl)
 			return false
