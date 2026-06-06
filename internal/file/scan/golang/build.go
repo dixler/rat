@@ -87,7 +87,10 @@ func buildGo(file string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, _ := goplsclient.Default()
+	client, err := goplsclient.Default()
+	if err != nil {
+		return nil, err
+	}
 	info := &types.Info{
 		Defs:      map[*ast.Ident]types.Object{},
 		Uses:      map[*ast.Ident]types.Object{},
@@ -538,31 +541,27 @@ func (b *builder) appendBodyDeclarations(decl *Declaration, body *ast.BlockStmt)
 				}
 			}
 		case *ast.TypeSwitchStmt:
-			b.appendTypeSwitchDeclaration(decl, x)
+			assign, ok := x.Assign.(*ast.AssignStmt)
+			if !ok || assign.Tok != token.DEFINE || len(assign.Lhs) != 1 {
+				break
+			}
+			id, ok := assign.Lhs[0].(*ast.Ident)
+			if !ok || id.Name == "_" {
+				break
+			}
+			child := b.newDeclaration(id, KindVariable)
+			decl.Declarations = append(decl.Declarations, child)
+			for _, stmt := range x.Body.List {
+				clause, ok := stmt.(*ast.CaseClause)
+				if !ok || b.info.Implicits[clause] == nil {
+					continue
+				}
+				b.declByObj[b.info.Implicits[clause]] = child.ID
+				b.kindByObj[b.info.Implicits[clause]] = KindVariable
+			}
 		}
 		return true
 	})
-}
-
-func (b *builder) appendTypeSwitchDeclaration(decl *Declaration, x *ast.TypeSwitchStmt) {
-	assign, ok := x.Assign.(*ast.AssignStmt)
-	if !ok || assign.Tok != token.DEFINE || len(assign.Lhs) != 1 {
-		return
-	}
-	id, ok := assign.Lhs[0].(*ast.Ident)
-	if !ok || id.Name == "_" {
-		return
-	}
-	child := b.newDeclaration(id, KindVariable)
-	decl.Declarations = append(decl.Declarations, child)
-	for _, stmt := range x.Body.List {
-		clause, ok := stmt.(*ast.CaseClause)
-		if !ok || b.info.Implicits[clause] == nil {
-			continue
-		}
-		b.declByObj[b.info.Implicits[clause]] = child.ID
-		b.kindByObj[b.info.Implicits[clause]] = KindVariable
-	}
 }
 
 type controlFlowBuilder struct {
