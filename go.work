@@ -1,6 +1,7 @@
-go 1.26
+go 1.26.0
 
 use .
 
 replace github.com/spf13/cobra => ./third_party/cobra
+
 replace github.com/stretchr/testify => ./third_party/testify
