@@ -4,15 +4,17 @@ You've seen `cat`, you've seen `bat`, but have you seen `rat`?
 
 `rat` is an experimental semantic highlighter for Go. It focuses on the semantic contour of your program. It colors names by where their declarations live, it colors blocks (functions, conditional branches, switch blocks, loops) based on their context. It works as a CLI to color print the Go file and it also works as a VS Code extension.
 
-Run it on a file:
+You can run it as a VS Code plugin.
+
+![vscode-example](./.images/vscode.png)
+
+You can also run it as a CLI on a file:
 
 ```bash
 rat main.go
 ```
 
 ![cli-example](./.images/cli.png)
-
-You can also run it as a VS Code plugin.
 
 Dislaimer: I vibe coded most of this (including the README). Dev-tools can afford to be probably right as long as they help more than they hurt and the developer is aware. I'm focused more on the ergonomics of this tool rather than the correctness at the moment. If you find any errors, please let me know.
 
