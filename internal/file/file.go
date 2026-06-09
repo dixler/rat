@@ -69,11 +69,6 @@ type NamedLocation interface {
 	ReferenceType() bool
 }
 
-type Comment interface {
-	Start() Location
-	End() Location
-}
-
 type File interface {
 	Name() string
 	Source() string
@@ -82,7 +77,6 @@ type File interface {
 	PackageReferences() []PackageReference
 	Declarations() []Declaration
 	IndirectCalls() []IndirectCall
-	Comments() []Comment
 }
 
 type file struct {
@@ -94,7 +88,6 @@ type file struct {
 	decls         []Declaration
 	namedFields   []NamedLocation
 	indirectCalls []IndirectCall
-	comments      []Comment
 }
 
 type location struct {
@@ -142,11 +135,6 @@ type namedLocation struct {
 	declarationLocations []Location
 }
 
-type commentSpan struct {
-	start location
-	end   location
-}
-
 func New(name string) (File, error) {
 	abs, err := filepath.Abs(name)
 	if err != nil {
@@ -172,7 +160,6 @@ func (f *file) PackageReferences() []PackageReference {
 }
 func (f *file) Declarations() []Declaration   { return append([]Declaration(nil), f.decls...) }
 func (f *file) IndirectCalls() []IndirectCall { return append([]IndirectCall(nil), f.indirectCalls...) }
-func (f *file) Comments() []Comment           { return append([]Comment(nil), f.comments...) }
 
 func (l location) File() string { return l.file }
 func (l location) Line() int    { return l.line }
@@ -214,9 +201,6 @@ func (n namedLocation) DistanceLocation() Location {
 	return *n.distanceLocation
 }
 func (n namedLocation) Inline() bool { return n.inline }
-
-func (c commentSpan) Start() Location { return c.start }
-func (c commentSpan) End() Location   { return c.end }
 
 func TopLevelNamedFields(f File) []NamedLocation {
 	if f == nil {

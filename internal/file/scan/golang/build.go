@@ -26,7 +26,6 @@ var (
 
 type Result = scan.Result
 type Location = scan.Location
-type Comment = scan.Comment
 type IndirectCall = scan.IndirectCall
 type Declaration = scan.Declaration
 type ControlFlowStatement = scan.ControlFlowStatement
@@ -122,18 +121,34 @@ func buildGo(file string) (*Result, error) {
 	for _, imp := range parsed.Imports {
 		path := strings.Trim(imp.Path.Value, "\"")
 		name := importedPackageName(imp)
-		pos := fset.Position(imp.Pos())
+		segment := importedPathSegment(path)
+		pathPos := fset.Position(imp.Path.Pos())
+		segmentPos := importPathSegmentLocation(pathPos, path)
+		res.Nodes = append(res.Nodes, importStringCommentNodes(pathPos, path)...)
 		pkgID := b.pkgByPath[path]
 		if pkgID == "" {
 			pkgID = b.nextID("pkg")
 			b.pkgByPath[path] = pkgID
 		}
 		pkgFiles := loadPackageFiles(path)
-		pkgFile, pkgLine, pkgColumn := b.file, pos.Line, pos.Column
+		pkgFile, pkgLine, pkgColumn := b.file, pathPos.Line, pathPos.Column
 		if len(pkgFiles) > 0 {
 			pkgFile, pkgLine, pkgColumn = pkgFiles[0].File, pkgFiles[0].Line, pkgFiles[0].Column
 		}
-		res.PackageReferences = append(res.PackageReferences, PackageReference{PackageID: pkgID, ParentID: KindFile, Text: name, Location: Location{b.file, pos.Line, pos.Column}})
+		if pathPos.Line > 0 && pathPos.Column > 0 && path != "" && segment != "" {
+			res.PackageReferences = append(res.PackageReferences, PackageReference{PackageID: pkgID, ParentID: KindFile, Text: segment, Location: segmentPos})
+		}
+		if imp.Name != nil && imp.Name.Name != "." && imp.Name.Name != "_" {
+			aliasPos := fset.Position(imp.Name.Pos())
+			if aliasPos.Line > 0 && aliasPos.Column > 0 {
+				res.PackageReferences = append(res.PackageReferences, PackageReference{
+					PackageID: pkgID,
+					ParentID:  KindFile,
+					Text:      imp.Name.Name,
+					Location:  Location{b.file, aliasPos.Line, aliasPos.Column},
+				})
+			}
+		}
 		res.Packages = append(res.Packages, Package{ID: pkgID, Name: path, Location: Location{pkgFile, pkgLine, pkgColumn}, Files: pkgFiles})
 		if name != "" && name != "." && name != "_" {
 			b.pkgPathByName[name] = path
@@ -180,24 +195,7 @@ func buildGo(file string) (*Result, error) {
 		}
 	}
 	res.NamedFields = b.collectTopLevelNamedFields(parsed)
-	for _, group := range parsed.Comments {
-		for _, comment := range group.List {
-			if comment == nil {
-				continue
-			}
-			start := fset.Position(comment.Pos())
-			end := fset.Position(comment.End())
-			if start.Line < 1 || end.Line < 1 {
-				continue
-			}
-			res.Comments = append(res.Comments, Comment{
-				StartLine:   start.Line,
-				StartColumn: start.Column,
-				EndLine:     end.Line,
-				EndColumn:   end.Column,
-			})
-		}
-	}
+	res.Nodes = append(res.Nodes, commentNodes(fset, parsed)...)
 	sortDeclarations(res.Declarations)
 	sort.Slice(res.PackageReferences, func(i, j int) bool { return res.PackageReferences[i].Text < res.PackageReferences[j].Text })
 	return res, nil
@@ -1459,11 +1457,72 @@ func importedPackageName(imp *ast.ImportSpec) string {
 		return ""
 	}
 	path := strings.Trim(imp.Path.Value, "\"")
-	name := filepath.Base(path)
+	name := importedPathSegment(path)
 	if imp.Name != nil {
 		name = imp.Name.Name
 	}
 	return name
+}
+
+func importedPathSegment(path string) string {
+	if path == "" {
+		return ""
+	}
+	if idx := strings.LastIndex(path, "/"); idx >= 0 {
+		return path[idx+1:]
+	}
+	return path
+}
+
+func importPathSegmentLocation(pathPos token.Position, path string) Location {
+	segment := importedPathSegment(path)
+	if pathPos.Line < 1 || pathPos.Column < 1 || segment == "" {
+		return Location{}
+	}
+	startIndex := len(path) - len(segment)
+	return Location{File: pathPos.Filename, Line: pathPos.Line, Column: pathPos.Column + 1 + startIndex}
+}
+
+func importStringCommentNodes(pathPos token.Position, path string) []scan.Node {
+	segment := importedPathSegment(path)
+	if pathPos.Line < 1 || pathPos.Column < 1 || path == "" || segment == "" {
+		return nil
+	}
+	segmentStart := pathPos.Column + 1 + len(path) - len(segment)
+	segmentEnd := segmentStart + len(segment)
+	quoteEndExclusive := pathPos.Column + len(path) + 2
+	var out []scan.Node
+	if prefixLen := segmentStart - pathPos.Column; prefixLen > 0 {
+		out = append(out, scan.CommentNode{NodeSpans: []scan.Span{{Line: pathPos.Line, Column: pathPos.Column, Length: prefixLen}}})
+	}
+	if suffixLen := quoteEndExclusive - segmentEnd; suffixLen > 0 {
+		out = append(out, scan.CommentNode{NodeSpans: []scan.Span{{Line: pathPos.Line, Column: segmentEnd, Length: suffixLen}}})
+	}
+	return out
+}
+
+func commentNodes(fset *token.FileSet, parsed *ast.File) []scan.Node {
+	if fset == nil || parsed == nil {
+		return nil
+	}
+	var out []scan.Node
+	for _, group := range parsed.Comments {
+		for _, comment := range group.List {
+			if comment == nil {
+				continue
+			}
+			start := fset.Position(comment.Pos())
+			if start.Line < 1 || start.Column < 1 || comment.Text == "" {
+				continue
+			}
+			spans := scan.SpansForText(start.Line, start.Column, comment.Text)
+			if len(spans) == 0 {
+				continue
+			}
+			out = append(out, scan.CommentNode{NodeSpans: spans})
+		}
+	}
+	return out
 }
 
 func loadPackageFiles(importPath string) []PackageFile {

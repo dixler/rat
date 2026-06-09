@@ -123,7 +123,7 @@ func collectIndirectCallSpans(out map[int][]Span, call file.IndirectCall) {
 	out[line] = append(out[line], Span{
 		Start:    col - 1,
 		End:      col - 1 + len(text),
-		Style:    display.HotMagenta,
+		Style:    display.White,
 		Priority: 2,
 	})
 }
@@ -380,7 +380,6 @@ func ParseFormats(f file.File) ParseResult {
 	sourceLines := strings.Split(f.Source(), "\n")
 	root := file.ProjectRoot(f.Name())
 	controlFlowMarks := collectNodeControlFlowMarks(f.Nodes())
-	collectCommentSpans(result.SourceSpans, sourceLines, f)
 	collectLexicalNodeSpans(result.SourceSpans, sourceLines, f.Nodes(), loopStyleByLocation(controlFlowMarks))
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
@@ -424,7 +423,7 @@ func loopStyleByLocation(marks []controlFlowMark) map[string]display.Style {
 
 func collectPackageReferenceSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
 	for _, ref := range f.PackageReferences() {
-		addImportReferenceSpan(out, sourceLines, ref, packageDeclarationStyle(root, ref.Package()).Invert())
+		addSpan(out, sourceLines, ref.Location(), ref.Text(), Span{Style: packageDeclarationStyle(root, ref.Package()).Invert()})
 	}
 }
 
@@ -498,19 +497,6 @@ type scanNodeLocation struct {
 func (l scanNodeLocation) File() string { return "" }
 func (l scanNodeLocation) Line() int    { return l.line }
 func (l scanNodeLocation) Column() int  { return l.column }
-
-func addImportReferenceSpan(out map[int][]Span, sourceLines []string, ref file.PackageReference, style display.Style) {
-	loc := ref.Location()
-	if loc == nil || loc.Line() < 1 || loc.Line() > len(sourceLines) || ref.Text() == "" {
-		return
-	}
-	line := sourceLines[loc.Line()-1]
-	start := strings.Index(line, ref.Text())
-	if start < 0 {
-		return
-	}
-	out[loc.Line()] = append(out[loc.Line()], Span{Start: start, End: start + len(ref.Text()), Style: style})
-}
 
 func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
 	for _, named := range file.TopLevelNamedFields(f) {
@@ -586,6 +572,8 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) displ
 		return _relationStyles[_relSamePackage]
 	case scan.BuiltinNode:
 		return display.MutedOrange
+	case scan.CommentNode:
+		return display.Gray
 	case scan.LoopOperatorNode:
 		anchor := n.Anchor
 		if anchor.Line < 1 || anchor.Column < 1 {
@@ -673,45 +661,4 @@ func sameProjectLocation(root string, left, right file.Location) bool {
 	rfile := filepath.Clean(right.File())
 	root = filepath.Clean(root)
 	return strings.HasPrefix(lfile, root+string(filepath.Separator)) && strings.HasPrefix(rfile, root+string(filepath.Separator))
-}
-
-func collectCommentSpans(out map[int][]Span, sourceLines []string, f file.File) {
-	for _, comment := range f.Comments() {
-		start := comment.Start()
-		end := comment.End()
-		if start == nil || end == nil {
-			continue
-		}
-		for line := start.Line(); line <= end.Line(); line++ {
-			getStart := func(lineText string) int {
-				spanStart := 0
-				if line == start.Line() {
-					spanStart = max(start.Column()-1, 0)
-				}
-				if spanStart > len(lineText) {
-					spanStart = len(lineText)
-				}
-				return spanStart
-			}
-			getEnd := func(lineText string) int {
-				spanEnd := len(lineText)
-				if line == end.Line() {
-					spanEnd = max(end.Column()-1, 0)
-				}
-				if spanEnd > len(lineText) {
-					spanEnd = len(lineText)
-				}
-				return spanEnd
-			}
-			if line < 1 || line > len(sourceLines) {
-				continue
-			}
-			lineText := sourceLines[line-1]
-			start, end := getStart(lineText), getEnd(lineText)
-			if end <= start {
-				continue
-			}
-			out[line] = append(out[line], Span{Start: start, End: end, Style: display.Gray})
-		}
-	}
 }
