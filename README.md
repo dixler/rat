@@ -2,7 +2,7 @@
 
 You've seen `cat`, you've seen `bat`, but have you seen `rat`?
 
-`rat` is an experimental semantic highlighter for Go. It does not just color tokens by syntax. It tries to color names by where their declarations live, color control-flow keywords by what they imply, and share the same semantic spans with the terminal and VS Code extension.
+`rat` is an experimental semantic highlighter for Go. It focuses on the semantic contour of your program. It colors names by where their declarations live, it colors blocks (functions, conditional branches, switch blocks, loops) based on their context. It works as a CLI to color print the Go file and it also works as a VS Code extension.
 
 Run it on a file:
 
@@ -85,6 +85,7 @@ Import names use inverted package colors.
 
 - Imports that resolve to files under the current project root are blue/inverted.
 - Imports that resolve outside the project root, including standard-library and third-party packages, are purple/inverted.
+- Import path strings are gray except for the imported package-name segment inside the string, which keeps the package relationship color.
 - Selector qualifiers that name imported packages are colored with the same package relationship rules.
 - Dot imports and blank imports are parsed but do not create a normal package-name reference.
 
@@ -134,7 +135,7 @@ For control-flow statements:
 
 ### Indirect Calls
 
-Indirect calls are hot magenta because the concrete target is not obvious from the call site.
+Indirect calls are white because the concrete target is not obvious from the call site.
 
 - Calls through function values are indirect.
 - Calls through interface receivers are indirect.
@@ -154,7 +155,7 @@ Indirect calls are hot magenta because the concrete target is not obvious from t
 - `goto` is light red.
 - `func` and matching function body braces are muted orange when the function signature ends in `error`; otherwise they are blue. Inline function literals also mark their closing indentation with an inverted white span.
 - `range` inherits the color of its enclosing `for` loop when `rat` has a loop mark for it.
-- Import path strings are intentionally left unhighlighted so the import name/package signal remains clearer.
+- Import path strings are gray outside the imported package-name segment.
 
 ### Span Priority And Output
 

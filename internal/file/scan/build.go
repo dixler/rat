@@ -50,7 +50,6 @@ type Result struct {
 	Packages          []Package
 	NamedFields       []NamedField
 	IndirectCalls     []IndirectCall
-	Comments          []Comment
 }
 
 type Span struct {
@@ -137,6 +136,10 @@ type BuiltinNode struct{ NodeSpans []Span }
 
 func (n BuiltinNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
 
+type CommentNode struct{ NodeSpans []Span }
+
+func (n CommentNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+
 type PackageNameNode struct{ NodeSpans []Span }
 
 func (n PackageNameNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
@@ -178,13 +181,6 @@ type Location struct {
 	File   string
 	Line   int
 	Column int
-}
-
-type Comment struct {
-	StartLine   int
-	StartColumn int
-	EndLine     int
-	EndColumn   int
 }
 
 type IndirectCall struct {

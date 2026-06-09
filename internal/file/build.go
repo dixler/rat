@@ -50,14 +50,6 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		})
 	}
 
-	var comments []Comment
-	for _, c := range raw.Comments {
-		comments = append(comments, commentSpan{
-			start: location{raw.File, c.StartLine, c.StartColumn},
-			end:   location{raw.File, c.EndLine, c.EndColumn},
-		})
-	}
-
 	return &file{
 		name:          abs,
 		source:        src,
@@ -67,7 +59,6 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		decls:         decls,
 		namedFields:   buildNamedFields(raw.NamedFields),
 		indirectCalls: indirectCalls,
-		comments:      comments,
 	}, nil
 }
 
