@@ -121,6 +121,10 @@ func (c *Client) Hover(file string, line, column int) (string, error) {
 	if err := c.SyncDocument(file); err != nil {
 		return "", err
 	}
+	return c.HoverInSyncedDocument(file, line, column)
+}
+
+func (c *Client) HoverInSyncedDocument(file string, line, column int) (string, error) {
 	uri := fileURI(file)
 	result, err := c.request("textDocument/hover", map[string]any{
 		"textDocument": map[string]any{"uri": uri},
