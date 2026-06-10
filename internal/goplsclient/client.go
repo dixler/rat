@@ -2,9 +2,7 @@ package goplsclient
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
-	"strings"
 	"sync"
 
 	"rat/internal/goplsbin"
@@ -43,14 +41,8 @@ func start() (*Client, error) {
 }
 
 func resolveGoplsBinary() (string, error) {
-	if custom := strings.TrimSpace(os.Getenv("GOPLS_BIN")); custom != "" {
-		return custom, nil
-	}
 	if path, err := goplsbin.Path(); err == nil {
 		return path, nil
-	}
-	if _, err := os.Stat("./gopls"); err == nil {
-		return "./gopls", nil
 	}
 	path, err := exec.LookPath("gopls")
 	if err != nil {

@@ -1,9 +1,7 @@
 package goplsbin
 
 import (
-	"crypto/sha256"
 	"embed"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,8 +20,8 @@ func Path() (string, error) {
 		return "", fmt.Errorf("embedded gopls binary is empty")
 	}
 
-	sum := sha256.Sum256(binary)
-	name := fmt.Sprintf("gopls-%s-%s-%s", runtime.GOOS, runtime.GOARCH, hex.EncodeToString(sum[:])[:16])
+	//sum := sha256.Sum256(binary)
+	name := fmt.Sprintf("gopls-%s-%s", runtime.GOOS, runtime.GOARCH)
 	dir, err := os.UserCacheDir()
 	if err != nil {
 		dir = os.TempDir()
