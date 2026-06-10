@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/pprof"
 
 	"rat/internal/ansihtml"
 	"rat/internal/highlight"
@@ -30,6 +31,12 @@ func ProcessPipeline(filepath string, mode OutputMode) (string, error) {
 }
 
 func main() {
+	f, _ := os.Create("cpu.prof")
+	defer f.Close()
+
+	_ = pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
+
 	serve := flag.Bool("serve", false, "run HTTP server")
 	addr := flag.String("addr", ":8081", "server listen addr")
 	mode := flag.String("format", string(ModeANSI), "output format: ansi or html")

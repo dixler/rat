@@ -20,7 +20,6 @@ func Path() (string, error) {
 		return "", fmt.Errorf("embedded gopls binary is empty")
 	}
 
-	//sum := sha256.Sum256(binary)
 	name := fmt.Sprintf("gopls-%s-%s", runtime.GOOS, runtime.GOARCH)
 	dir, err := os.UserCacheDir()
 	if err != nil {
