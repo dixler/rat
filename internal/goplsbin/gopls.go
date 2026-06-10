@@ -8,7 +8,7 @@ import (
 	"runtime"
 )
 
-//go:embed *
+//go:embed gopls
 var fs embed.FS
 
 func Path() (string, error) {

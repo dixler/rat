@@ -1,8 +1,6 @@
 package goplsclient
 
 import (
-	"fmt"
-	"os/exec"
 	"sync"
 
 	"rat/internal/goplsbin"
@@ -41,12 +39,9 @@ func start() (*Client, error) {
 }
 
 func resolveGoplsBinary() (string, error) {
-	if path, err := goplsbin.Path(); err == nil {
-		return path, nil
-	}
-	path, err := exec.LookPath("gopls")
+	path, err := goplsbin.Path()
 	if err != nil {
-		return "", fmt.Errorf("gopls not found; set GOPLS_BIN, build the embedded gopls artifact, or include gopls in PATH")
+		return "", err
 	}
 	return path, nil
 }
