@@ -16,7 +16,7 @@ import (
 	"sync"
 
 	"rat/internal/file/scan"
-	"rat/internal/goplsclient"
+	"rat/internal/file/scan/golang/goplsclient"
 )
 
 var (
@@ -54,11 +54,6 @@ type asyncClient struct {
 	ready  chan struct{}
 	client *goplsclient.Client
 	err    error
-}
-
-type lspResolver struct {
-	client *goplsclient.Client
-	defs   map[string]definitionLocation
 }
 
 const (
@@ -1589,16 +1584,16 @@ func indirectCallTarget(fun ast.Expr, fset *token.FileSet) (string, token.Pos) {
 	}
 }
 
-func isIndirectCall(fun ast.Expr, info *types.Info, resolver *lspResolver, pos token.Position) bool {
+func isIndirectCall(fun ast.Expr, info *types.Info, client *goplsclient.Client, pos token.Position) bool {
 	switch expr := fun.(type) {
 	case *ast.Ident:
 		if indirect, ok := indirectObject(info.Uses[expr]); ok {
 			return indirect
 		}
-		if indirect, ok := isIndirectCallByDefinition(resolver, pos); ok {
+		if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
 			return indirect
 		}
-		return isIndirectCallByHover(resolver, pos)
+		return isIndirectCallByHover(client, pos)
 	case *ast.SelectorExpr:
 		if isPackageQualifier(expr.X, info) {
 			return false
@@ -1606,34 +1601,34 @@ func isIndirectCall(fun ast.Expr, info *types.Info, resolver *lspResolver, pos t
 		if selection := info.Selections[expr]; selection != nil {
 			if indirect, ok := indirectObject(selection.Obj()); ok && !indirect {
 				if isInterfaceType(selection.Recv()) {
-					if indirect, ok := isIndirectCallByDefinition(resolver, pos); ok {
+					if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
 						return indirect
 					}
 					return true
 				}
 				return false
 			}
-			if indirect, ok := isIndirectCallByDefinition(resolver, pos); ok {
+			if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
 				return indirect
 			}
-			return isIndirectCallByHover(resolver, pos)
+			return isIndirectCallByHover(client, pos)
 		}
-		if indirect, ok := isIndirectCallByDefinition(resolver, pos); ok {
+		if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
 			return indirect
 		}
-		return isIndirectCallByHover(resolver, pos)
+		return isIndirectCallByHover(client, pos)
 	case *ast.FuncLit:
 		return false
 	case *ast.IndexExpr, *ast.IndexListExpr:
 		return true
 	case *ast.ParenExpr:
-		return isIndirectCall(expr.X, info, resolver, pos)
+		return isIndirectCall(expr.X, info, client, pos)
 	}
 
-	if indirect, ok := isIndirectCallByDefinition(resolver, pos); ok {
+	if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
 		return indirect
 	}
-	return isIndirectCallByHover(resolver, pos)
+	return isIndirectCallByHover(client, pos)
 }
 
 func indirectObject(obj types.Object) (bool, bool) {
@@ -1663,11 +1658,11 @@ func isInterfaceType(t types.Type) bool {
 	return ok
 }
 
-func isIndirectCallByHover(resolver *lspResolver, pos token.Position) bool {
-	if resolver == nil || resolver.client == nil {
+func isIndirectCallByHover(client *goplsclient.Client, pos token.Position) bool {
+	if client == nil {
 		return false
 	}
-	hoverRaw, err := resolver.client.HoverInSyncedDocument(pos.Filename, pos.Line, pos.Column)
+	hoverRaw, err := client.HoverForPosition(pos)
 	if err != nil || hoverRaw == "" {
 		return false
 	}
@@ -1681,11 +1676,11 @@ func isIndirectCallByHover(resolver *lspResolver, pos token.Position) bool {
 	return strings.Contains(val, "```go\nvar ") || strings.Contains(val, "```go\nfield ") || (strings.HasPrefix(val, "```go\ntype ") && strings.Contains(val, "interface"))
 }
 
-func isIndirectCallByDefinition(resolver *lspResolver, pos token.Position) (bool, bool) {
-	if resolver == nil {
+func isIndirectCallByDefinition(client *goplsclient.Client, pos token.Position) (bool, bool) {
+	if client == nil {
 		return false, false
 	}
-	loc, ok, err := resolver.definitionForPosition(pos)
+	loc, ok, err := client.DefinitionForPosition(pos)
 	if err != nil || !ok || loc.File == "" || loc.Line < 1 {
 		return false, false
 	}
@@ -1708,77 +1703,54 @@ func finalizeGoResult(res *Result, parsed *ast.File, info *types.Info, b *builde
 	if err := client.SyncDocument(b.file); err != nil {
 		return err
 	}
-	resolver := &lspResolver{client: client, defs: map[string]definitionLocation{}}
-	finalizeReferenceDeclarations(res.Declarations, resolver)
-	res.NamedFields = finalizeNamedFields(parsed, b, resolver)
-	finalizeIndirectCalls(res, pendingIndirectCalls, info, resolver)
+	finalizeReferenceDeclarations(res.Declarations, client)
+	res.NamedFields = finalizeNamedFields(parsed, b, client)
+	finalizeIndirectCalls(res, pendingIndirectCalls, info, client)
 	return nil
 }
 
-func finalizeReferenceDeclarations(decls []Declaration, resolver *lspResolver) {
+func finalizeReferenceDeclarations(decls []Declaration, client *goplsclient.Client) {
 	for i := range decls {
 		for j := range decls[i].References {
 			ref := &decls[i].References[j]
 			if ref.DeclarationID != "" || scan.HasLocation(ref.Declaration) {
 				continue
 			}
-			loc, ok, err := resolver.definitionForLocation(ref.Location)
+			loc, ok, err := client.DefinitionForPosition(token.Position{Filename: ref.File, Line: ref.Line, Column: ref.Column})
 			if err == nil && ok {
-				ref.Declaration = loc
+				ref.Declaration = definitionLocation(loc)
 			}
 		}
-		finalizeReferenceDeclarations(decls[i].Declarations, resolver)
+		finalizeReferenceDeclarations(decls[i].Declarations, client)
 	}
 }
 
-func finalizeNamedFields(parsed *ast.File, base *builder, resolver *lspResolver) []NamedField {
+func finalizeNamedFields(parsed *ast.File, base *builder, client *goplsclient.Client) []NamedField {
 	if parsed == nil || base == nil {
 		return nil
 	}
 	b := *base
 	b.seen = map[string]struct{}{}
 	b.definitionForPos = func(pos token.Pos) (definitionLocation, bool) {
-		loc, ok, err := resolver.definitionForPosition(b.fset.Position(pos))
+		loc, ok, err := client.DefinitionForPosition(b.fset.Position(pos))
 		if err != nil {
 			return definitionLocation{}, false
 		}
-		return loc, ok
+		return definitionLocation(loc), ok
 	}
 	return b.collectTopLevelNamedFields(parsed)
 }
 
-func finalizeIndirectCalls(res *Result, pending []pendingIndirectCall, info *types.Info, resolver *lspResolver) {
+func finalizeIndirectCalls(res *Result, pending []pendingIndirectCall, info *types.Info, client *goplsclient.Client) {
 	for _, call := range pending {
 		if call.text == "" || call.position.Line < 1 || call.position.Column < 1 {
 			continue
 		}
-		if !isIndirectCall(call.fun, info, resolver, call.position) {
+		if !isIndirectCall(call.fun, info, client, call.position) {
 			continue
 		}
 		res.IndirectCalls = append(res.IndirectCalls, IndirectCall{Location: Location{File: call.position.Filename, Line: call.position.Line, Column: call.position.Column}, Text: call.text})
 	}
-}
-
-func (r *lspResolver) definitionForLocation(loc Location) (definitionLocation, bool, error) {
-	return r.definitionForPosition(token.Position{Filename: loc.File, Line: loc.Line, Column: loc.Column})
-}
-
-func (r *lspResolver) definitionForPosition(pos token.Position) (definitionLocation, bool, error) {
-	if r == nil || r.client == nil || pos.Filename == "" || pos.Line < 1 || pos.Column < 1 {
-		return definitionLocation{}, false, nil
-	}
-	key := fmt.Sprintf("%s:%d:%d", pos.Filename, pos.Line, pos.Column)
-	if cached, ok := r.defs[key]; ok {
-		return cached, scan.HasLocation(cached), nil
-	}
-	target, ok, err := r.client.DefinitionInSyncedDocument(pos.Filename, pos.Line, pos.Column)
-	if err != nil || !ok {
-		r.defs[key] = definitionLocation{}
-		return definitionLocation{}, false, err
-	}
-	loc := definitionLocation{File: target.File, Line: target.Line, Column: target.Column}
-	r.defs[key] = loc
-	return loc, scan.HasLocation(loc), nil
 }
 
 func clonePackageFiles(src []PackageFile) []PackageFile {

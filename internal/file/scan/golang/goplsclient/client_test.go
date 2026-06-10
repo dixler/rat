@@ -1,4 +1,4 @@
-package lspclient
+package goplsclient
 
 import (
 	"encoding/json"

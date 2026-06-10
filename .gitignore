@@ -1,5 +1,5 @@
 /rat
 cmd/rat/rat
-internal/goplsbin/gopls
+internal/file/scan/golang/goplsclient/gopls
 internal/tsgobin/tsgo
 **/node_modules

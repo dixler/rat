@@ -1,20 +1,26 @@
-package lspclient
+package goplsclient
 
 import (
 	"bufio"
 	"bytes"
+	"embed"
 	"encoding/json"
 	"fmt"
+	"go/token"
 	"io"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
+
+//go:embed gopls
+var fs embed.FS
 
 type Location struct {
 	File   string
@@ -22,22 +28,11 @@ type Location struct {
 	Column int
 }
 
-type Config struct {
-	Name           string
-	Command        string
-	Args           []string
-	LanguageID     string
-	RequestTimeout time.Duration
-}
-
 type Client struct {
-	name       string
-	languageID string
 	stdin      io.WriteCloser
 	stdout     *bufio.Reader
 	stdoutPipe io.Closer
 	cmd        *exec.Cmd
-	timeout    time.Duration
 
 	mu        sync.Mutex
 	closeOnce sync.Once
@@ -50,22 +45,25 @@ type openDocument struct {
 	content string
 }
 
-func Start(config Config) (*Client, error) {
-	if strings.TrimSpace(config.Command) == "" {
-		return nil, fmt.Errorf("missing LSP command")
+var (
+	defaultOnce sync.Once
+	defaultInst *Client
+	defaultErr  error
+)
+
+func Default() (*Client, error) {
+	defaultOnce.Do(func() {
+		defaultInst, defaultErr = start()
+	})
+	return defaultInst, defaultErr
+}
+
+func start() (*Client, error) {
+	goplsBin, err := binaryPath()
+	if err != nil {
+		return nil, err
 	}
-	if strings.TrimSpace(config.LanguageID) == "" {
-		return nil, fmt.Errorf("missing LSP language id")
-	}
-	timeout := config.RequestTimeout
-	if timeout == 0 {
-		timeout = 5 * time.Second
-	}
-	name := strings.TrimSpace(config.Name)
-	if name == "" {
-		name = filepath.Base(config.Command)
-	}
-	cmd := exec.Command(config.Command, config.Args...)
+	cmd := exec.Command(goplsBin, "serve")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
@@ -78,7 +76,7 @@ func Start(config Config) (*Client, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	c := &Client{name: name, languageID: config.LanguageID, stdin: stdin, stdout: bufio.NewReader(stdout), stdoutPipe: stdout, cmd: cmd, timeout: timeout, opened: map[string]openDocument{}}
+	c := &Client{stdin: stdin, stdout: bufio.NewReader(stdout), stdoutPipe: stdout, cmd: cmd, opened: map[string]openDocument{}}
 	if err := c.initialize(); err != nil {
 		_ = c.Close()
 		return nil, err
@@ -100,65 +98,6 @@ func (c *Client) Close() error {
 	return nil
 }
 
-func (c *Client) initialize() error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	params := map[string]any{
-		"processId":    os.Getpid(),
-		"rootUri":      fileURI(wd),
-		"clientInfo":   map[string]any{"name": "rat", "version": "dev"},
-		"capabilities": map[string]any{},
-	}
-	if _, err := c.request("initialize", params); err != nil {
-		return err
-	}
-	return c.notify("initialized", map[string]any{})
-}
-
-func (c *Client) Hover(file string, line, column int) (string, error) {
-	if err := c.SyncDocument(file); err != nil {
-		return "", err
-	}
-	return c.HoverInSyncedDocument(file, line, column)
-}
-
-func (c *Client) HoverInSyncedDocument(file string, line, column int) (string, error) {
-	uri := fileURI(file)
-	result, err := c.request("textDocument/hover", map[string]any{
-		"textDocument": map[string]any{"uri": uri},
-		"position":     map[string]any{"line": line - 1, "character": column - 1},
-	})
-	if err != nil {
-		return "", err
-	}
-	return string(result), nil
-}
-
-func (c *Client) Definition(file string, line, column int) (Location, bool, error) {
-	if err := c.SyncDocument(file); err != nil {
-		return Location{}, false, err
-	}
-	return c.DefinitionInSyncedDocument(file, line, column)
-}
-
-func (c *Client) DefinitionInSyncedDocument(file string, line, column int) (Location, bool, error) {
-	uri := fileURI(file)
-	result, err := c.request("textDocument/definition", map[string]any{
-		"textDocument": map[string]any{"uri": uri},
-		"position":     map[string]any{"line": line - 1, "character": column - 1},
-	})
-	if err != nil {
-		return Location{}, false, err
-	}
-	loc, ok, err := parseDefinition(result)
-	if err != nil {
-		return Location{}, false, err
-	}
-	return loc, ok, nil
-}
-
 func (c *Client) SyncDocument(file string) error {
 	abs, err := filepath.Abs(file)
 	if err != nil {
@@ -168,7 +107,6 @@ func (c *Client) SyncDocument(file string) error {
 	if err != nil {
 		return err
 	}
-
 	return c.SyncDocumentContent(abs, string(content))
 }
 
@@ -186,7 +124,7 @@ func (c *Client) SyncDocumentContent(file, content string) error {
 		if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didOpen", "params": map[string]any{
 			"textDocument": map[string]any{
 				"uri":        fileURI(abs),
-				"languageId": c.languageID,
+				"languageId": "go",
 				"version":    1,
 				"text":       content,
 			},
@@ -216,6 +154,54 @@ func (c *Client) SyncDocumentContent(file, content string) error {
 	return nil
 }
 
+func (c *Client) HoverForPosition(pos token.Position) (string, error) {
+	if pos.Filename == "" || pos.Line < 1 || pos.Column < 1 {
+		return "", nil
+	}
+	result, err := c.request("textDocument/hover", map[string]any{
+		"textDocument": map[string]any{"uri": fileURI(pos.Filename)},
+		"position":     map[string]any{"line": pos.Line - 1, "character": pos.Column - 1},
+	})
+	if err != nil {
+		return "", err
+	}
+	return string(result), nil
+}
+
+func (c *Client) DefinitionForPosition(pos token.Position) (Location, bool, error) {
+	if pos.Filename == "" || pos.Line < 1 || pos.Column < 1 {
+		return Location{}, false, nil
+	}
+	result, err := c.request("textDocument/definition", map[string]any{
+		"textDocument": map[string]any{"uri": fileURI(pos.Filename)},
+		"position":     map[string]any{"line": pos.Line - 1, "character": pos.Column - 1},
+	})
+	if err != nil {
+		return Location{}, false, err
+	}
+	return parseDefinition(result)
+}
+
+func (c *Client) initialize() error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	_, err = c.request("initialize", map[string]any{
+		"processId": os.Getpid(),
+		"rootUri":   fileURI(wd),
+		"clientInfo": map[string]any{
+			"name":    "rat",
+			"version": "dev",
+		},
+		"capabilities": map[string]any{},
+	})
+	if err != nil {
+		return err
+	}
+	return c.notify("initialized", map[string]any{})
+}
+
 func (c *Client) request(method string, params any) (json.RawMessage, error) {
 	type response struct {
 		result json.RawMessage
@@ -229,9 +215,9 @@ func (c *Client) request(method string, params any) (json.RawMessage, error) {
 	select {
 	case response := <-done:
 		return response.result, response.err
-	case <-time.After(c.timeout):
+	case <-time.After(5 * time.Second):
 		_ = c.Close()
-		return nil, fmt.Errorf("%s %s timed out after %s", c.name, method, c.timeout)
+		return nil, fmt.Errorf("gopls %s timed out after 5s", method)
 	}
 }
 
@@ -269,10 +255,16 @@ func (c *Client) requestBlocking(method string, params any) (json.RawMessage, er
 			continue
 		}
 		if envelope.Error != nil {
-			return nil, fmt.Errorf("%s %s: %s", c.name, method, envelope.Error.Message)
+			return nil, fmt.Errorf("gopls %s: %s", method, envelope.Error.Message)
 		}
 		return envelope.Result, nil
 	}
+}
+
+func (c *Client) notify(method string, params any) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": method, "params": params})
 }
 
 func isServerRequest(id json.RawMessage, method string) bool {
@@ -299,12 +291,6 @@ func matchesResponseID(raw json.RawMessage, id int) bool {
 		return stringID == strconv.Itoa(id)
 	}
 	return false
-}
-
-func (c *Client) notify(method string, params any) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": method, "params": params})
 }
 
 func writeMessage(w io.Writer, payload any) error {
@@ -397,4 +383,52 @@ func fromURI(raw string) string {
 		return raw
 	}
 	return parsed.Path
+}
+
+func binaryPath() (string, error) {
+	binary, err := fs.ReadFile("gopls")
+	if err != nil {
+		return "", err
+	}
+	if len(binary) == 0 {
+		return "", fmt.Errorf("embedded gopls binary is empty")
+	}
+
+	name := fmt.Sprintf("gopls-%s-%s", runtime.GOOS, runtime.GOARCH)
+	dir, err := os.UserCacheDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+	dir = filepath.Join(dir, "rat")
+	path := filepath.Join(dir, name)
+
+	if info, err := os.Stat(path); err == nil && info.Mode().Perm()&0100 != 0 && info.Size() == int64(len(binary)) {
+		return path, nil
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+
+	tmp, err := os.CreateTemp(dir, name+"-*")
+	if err != nil {
+		return "", err
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+
+	if _, err := tmp.Write(binary); err != nil {
+		_ = tmp.Close()
+		return "", err
+	}
+	if err := tmp.Chmod(0o755); err != nil {
+		_ = tmp.Close()
+		return "", err
+	}
+	if err := tmp.Close(); err != nil {
+		return "", err
+	}
+	if err := os.Rename(tmpName, path); err != nil {
+		return "", err
+	}
+	return path, nil
 }
