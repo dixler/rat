@@ -50,6 +50,31 @@ type pendingIndirectCall struct {
 	text     string
 }
 
+type positionKey struct {
+	file   string
+	line   int
+	column int
+}
+
+type definitionLookup struct {
+	loc goplsclient.Location
+	ok  bool
+}
+
+type indirectLookup struct {
+	indirect bool
+	ok       bool
+}
+
+type goplsLookupCache struct {
+	client              *goplsclient.Client
+	definitions         map[positionKey]definitionLookup
+	hovers              map[positionKey]string
+	indirectDefinitions map[positionKey]indirectLookup
+	indirectCalls       map[positionKey]bool
+	fileLines           map[string][]string
+}
+
 type asyncClient struct {
 	ready  chan struct{}
 	client *goplsclient.Client
@@ -90,7 +115,7 @@ func init() {
 
 func (Scanner) Extensions() []string { return []string{".go"} }
 
-func (Scanner) Build(file string) (*scan.Result, error) { return buildGo(file) }
+func (Scanner) Build(file string, source []byte) (*scan.Result, error) { return buildGo(file, source) }
 
 func startDefaultClient() *asyncClient {
 	started := &asyncClient{ready: make(chan struct{})}
@@ -106,9 +131,9 @@ func (c *asyncClient) wait() (*goplsclient.Client, error) {
 	return c.client, c.err
 }
 
-func buildGo(file string) (*Result, error) {
+func buildGo(file string, source []byte) (*Result, error) {
 	fset := token.NewFileSet()
-	parsed, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
+	parsed, err := parser.ParseFile(fset, file, source, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +147,6 @@ func buildGo(file string) (*Result, error) {
 	conf := &types.Config{Importer: importer.Default(), Error: func(error) {}}
 	_, _ = conf.Check(filepath.Dir(file), fset, []*ast.File{parsed}, info)
 	returnErrors := collectReturnErrorClassifications(parsed, info)
-	functionErrors := collectFunctionReturnClassifications(parsed, info)
 	b := builder{
 		file:          file,
 		fset:          fset,
@@ -135,11 +159,10 @@ func buildGo(file string) (*Result, error) {
 		pkgDefByPath:  map[string]definitionLocation{},
 		seen:          map[string]struct{}{},
 	}
-	nodes := collectGoTokenNodes(file)
-	nodes = append(nodes, collectGoTypeNodes(fset, parsed)...)
-	nodes = append(nodes, collectGoFunctionNodes(fset, parsed, functionErrors)...)
+	syntaxNodes, pendingIndirectCalls := collectGoSyntaxData(fset, parsed, info)
+	nodes := collectGoTokenNodes(file, source)
+	nodes = append(nodes, syntaxNodes...)
 	res := &Result{File: file, Nodes: nodes}
-	var pendingIndirectCalls []pendingIndirectCall
 	for _, imp := range parsed.Imports {
 		path := strings.Trim(imp.Path.Value, "\"")
 		name := importedPackageName(imp)
@@ -176,19 +199,6 @@ func buildGo(file string) (*Result, error) {
 			b.pkgPathByName[name] = path
 		}
 	}
-	ast.Inspect(parsed, func(n ast.Node) bool {
-		switch node := n.(type) {
-		case *ast.CallExpr:
-			name, startPos := indirectCallTarget(node.Fun, fset)
-			if name == "" || startPos == token.NoPos {
-				break
-			}
-
-			pos := fset.Position(startPos)
-			pendingIndirectCalls = append(pendingIndirectCalls, pendingIndirectCall{fun: node.Fun, position: pos, text: name})
-		}
-		return true
-	})
 	for _, decl := range parsed.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
@@ -211,7 +221,7 @@ func buildGo(file string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := finalizeGoResult(res, parsed, info, &b, pendingIndirectCalls, client); err != nil {
+	if err := finalizeGoResult(res, parsed, info, &b, pendingIndirectCalls, client, source); err != nil {
 		return nil, err
 	}
 	return res, nil
@@ -232,42 +242,42 @@ type builder struct {
 	seen             map[string]struct{}
 }
 
-func collectFunctionReturnClassifications(parsed *ast.File, info *types.Info) map[token.Pos]bool {
-	out := map[token.Pos]bool{}
-	if parsed == nil || info == nil {
-		return out
+func collectGoSyntaxData(fset *token.FileSet, parsed *ast.File, info *types.Info) ([]scan.Node, []pendingIndirectCall) {
+	if fset == nil || parsed == nil {
+		return nil, nil
 	}
+	var nodes []scan.Node
+	var pending []pendingIndirectCall
 	ast.Inspect(parsed, func(n ast.Node) bool {
 		switch node := n.(type) {
+		case *ast.ArrayType:
+			if syntaxNode := arrayTypeNode(fset, node); syntaxNode != nil {
+				nodes = append(nodes, syntaxNode)
+			}
+		case *ast.CallExpr:
+			name, startPos := indirectCallTarget(node.Fun, fset)
+			if name == "" || startPos == token.NoPos {
+				break
+			}
+			pending = append(pending, pendingIndirectCall{
+				fun:      node.Fun,
+				position: fset.Position(startPos),
+				text:     name,
+			})
 		case *ast.FuncDecl:
-			if node.Type != nil {
-				out[node.Type.Func] = signatureLastResultIsError(funcDeclSignature(node, info))
+			if node.Type == nil {
+				break
 			}
+			nodes = append(nodes, functionNode(fset, node.Type.Func, node.Body, signatureLastResultIsError(funcDeclSignature(node, info)), false)...)
 		case *ast.FuncLit:
-			if node.Type != nil {
-				out[node.Type.Func] = signatureLastResultIsError(funcLitSignature(node, info))
+			if node.Type == nil {
+				break
 			}
+			nodes = append(nodes, functionNode(fset, node.Type.Func, node.Body, signatureLastResultIsError(funcLitSignature(node, info)), true)...)
 		}
 		return true
 	})
-	return out
-}
-
-func collectGoFunctionNodes(fset *token.FileSet, parsed *ast.File, returnsError map[token.Pos]bool) []scan.Node {
-	if fset == nil || parsed == nil {
-		return nil
-	}
-	var out []scan.Node
-	ast.Inspect(parsed, func(n ast.Node) bool {
-		switch fn := n.(type) {
-		case *ast.FuncDecl:
-			out = append(out, functionNode(fset, fn.Type.Func, fn.Body, returnsError[fn.Type.Func], false)...)
-		case *ast.FuncLit:
-			out = append(out, functionNode(fset, fn.Type.Func, fn.Body, returnsError[fn.Type.Func], true)...)
-		}
-		return true
-	})
-	return out
+	return nodes, pending
 }
 
 func functionNode(fset *token.FileSet, funcPos token.Pos, body *ast.BlockStmt, returnsError, inline bool) []scan.Node {
@@ -1584,16 +1594,25 @@ func indirectCallTarget(fun ast.Expr, fset *token.FileSet) (string, token.Pos) {
 	}
 }
 
-func isIndirectCall(fun ast.Expr, info *types.Info, client *goplsclient.Client, pos token.Position) bool {
+func isIndirectCall(fun ast.Expr, info *types.Info, lookup *goplsLookupCache, pos token.Position) bool {
+	if indirect, ok := lookup.indirectCall(pos); ok {
+		return indirect
+	}
+	indirect := isIndirectCallUncached(fun, info, lookup, pos)
+	lookup.storeIndirectCall(pos, indirect)
+	return indirect
+}
+
+func isIndirectCallUncached(fun ast.Expr, info *types.Info, lookup *goplsLookupCache, pos token.Position) bool {
 	switch expr := fun.(type) {
 	case *ast.Ident:
 		if indirect, ok := indirectObject(info.Uses[expr]); ok {
 			return indirect
 		}
-		if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+		if indirect, ok := isIndirectCallByDefinition(lookup, pos); ok {
 			return indirect
 		}
-		return isIndirectCallByHover(client, pos)
+		return isIndirectCallByHover(lookup, pos)
 	case *ast.SelectorExpr:
 		if isPackageQualifier(expr.X, info) {
 			return false
@@ -1601,34 +1620,34 @@ func isIndirectCall(fun ast.Expr, info *types.Info, client *goplsclient.Client, 
 		if selection := info.Selections[expr]; selection != nil {
 			if indirect, ok := indirectObject(selection.Obj()); ok && !indirect {
 				if isInterfaceType(selection.Recv()) {
-					if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+					if indirect, ok := isIndirectCallByDefinition(lookup, pos); ok {
 						return indirect
 					}
 					return true
 				}
 				return false
 			}
-			if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+			if indirect, ok := isIndirectCallByDefinition(lookup, pos); ok {
 				return indirect
 			}
-			return isIndirectCallByHover(client, pos)
+			return isIndirectCallByHover(lookup, pos)
 		}
-		if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+		if indirect, ok := isIndirectCallByDefinition(lookup, pos); ok {
 			return indirect
 		}
-		return isIndirectCallByHover(client, pos)
+		return isIndirectCallByHover(lookup, pos)
 	case *ast.FuncLit:
 		return false
 	case *ast.IndexExpr, *ast.IndexListExpr:
 		return true
 	case *ast.ParenExpr:
-		return isIndirectCall(expr.X, info, client, pos)
+		return isIndirectCall(expr.X, info, lookup, pos)
 	}
 
-	if indirect, ok := isIndirectCallByDefinition(client, pos); ok {
+	if indirect, ok := isIndirectCallByDefinition(lookup, pos); ok {
 		return indirect
 	}
-	return isIndirectCallByHover(client, pos)
+	return isIndirectCallByHover(lookup, pos)
 }
 
 func indirectObject(obj types.Object) (bool, bool) {
@@ -1658,11 +1677,11 @@ func isInterfaceType(t types.Type) bool {
 	return ok
 }
 
-func isIndirectCallByHover(client *goplsclient.Client, pos token.Position) bool {
-	if client == nil {
+func isIndirectCallByHover(lookup *goplsLookupCache, pos token.Position) bool {
+	if lookup == nil {
 		return false
 	}
-	hoverRaw, err := client.HoverForPosition(pos)
+	hoverRaw, err := lookup.HoverForPosition(pos)
 	if err != nil || hoverRaw == "" {
 		return false
 	}
@@ -1676,63 +1695,71 @@ func isIndirectCallByHover(client *goplsclient.Client, pos token.Position) bool 
 	return strings.Contains(val, "```go\nvar ") || strings.Contains(val, "```go\nfield ") || (strings.HasPrefix(val, "```go\ntype ") && strings.Contains(val, "interface"))
 }
 
-func isIndirectCallByDefinition(client *goplsclient.Client, pos token.Position) (bool, bool) {
-	if client == nil {
+func isIndirectCallByDefinition(lookup *goplsLookupCache, pos token.Position) (bool, bool) {
+	if lookup == nil {
 		return false, false
 	}
-	loc, ok, err := client.DefinitionForPosition(pos)
+	if indirect, ok := lookup.indirectDefinition(pos); ok {
+		return indirect.indirect, indirect.ok
+	}
+	loc, ok, err := lookup.DefinitionForPosition(pos)
 	if err != nil || !ok || loc.File == "" || loc.Line < 1 {
+		lookup.storeIndirectDefinition(pos, indirectLookup{})
 		return false, false
 	}
-	targetSrc, err := os.ReadFile(loc.File)
+	lines, err := lookup.FileLines(loc.File)
 	if err != nil {
+		lookup.storeIndirectDefinition(pos, indirectLookup{})
 		return false, false
 	}
-	lines := strings.Split(string(targetSrc), "\n")
 	if len(lines) < loc.Line {
+		lookup.storeIndirectDefinition(pos, indirectLookup{})
 		return false, false
 	}
 	line := strings.TrimSpace(lines[loc.Line-1])
-	return !strings.HasPrefix(line, "func "), true
+	result := indirectLookup{indirect: !strings.HasPrefix(line, "func "), ok: true}
+	lookup.storeIndirectDefinition(pos, result)
+	return result.indirect, result.ok
 }
 
-func finalizeGoResult(res *Result, parsed *ast.File, info *types.Info, b *builder, pendingIndirectCalls []pendingIndirectCall, client *goplsclient.Client) error {
+func finalizeGoResult(res *Result, parsed *ast.File, info *types.Info, b *builder, pendingIndirectCalls []pendingIndirectCall, client *goplsclient.Client, source []byte) error {
 	if res == nil || client == nil {
 		return nil
 	}
-	if err := client.SyncDocument(b.file); err != nil {
+	if err := client.SyncDocumentContent(b.file, string(source)); err != nil {
 		return err
 	}
-	finalizeReferenceDeclarations(res.Declarations, client)
-	res.NamedFields = finalizeNamedFields(parsed, b, client)
-	finalizeIndirectCalls(res, pendingIndirectCalls, info, client)
+	lookup := newGoplsLookupCache(client)
+	finalizeReferenceDeclarations(res.Declarations, lookup)
+	res.NamedFields = finalizeNamedFields(parsed, b, lookup)
+	finalizeIndirectCalls(res, pendingIndirectCalls, info, lookup)
 	return nil
 }
 
-func finalizeReferenceDeclarations(decls []Declaration, client *goplsclient.Client) {
+func finalizeReferenceDeclarations(decls []Declaration, lookup *goplsLookupCache) {
 	for i := range decls {
 		for j := range decls[i].References {
 			ref := &decls[i].References[j]
 			if ref.DeclarationID != "" || scan.HasLocation(ref.Declaration) {
 				continue
 			}
-			loc, ok, err := client.DefinitionForPosition(token.Position{Filename: ref.File, Line: ref.Line, Column: ref.Column})
+			loc, ok, err := lookup.DefinitionForPosition(token.Position{Filename: ref.File, Line: ref.Line, Column: ref.Column})
 			if err == nil && ok {
 				ref.Declaration = definitionLocation(loc)
 			}
 		}
-		finalizeReferenceDeclarations(decls[i].Declarations, client)
+		finalizeReferenceDeclarations(decls[i].Declarations, lookup)
 	}
 }
 
-func finalizeNamedFields(parsed *ast.File, base *builder, client *goplsclient.Client) []NamedField {
+func finalizeNamedFields(parsed *ast.File, base *builder, lookup *goplsLookupCache) []NamedField {
 	if parsed == nil || base == nil {
 		return nil
 	}
 	b := *base
 	b.seen = map[string]struct{}{}
 	b.definitionForPos = func(pos token.Pos) (definitionLocation, bool) {
-		loc, ok, err := client.DefinitionForPosition(b.fset.Position(pos))
+		loc, ok, err := lookup.DefinitionForPosition(b.fset.Position(pos))
 		if err != nil {
 			return definitionLocation{}, false
 		}
@@ -1741,16 +1768,134 @@ func finalizeNamedFields(parsed *ast.File, base *builder, client *goplsclient.Cl
 	return b.collectTopLevelNamedFields(parsed)
 }
 
-func finalizeIndirectCalls(res *Result, pending []pendingIndirectCall, info *types.Info, client *goplsclient.Client) {
+func finalizeIndirectCalls(res *Result, pending []pendingIndirectCall, info *types.Info, lookup *goplsLookupCache) {
 	for _, call := range pending {
 		if call.text == "" || call.position.Line < 1 || call.position.Column < 1 {
 			continue
 		}
-		if !isIndirectCall(call.fun, info, client, call.position) {
+		if !isIndirectCall(call.fun, info, lookup, call.position) {
 			continue
 		}
 		res.IndirectCalls = append(res.IndirectCalls, IndirectCall{Location: Location{File: call.position.Filename, Line: call.position.Line, Column: call.position.Column}, Text: call.text})
 	}
+}
+
+func newGoplsLookupCache(client *goplsclient.Client) *goplsLookupCache {
+	return &goplsLookupCache{
+		client:              client,
+		definitions:         map[positionKey]definitionLookup{},
+		hovers:              map[positionKey]string{},
+		indirectDefinitions: map[positionKey]indirectLookup{},
+		indirectCalls:       map[positionKey]bool{},
+		fileLines:           map[string][]string{},
+	}
+}
+
+func (c *goplsLookupCache) DefinitionForPosition(pos token.Position) (goplsclient.Location, bool, error) {
+	if c == nil || c.client == nil {
+		return goplsclient.Location{}, false, nil
+	}
+	key, ok := lookupKey(pos)
+	if !ok {
+		return goplsclient.Location{}, false, nil
+	}
+	if cached, ok := c.definitions[key]; ok {
+		return cached.loc, cached.ok, nil
+	}
+	loc, found, err := c.client.DefinitionForPosition(pos)
+	if err != nil {
+		return goplsclient.Location{}, false, err
+	}
+	c.definitions[key] = definitionLookup{loc: loc, ok: found}
+	return loc, found, nil
+}
+
+func (c *goplsLookupCache) HoverForPosition(pos token.Position) (string, error) {
+	if c == nil || c.client == nil {
+		return "", nil
+	}
+	key, ok := lookupKey(pos)
+	if !ok {
+		return "", nil
+	}
+	if hover, ok := c.hovers[key]; ok {
+		return hover, nil
+	}
+	hover, err := c.client.HoverForPosition(pos)
+	if err != nil {
+		return "", err
+	}
+	c.hovers[key] = hover
+	return hover, nil
+}
+
+func (c *goplsLookupCache) FileLines(path string) ([]string, error) {
+	if c == nil {
+		return nil, nil
+	}
+	if lines, ok := c.fileLines[path]; ok {
+		return lines, nil
+	}
+	targetSrc, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(targetSrc), "\n")
+	c.fileLines[path] = lines
+	return lines, nil
+}
+
+func (c *goplsLookupCache) indirectDefinition(pos token.Position) (indirectLookup, bool) {
+	if c == nil {
+		return indirectLookup{}, false
+	}
+	key, ok := lookupKey(pos)
+	if !ok {
+		return indirectLookup{}, false
+	}
+	result, ok := c.indirectDefinitions[key]
+	return result, ok
+}
+
+func (c *goplsLookupCache) storeIndirectDefinition(pos token.Position, result indirectLookup) {
+	if c == nil {
+		return
+	}
+	key, ok := lookupKey(pos)
+	if !ok {
+		return
+	}
+	c.indirectDefinitions[key] = result
+}
+
+func (c *goplsLookupCache) indirectCall(pos token.Position) (bool, bool) {
+	if c == nil {
+		return false, false
+	}
+	key, ok := lookupKey(pos)
+	if !ok {
+		return false, false
+	}
+	indirect, ok := c.indirectCalls[key]
+	return indirect, ok
+}
+
+func (c *goplsLookupCache) storeIndirectCall(pos token.Position, indirect bool) {
+	if c == nil {
+		return
+	}
+	key, ok := lookupKey(pos)
+	if !ok {
+		return
+	}
+	c.indirectCalls[key] = indirect
+}
+
+func lookupKey(pos token.Position) (positionKey, bool) {
+	if pos.Filename == "" || pos.Line < 1 || pos.Column < 1 {
+		return positionKey{}, false
+	}
+	return positionKey{file: pos.Filename, line: pos.Line, column: pos.Column}, true
 }
 
 func clonePackageFiles(src []PackageFile) []PackageFile {

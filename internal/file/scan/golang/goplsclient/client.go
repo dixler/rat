@@ -98,18 +98,6 @@ func (c *Client) Close() error {
 	return nil
 }
 
-func (c *Client) SyncDocument(file string) error {
-	abs, err := filepath.Abs(file)
-	if err != nil {
-		return err
-	}
-	content, err := os.ReadFile(abs)
-	if err != nil {
-		return err
-	}
-	return c.SyncDocumentContent(abs, string(content))
-}
-
 func (c *Client) SyncDocumentContent(file, content string) error {
 	abs, err := filepath.Abs(file)
 	if err != nil {

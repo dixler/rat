@@ -1,31 +1,19 @@
 package scan
 
 import (
-	"os"
 	"strings"
 )
 
-func BuildNodes(result *Result) []Node {
+func BuildNodes(result *Result, source []byte) []Node {
 	if result == nil {
 		return nil
 	}
-	sourceLines := readSourceLines(result.File)
+	sourceLines := strings.Split(string(source), "\n")
 	var nodes []Node
 	for _, decl := range result.Declarations {
 		appendDeclarationNodes(&nodes, decl, sourceLines)
 	}
 	return nodes
-}
-
-func readSourceLines(file string) []string {
-	if file == "" {
-		return nil
-	}
-	source, err := os.ReadFile(file)
-	if err != nil {
-		return nil
-	}
-	return strings.Split(string(source), "\n")
 }
 
 func appendDeclarationNodes(nodes *[]Node, decl Declaration, sourceLines []string) {

@@ -9,7 +9,7 @@ import (
 
 type Scanner interface {
 	Extensions() []string
-	Build(file string) (*Result, error)
+	Build(file string, source []byte) (*Result, error)
 }
 
 var scannersMu sync.RWMutex
@@ -27,7 +27,7 @@ func Register(scanner Scanner) {
 	}
 }
 
-func Build(file string) (*Result, error) {
+func Build(file string, source []byte) (*Result, error) {
 	ext := strings.ToLower(filepath.Ext(file))
 	scannersMu.RLock()
 	scanner := scannersByExtension[ext]
@@ -35,9 +35,9 @@ func Build(file string) (*Result, error) {
 	if scanner == nil {
 		return nil, fmt.Errorf("unsupported file type %q", filepath.Ext(file))
 	}
-	result, err := scanner.Build(file)
+	result, err := scanner.Build(file, source)
 	if result != nil {
-		result.Nodes = append(result.Nodes, BuildNodes(result)...)
+		result.Nodes = append(result.Nodes, BuildNodes(result, source)...)
 	}
 	return result, err
 }
@@ -131,10 +131,6 @@ func (n EscapeSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpan
 type LiteralNode struct{ NodeSpans []Span }
 
 func (n LiteralNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
-
-type BuiltinNode struct{ NodeSpans []Span }
-
-func (n BuiltinNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
 
 type CommentNode struct{ NodeSpans []Span }
 

@@ -3,6 +3,7 @@ package file
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"rat/internal/file/scan"
 	"rat/internal/file/scan/golang"
@@ -82,6 +83,7 @@ type File interface {
 type file struct {
 	name          string
 	source        string
+	sourceLines   []string
 	root          *declaration
 	nodes         []scan.Node
 	packageRefs   []PackageReference
@@ -144,7 +146,7 @@ func New(name string) (File, error) {
 	if err != nil {
 		return nil, err
 	}
-	raw, err := scan.Build(abs)
+	raw, err := scan.Build(abs, src)
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +162,16 @@ func (f *file) PackageReferences() []PackageReference {
 }
 func (f *file) Declarations() []Declaration   { return append([]Declaration(nil), f.decls...) }
 func (f *file) IndirectCalls() []IndirectCall { return append([]IndirectCall(nil), f.indirectCalls...) }
+
+func SourceLines(f File) []string {
+	if f == nil {
+		return nil
+	}
+	if built, ok := f.(*file); ok {
+		return append([]string(nil), built.sourceLines...)
+	}
+	return strings.Split(f.Source(), "\n")
+}
 
 func (l location) File() string { return l.file }
 func (l location) Line() int    { return l.line }

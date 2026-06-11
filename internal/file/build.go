@@ -3,6 +3,7 @@ package file
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"rat/internal/file/scan"
 )
@@ -16,7 +17,9 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		root.declarations = append(root.declarations, decl)
 	}
 
-	attachReferencesFromScan(raw.Declarations, declMap)
+	for _, rawDecl := range raw.Declarations {
+		attachDeclarationReferences(rawDecl, declMap)
+	}
 
 	decls := make([]Declaration, 0, len(root.declarations))
 	for _, d := range root.declarations {
@@ -53,6 +56,7 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 	return &file{
 		name:          abs,
 		source:        src,
+		sourceLines:   strings.Split(src, "\n"),
 		root:          root,
 		nodes:         append([]scan.Node(nil), raw.Nodes...),
 		packageRefs:   pkgRefs,
@@ -75,12 +79,6 @@ func toDeclaration(src scan.Declaration, parent Declaration, declMap map[string]
 		d.declarations = append(d.declarations, toDeclaration(child, d, declMap))
 	}
 	return d
-}
-
-func attachReferencesFromScan(rawDecls []scan.Declaration, declMap map[string]*declaration) {
-	for _, raw := range rawDecls {
-		attachDeclarationReferences(raw, declMap)
-	}
 }
 
 func attachDeclarationReferences(raw scan.Declaration, declMap map[string]*declaration) {

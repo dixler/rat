@@ -46,3 +46,40 @@ func run(input string) {
 	require.Equal(t, file.KindVariable, fn.Declarations()[1].Kind())
 	require.Equal(t, "value", fn.Declarations()[1].Name())
 }
+
+func BenchmarkNew(b *testing.B) {
+	dir := b.TempDir()
+	src := `package sample
+
+import "fmt"
+
+type item struct {
+	name string
+	data []byte
+}
+
+var count = 1
+
+func run(input string) error {
+	value := count
+	println(input)
+	fmt.Println(value)
+	items := []item{{name: "a", data: []byte(input)}}
+	for _, item := range items {
+		if item.name == "" {
+			continue
+		}
+		fmt.Println(item.name)
+	}
+	return nil
+}
+`
+	path := filepath.Join(dir, "sample.go")
+	require.NoError(b, os.WriteFile(path, []byte(src), 0o644))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := file.New(path)
+		require.NoError(b, err)
+	}
+}

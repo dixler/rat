@@ -377,7 +377,7 @@ func ParseFormats(f file.File) ParseResult {
 		Source:      f.Source(),
 		SourceSpans: map[int][]Span{},
 	}
-	sourceLines := strings.Split(f.Source(), "\n")
+	sourceLines := file.SourceLines(f)
 	root := file.ProjectRoot(f.Name())
 	controlFlowMarks := collectNodeControlFlowMarks(f.Nodes())
 	collectLexicalNodeSpans(result.SourceSpans, sourceLines, f.Nodes(), loopStyleByLocation(controlFlowMarks))
@@ -570,8 +570,6 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) displ
 		return display.LightPink
 	case scan.PackageNameNode:
 		return _relationStyles[_relSamePackage]
-	case scan.BuiltinNode:
-		return display.MutedOrange
 	case scan.CommentNode:
 		return display.Gray
 	case scan.LoopOperatorNode:
