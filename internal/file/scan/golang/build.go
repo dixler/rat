@@ -72,12 +72,16 @@ type goplsLookupCache struct {
 	indirectDefinitions map[positionKey]indirectLookup
 	indirectCalls       map[positionKey]bool
 	fileSources         map[string]string
+	objByKey            map[positionKey]types.Object
+	resolvedDefs        map[types.Object]definitionLookup
 }
 
 type packageIndex struct {
+	dir        string
 	files      []PackageFile
 	packageLoc definitionLocation
 	types      map[string]definitionLocation
+	once       sync.Once
 }
 
 const (
@@ -153,6 +157,7 @@ func buildGo(file string, source []byte) (*Result, error) {
 		pkgByPath:     map[string]string{},
 		pkgDefByPath:  map[string]definitionLocation{},
 		seen:          map[string]struct{}{},
+		objByKey:      map[positionKey]types.Object{},
 	}
 	syntaxNodes, pendingIndirectCalls := collectGoSyntaxData(fset, parsed, info)
 	nodes := collectGoTokenNodes(file, source)
@@ -176,8 +181,8 @@ func buildGo(file string, source []byte) (*Result, error) {
 			pkgFiles = pkgIndex.files
 		}
 		pkgFile, pkgLine, pkgColumn := b.file, pathPos.Line, pathPos.Column
-		if len(pkgFiles) > 0 {
-			pkgFile, pkgLine, pkgColumn = pkgFiles[0].File, pkgFiles[0].Line, pkgFiles[0].Column
+		if pkgIndex != nil && pkgIndex.packageLoc.File != "" {
+			pkgFile, pkgLine, pkgColumn = pkgIndex.packageLoc.File, pkgIndex.packageLoc.Line, pkgIndex.packageLoc.Column
 		}
 		if pathPos.Line > 0 && pathPos.Column > 0 && path != "" && segment != "" {
 			res.PackageReferences = append(res.PackageReferences, PackageReference{PackageID: pkgID, ParentID: KindFile, Text: segment, Location: segmentPos})
@@ -239,6 +244,7 @@ type builder struct {
 	definitionForPos func(token.Pos) (definitionLocation, bool)
 	seq              int
 	seen             map[string]struct{}
+	objByKey         map[positionKey]types.Object
 }
 
 func collectGoSyntaxData(fset *token.FileSet, parsed *ast.File, info *types.Info) ([]scan.Node, []pendingIndirectCall) {
@@ -1231,11 +1237,9 @@ func (b *builder) packageTypeDefinition(importPath, name string) (definitionLoca
 	if index == nil {
 		return definitionLocation{}, false
 	}
+	index.ensureTypesLoaded()
 	loc, ok := index.types[name]
-	if !ok {
-		return definitionLocation{}, false
-	}
-	return loc, true
+	return loc, ok
 }
 
 func (b *builder) appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, loc definitionLocation) {
@@ -1320,12 +1324,17 @@ func (b *builder) typeDeclarationsFor(expr ast.Expr) []definitionLocation {
 }
 
 func (b *builder) typeDeclarationForIdent(id *ast.Ident) (definitionLocation, bool) {
+	obj := b.info.Uses[id]
+	if obj != nil {
+		pos := b.fset.Position(id.Pos())
+		b.objByKey[positionKey{file: b.file, line: pos.Line, column: pos.Column}] = obj
+	}
 	if b.definitionForPos != nil {
 		if loc, ok := b.definitionForPos(id.Pos()); ok {
 			return loc, true
 		}
 	}
-	if obj := b.info.Uses[id]; obj != nil {
+	if obj != nil {
 		if obj.Parent() == types.Universe {
 			return definitionLocation{File: "", Line: 1, Column: 1}, true
 		}
@@ -1419,6 +1428,10 @@ func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, impo
 		return
 	}
 	pos := b.fset.Position(id.Pos())
+	obj := b.info.Uses[id]
+	if obj != nil {
+		b.objByKey[positionKey{file: b.file, line: pos.Line, column: pos.Column}] = obj
+	}
 	ref := Reference{
 		Text: id.Name,
 		Location: Location{
@@ -1426,14 +1439,14 @@ func (b *builder) appendReferenceForIdent(id *ast.Ident, decl *Declaration, impo
 			Line:   pos.Line,
 			Column: pos.Column,
 		},
-		Kind: b.classifyObject(b.info.Uses[id]),
+		Kind: b.classifyObject(obj),
 	}
 	if importPath != "" {
 		ref.Kind = KindPackage
 		if loc, ok := b.packageDefinitionForImportPath(importPath); ok {
 			ref.Declaration = loc
 		}
-	} else if obj := b.info.Uses[id]; obj != nil {
+	} else if obj != nil {
 		ref.ReferenceType = isReferenceType(obj.Type())
 		ref.DeclarationID = b.declByObj[obj]
 		if pkgName, ok := obj.(*types.PkgName); ok && pkgName.Imported() != nil {
@@ -1561,75 +1574,87 @@ func loadPackageIndexWithDir(importPath, dir string) *packageIndex {
 	if cached, ok := packageIndexCache.Load(importPath); ok {
 		return cached.(*packageIndex)
 	}
-	entries, err := filepath.Glob(filepath.Join(dir, "*.go"))
-	if err != nil {
-		return nil
+	index := &packageIndex{
+		dir:   dir,
+		types: map[string]definitionLocation{},
 	}
-	index := &packageIndex{types: map[string]definitionLocation{}}
-	type fileRes struct {
-		file string
-		pf   PackageFile
-	}
-	ch := make(chan fileRes, len(entries))
-	var wg sync.WaitGroup
-	for _, f := range entries {
-		if strings.HasSuffix(f, "_test.go") {
-			continue
+	if entries, err := filepath.Glob(filepath.Join(dir, "*.go")); err == nil {
+		for _, f := range entries {
+			if !strings.HasSuffix(f, "_test.go") {
+				index.packageLoc = definitionLocation{File: f, Line: 1, Column: 1}
+				break
+			}
 		}
-		wg.Add(1)
-		go func(file string) {
-			defer wg.Done()
-			fset := token.NewFileSet()
-			parsed, err := parser.ParseFile(fset, file, nil, parser.SkipObjectResolution)
-			if err != nil {
-				return
+	}
+	packageIndexCache.Store(importPath, index)
+	return index
+}
+
+func (index *packageIndex) ensureTypesLoaded() {
+	if index == nil {
+		return
+	}
+	index.once.Do(func() {
+		entries, err := filepath.Glob(filepath.Join(index.dir, "*.go"))
+		if err != nil {
+			return
+		}
+		ch := make(chan PackageFile, len(entries))
+		var wg sync.WaitGroup
+		for _, f := range entries {
+			if strings.HasSuffix(f, "_test.go") {
+				continue
 			}
-			pf := PackageFile{Location: Location{File: file, Line: 1, Column: 1}}
-			add := func(id *ast.Ident, kind string) {
-				pos := fset.Position(id.Pos())
-				pf.Declarations = append(pf.Declarations, DeclarationSummary{
-					Name:     id.Name,
-					Kind:     kind,
-					Location: Location{File: file, Line: pos.Line, Column: pos.Column},
-				})
-			}
-			for _, decl := range parsed.Decls {
-				switch d := decl.(type) {
-				case *ast.FuncDecl:
-					add(d.Name, KindFunction)
-				case *ast.GenDecl:
-					for _, spec := range d.Specs {
-						switch s := spec.(type) {
-						case *ast.TypeSpec:
-							add(s.Name, KindType)
-						case *ast.ValueSpec:
-							for _, name := range s.Names {
-								add(name, KindVariable)
+			wg.Add(1)
+			go func(file string) {
+				defer wg.Done()
+				fset := token.NewFileSet()
+				parsed, err := parser.ParseFile(fset, file, nil, parser.SkipObjectResolution)
+				if err != nil {
+					return
+				}
+				pf := PackageFile{Location: Location{File: file, Line: 1, Column: 1}}
+				add := func(id *ast.Ident, kind string) {
+					pos := fset.Position(id.Pos())
+					pf.Declarations = append(pf.Declarations, DeclarationSummary{
+						Name:     id.Name,
+						Kind:     kind,
+						Location: Location{File: file, Line: pos.Line, Column: pos.Column},
+					})
+				}
+				for _, decl := range parsed.Decls {
+					switch d := decl.(type) {
+					case *ast.FuncDecl:
+						add(d.Name, KindFunction)
+					case *ast.GenDecl:
+						for _, spec := range d.Specs {
+							switch s := spec.(type) {
+							case *ast.TypeSpec:
+								add(s.Name, KindType)
+							case *ast.ValueSpec:
+								for _, name := range s.Names {
+									add(name, KindVariable)
+								}
 							}
 						}
 					}
 				}
-			}
-			sort.Slice(pf.Declarations, func(i, j int) bool { return pf.Declarations[i].Line < pf.Declarations[j].Line })
-			ch <- fileRes{file: file, pf: pf}
-		}(f)
-	}
-	wg.Wait()
-	close(ch)
-	for r := range ch {
-		index.files = append(index.files, r.pf)
-		for _, d := range r.pf.Declarations {
-			if d.Kind == KindType {
-				index.types[d.Name] = definitionLocation(d.Location)
+				sort.Slice(pf.Declarations, func(i, j int) bool { return pf.Declarations[i].Line < pf.Declarations[j].Line })
+				ch <- pf
+			}(f)
+		}
+		wg.Wait()
+		close(ch)
+		for r := range ch {
+			index.files = append(index.files, r)
+			for _, d := range r.Declarations {
+				if d.Kind == KindType {
+					index.types[d.Name] = definitionLocation(d.Location)
+				}
 			}
 		}
-	}
-	sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
-	if len(index.files) > 0 {
-		index.packageLoc = definitionLocation{File: index.files[0].File, Line: index.files[0].Line, Column: index.files[0].Column}
-	}
-	packageIndexCache.Store(importPath, index)
-	return index
+		sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
+	})
 }
 
 func indirectCallTarget(fun ast.Expr, fset *token.FileSet) (string, token.Pos) {
@@ -1795,7 +1820,7 @@ func finalizeGoResult(res *Result, parsed *ast.File, info *types.Info, b *builde
 	if err := client.SyncDocumentContent(b.file, string(source)); err != nil {
 		return err
 	}
-	lookup := newGoplsLookupCache(client)
+	lookup := newGoplsLookupCache(client, b.objByKey)
 	finalizeReferenceDeclarations(res.Declarations, lookup)
 	res.NamedFields = finalizeNamedFields(parsed, b, lookup)
 	finalizeIndirectCalls(res, pendingIndirectCalls, info, lookup)
@@ -1846,7 +1871,7 @@ func finalizeIndirectCalls(res *Result, pending []pendingIndirectCall, info *typ
 	}
 }
 
-func newGoplsLookupCache(client *goplsclient.Client) *goplsLookupCache {
+func newGoplsLookupCache(client *goplsclient.Client, objByKey map[positionKey]types.Object) *goplsLookupCache {
 	return &goplsLookupCache{
 		client:              client,
 		definitions:         map[positionKey]definitionLookup{},
@@ -1854,6 +1879,8 @@ func newGoplsLookupCache(client *goplsclient.Client) *goplsLookupCache {
 		indirectDefinitions: map[positionKey]indirectLookup{},
 		indirectCalls:       map[positionKey]bool{},
 		fileSources:         map[string]string{},
+		objByKey:            objByKey,
+		resolvedDefs:        map[types.Object]definitionLookup{},
 	}
 }
 
@@ -1868,11 +1895,21 @@ func (c *goplsLookupCache) DefinitionForPosition(pos token.Position) (goplsclien
 	if cached, ok := c.definitions[key]; ok {
 		return cached.loc, cached.ok, nil
 	}
+	if obj := c.objByKey[key]; obj != nil {
+		if cached, ok := c.resolvedDefs[obj]; ok {
+			c.definitions[key] = cached
+			return cached.loc, cached.ok, nil
+		}
+	}
 	loc, found, err := c.client.DefinitionForPosition(pos)
 	if err != nil {
 		return goplsclient.Location{}, false, err
 	}
-	c.definitions[key] = definitionLookup{loc: loc, ok: found}
+	result := definitionLookup{loc: loc, ok: found}
+	c.definitions[key] = result
+	if obj := c.objByKey[key]; obj != nil {
+		c.resolvedDefs[obj] = result
+	}
 	return loc, found, nil
 }
 
