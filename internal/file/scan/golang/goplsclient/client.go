@@ -191,22 +191,20 @@ func (c *Client) initialize() error {
 }
 
 func (c *Client) request(method string, params any) (json.RawMessage, error) {
-	type response struct {
-		result json.RawMessage
-		err    error
-	}
-	done := make(chan response, 1)
-	go func() {
-		result, err := c.requestBlocking(method, params)
-		done <- response{result: result, err: err}
-	}()
-	select {
-	case response := <-done:
-		return response.result, response.err
-	case <-time.After(5 * time.Second):
+	timedOut := make(chan struct{}, 1)
+	timer := time.AfterFunc(5*time.Second, func() {
+		timedOut <- struct{}{}
 		_ = c.Close()
-		return nil, fmt.Errorf("gopls %s timed out after 5s", method)
+	})
+	result, err := c.requestBlocking(method, params)
+	if !timer.Stop() {
+		select {
+		case <-timedOut:
+			return nil, fmt.Errorf("gopls %s timed out after 5s", method)
+		default:
+		}
 	}
+	return result, err
 }
 
 func (c *Client) requestBlocking(method string, params any) (json.RawMessage, error) {
