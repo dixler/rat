@@ -122,6 +122,16 @@ func buildGo(file string, source []byte) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+	var toPreload []string
+	for _, imp := range parsed.Imports {
+		path := strings.Trim(imp.Path.Value, "\"")
+		if _, ok := packageIndexCache.Load(path); !ok {
+			toPreload = append(toPreload, path)
+		}
+	}
+	if len(toPreload) > 0 {
+		preloadPackageIndexes(toPreload)
+	}
 	info := &types.Info{
 		Defs:      map[*ast.Ident]types.Object{},
 		Uses:      map[*ast.Ident]types.Object{},
@@ -254,9 +264,9 @@ func collectGoSyntaxData(fset *token.FileSet, parsed *ast.File, info *types.Info
 				text:     name,
 			})
 		case *ast.FuncDecl:
-			nodes = append(nodes, functionNode(fset, node.Type.Func, node.Body, signatureLastResultIsError(funcDeclSignature(node, info)), false)...)
+			nodes = append(nodes, functionNode(fset, node.Type.Func, node.Body, signatureLastResultIsError(nodeSignature(node, info)), false)...)
 		case *ast.FuncLit:
-			nodes = append(nodes, functionNode(fset, node.Type.Func, node.Body, signatureLastResultIsError(funcLitSignature(node, info)), true)...)
+			nodes = append(nodes, functionNode(fset, node.Type.Func, node.Body, signatureLastResultIsError(nodeSignature(node, info)), true)...)
 		}
 		return true
 	})
@@ -336,28 +346,27 @@ func inlineFunctionIndentSpans(fset *token.FileSet, body *ast.BlockStmt) []scan.
 	return out
 }
 
-func funcDeclSignature(fn *ast.FuncDecl, info *types.Info) *types.Signature {
-	if fn == nil || info == nil || fn.Name == nil {
+func nodeSignature(n ast.Node, info *types.Info) *types.Signature {
+	if info == nil {
 		return nil
 	}
-	obj, _ := info.Defs[fn.Name].(*types.Func)
-	if obj == nil {
-		return nil
+	switch fn := n.(type) {
+	case *ast.FuncDecl:
+		if fn != nil && fn.Name != nil {
+			if obj, _ := info.Defs[fn.Name].(*types.Func); obj != nil {
+				sig, _ := obj.Type().(*types.Signature)
+				return sig
+			}
+		}
+	case *ast.FuncLit:
+		if fn != nil {
+			if tv, ok := info.Types[fn]; ok {
+				sig, _ := tv.Type.(*types.Signature)
+				return sig
+			}
+		}
 	}
-	sig, _ := obj.Type().(*types.Signature)
-	return sig
-}
-
-func funcLitSignature(fn *ast.FuncLit, info *types.Info) *types.Signature {
-	if fn == nil || info == nil {
-		return nil
-	}
-	tv, ok := info.Types[fn]
-	if !ok {
-		return nil
-	}
-	sig, _ := tv.Type.(*types.Signature)
-	return sig
+	return nil
 }
 
 func signatureLastResultIsError(sig *types.Signature) bool {
@@ -1509,57 +1518,115 @@ func commentNodes(fset *token.FileSet, parsed *ast.File) []scan.Node {
 	return out
 }
 
+func preloadPackageIndexes(paths []string) {
+	args := append([]string{"list", "-e", "-f", "{{.ImportPath}} {{.Dir}}"}, paths...)
+	out, err := exec.Command("go", args...).Output()
+	if err != nil {
+		return
+	}
+	var wg sync.WaitGroup
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) == 2 && parts[1] != "" {
+			wg.Add(1)
+			go func(importPath, dir string) {
+				defer wg.Done()
+				loadPackageIndexWithDir(importPath, dir)
+			}(parts[0], parts[1])
+		}
+	}
+	wg.Wait()
+}
+
 func loadPackageIndex(importPath string) *packageIndex {
 	if cached, ok := packageIndexCache.Load(importPath); ok {
 		return cached.(*packageIndex)
 	}
-	out, err := exec.Command("go", "list", "-f", "{{.Dir}}", importPath).Output()
+	out, err := exec.Command("go", "list", "-e", "-f", "{{.Dir}}", importPath).Output()
 	if err != nil {
 		return nil
 	}
 	dir := strings.TrimSpace(string(out))
+	if dir == "" {
+		return nil
+	}
+	return loadPackageIndexWithDir(importPath, dir)
+}
+
+func loadPackageIndexWithDir(importPath, dir string) *packageIndex {
+	if cached, ok := packageIndexCache.Load(importPath); ok {
+		return cached.(*packageIndex)
+	}
 	entries, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
 		return nil
 	}
-	index := &packageIndex{files: make([]PackageFile, 0, len(entries)), types: map[string]definitionLocation{}}
-	files := make([]PackageFile, 0, len(entries))
-	for _, file := range entries {
-		fset := token.NewFileSet()
-		parsed, err := parser.ParseFile(fset, file, nil, 0)
-		if err != nil {
+	index := &packageIndex{types: map[string]definitionLocation{}}
+	type fileRes struct {
+		file string
+		pf   PackageFile
+	}
+	ch := make(chan fileRes, len(entries))
+	var wg sync.WaitGroup
+	for _, f := range entries {
+		if strings.HasSuffix(f, "_test.go") {
 			continue
 		}
-		pf := PackageFile{Location: Location{File: file, Line: 1, Column: 1}}
-		for _, decl := range parsed.Decls {
-			switch d := decl.(type) {
-			case *ast.FuncDecl:
-				pos := fset.Position(d.Name.Pos())
-				pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: d.Name.Name, Kind: KindFunction, Location: Location{file, pos.Line, pos.Column}})
-			case *ast.GenDecl:
-				for _, spec := range d.Specs {
-					switch s := spec.(type) {
-					case *ast.TypeSpec:
-						pos := fset.Position(s.Name.Pos())
-						loc := definitionLocation{File: file, Line: pos.Line, Column: pos.Column}
-						pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: s.Name.Name, Kind: KindType, Location: loc})
-						index.types[s.Name.Name] = loc
-					case *ast.ValueSpec:
-						for _, name := range s.Names {
-							pos := fset.Position(name.Pos())
-							pf.Declarations = append(pf.Declarations, DeclarationSummary{Name: name.Name, Kind: KindVariable, Location: Location{file, pos.Line, pos.Column}})
+		wg.Add(1)
+		go func(file string) {
+			defer wg.Done()
+			fset := token.NewFileSet()
+			parsed, err := parser.ParseFile(fset, file, nil, parser.SkipObjectResolution)
+			if err != nil {
+				return
+			}
+			pf := PackageFile{Location: Location{File: file, Line: 1, Column: 1}}
+			add := func(id *ast.Ident, kind string) {
+				pos := fset.Position(id.Pos())
+				pf.Declarations = append(pf.Declarations, DeclarationSummary{
+					Name:     id.Name,
+					Kind:     kind,
+					Location: Location{File: file, Line: pos.Line, Column: pos.Column},
+				})
+			}
+			for _, decl := range parsed.Decls {
+				switch d := decl.(type) {
+				case *ast.FuncDecl:
+					add(d.Name, KindFunction)
+				case *ast.GenDecl:
+					for _, spec := range d.Specs {
+						switch s := spec.(type) {
+						case *ast.TypeSpec:
+							add(s.Name, KindType)
+						case *ast.ValueSpec:
+							for _, name := range s.Names {
+								add(name, KindVariable)
+							}
 						}
 					}
 				}
 			}
-		}
-		sort.Slice(pf.Declarations, func(i, j int) bool { return pf.Declarations[i].Line < pf.Declarations[j].Line })
-		files = append(files, pf)
+			sort.Slice(pf.Declarations, func(i, j int) bool { return pf.Declarations[i].Line < pf.Declarations[j].Line })
+			ch <- fileRes{file: file, pf: pf}
+		}(f)
 	}
-	sort.Slice(files, func(i, j int) bool { return files[i].File < files[j].File })
-	index.files = files
-	if len(files) > 0 {
-		index.packageLoc = definitionLocation{File: files[0].File, Line: files[0].Line, Column: files[0].Column}
+	wg.Wait()
+	close(ch)
+	for r := range ch {
+		index.files = append(index.files, r.pf)
+		for _, d := range r.pf.Declarations {
+			if d.Kind == KindType {
+				index.types[d.Name] = definitionLocation(d.Location)
+			}
+		}
+	}
+	sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
+	if len(index.files) > 0 {
+		index.packageLoc = definitionLocation{File: index.files[0].File, Line: index.files[0].Line, Column: index.files[0].Column}
 	}
 	packageIndexCache.Store(importPath, index)
 	return index
@@ -1584,11 +1651,16 @@ func indirectCallTarget(fun ast.Expr, fset *token.FileSet) (string, token.Pos) {
 }
 
 func isIndirectCall(fun ast.Expr, info *types.Info, lookup *goplsLookupCache, pos token.Position) bool {
-	if indirect, ok := lookup.indirectCall(pos); ok {
-		return indirect
+	key, kOk := lookupKey(pos)
+	if kOk {
+		if indirect, ok := lookup.indirectCalls[key]; ok {
+			return indirect
+		}
 	}
 	indirect := isIndirectCallUncached(fun, info, lookup, pos)
-	lookup.storeIndirectCall(pos, indirect)
+	if kOk {
+		lookup.indirectCalls[key] = indirect
+	}
 	return indirect
 }
 
@@ -1688,26 +1760,31 @@ func isIndirectCallByDefinition(lookup *goplsLookupCache, pos token.Position) (b
 	if lookup == nil {
 		return false, false
 	}
-	if indirect, ok := lookup.indirectDefinition(pos); ok {
-		return indirect.indirect, indirect.ok
+	key, kOk := lookupKey(pos)
+	if kOk {
+		if val, ok := lookup.indirectDefinitions[key]; ok {
+			return val.indirect, val.ok
+		}
 	}
 	loc, ok, err := lookup.DefinitionForPosition(pos)
 	if err != nil || !ok || loc.File == "" || loc.Line < 1 {
-		lookup.storeIndirectDefinition(pos, indirectLookup{})
+		if kOk {
+			lookup.indirectDefinitions[key] = indirectLookup{}
+		}
 		return false, false
 	}
 	line, err := lookup.FileLine(loc.File, loc.Line)
-	if err != nil {
-		lookup.storeIndirectDefinition(pos, indirectLookup{})
-		return false, false
-	}
-	if line == "" {
-		lookup.storeIndirectDefinition(pos, indirectLookup{})
+	if err != nil || line == "" {
+		if kOk {
+			lookup.indirectDefinitions[key] = indirectLookup{}
+		}
 		return false, false
 	}
 	line = strings.TrimSpace(line)
 	result := indirectLookup{indirect: !strings.HasPrefix(line, "func "), ok: true}
-	lookup.storeIndirectDefinition(pos, result)
+	if kOk {
+		lookup.indirectDefinitions[key] = result
+	}
 	return result.indirect, result.ok
 }
 
@@ -1819,10 +1896,7 @@ func (c *goplsLookupCache) HoverForPosition(pos token.Position) (string, error) 
 }
 
 func (c *goplsLookupCache) FileLine(path string, target int) (string, error) {
-	if c == nil {
-		return "", nil
-	}
-	if target < 1 {
+	if c == nil || target < 1 {
 		return "", nil
 	}
 	src, ok := c.fileSources[path]
@@ -1834,65 +1908,11 @@ func (c *goplsLookupCache) FileLine(path string, target int) (string, error) {
 		src = string(targetSrc)
 		c.fileSources[path] = src
 	}
-	lineStart := 0
-	lineNumber := 1
-	for i := 0; i <= len(src); i++ {
-		if i < len(src) && src[i] != '\n' {
-			continue
-		}
-		if lineNumber == target {
-			return src[lineStart:i], nil
-		}
-		lineStart = i + 1
-		lineNumber++
+	lines := strings.Split(src, "\n")
+	if target <= len(lines) {
+		return lines[target-1], nil
 	}
 	return "", nil
-}
-
-func (c *goplsLookupCache) indirectDefinition(pos token.Position) (indirectLookup, bool) {
-	if c == nil {
-		return indirectLookup{}, false
-	}
-	key, ok := lookupKey(pos)
-	if !ok {
-		return indirectLookup{}, false
-	}
-	result, ok := c.indirectDefinitions[key]
-	return result, ok
-}
-
-func (c *goplsLookupCache) storeIndirectDefinition(pos token.Position, result indirectLookup) {
-	if c == nil {
-		return
-	}
-	key, ok := lookupKey(pos)
-	if !ok {
-		return
-	}
-	c.indirectDefinitions[key] = result
-}
-
-func (c *goplsLookupCache) indirectCall(pos token.Position) (bool, bool) {
-	if c == nil {
-		return false, false
-	}
-	key, ok := lookupKey(pos)
-	if !ok {
-		return false, false
-	}
-	indirect, ok := c.indirectCalls[key]
-	return indirect, ok
-}
-
-func (c *goplsLookupCache) storeIndirectCall(pos token.Position, indirect bool) {
-	if c == nil {
-		return
-	}
-	key, ok := lookupKey(pos)
-	if !ok {
-		return
-	}
-	c.indirectCalls[key] = indirect
 }
 
 func lookupKey(pos token.Position) (positionKey, bool) {
