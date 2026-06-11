@@ -81,7 +81,9 @@ type packageIndex struct {
 	files      []PackageFile
 	packageLoc definitionLocation
 	types      map[string]definitionLocation
-	once       sync.Once
+	mu         sync.Mutex
+	loaded     bool
+	unparsed   []string
 }
 
 const (
@@ -122,7 +124,7 @@ func (Scanner) Build(file string, source []byte) (*scan.Result, error) { return 
 
 func buildGo(file string, source []byte) (*Result, error) {
 	fset := token.NewFileSet()
-	parsed, err := parser.ParseFile(fset, file, source, parser.ParseComments)
+	parsed, err := parser.ParseFile(fset, file, source, parser.ParseComments|parser.SkipObjectResolution)
 	if err != nil {
 		return nil, err
 	}
@@ -1237,9 +1239,7 @@ func (b *builder) packageTypeDefinition(importPath, name string) (definitionLoca
 	if index == nil {
 		return definitionLocation{}, false
 	}
-	index.ensureTypesLoaded()
-	loc, ok := index.types[name]
-	return loc, ok
+	return index.lookupTypeLazy(name)
 }
 
 func (b *builder) appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, loc definitionLocation) {
@@ -1581,8 +1581,10 @@ func loadPackageIndexWithDir(importPath, dir string) *packageIndex {
 	if entries, err := filepath.Glob(filepath.Join(dir, "*.go")); err == nil {
 		for _, f := range entries {
 			if !strings.HasSuffix(f, "_test.go") {
-				index.packageLoc = definitionLocation{File: f, Line: 1, Column: 1}
-				break
+				if index.packageLoc.File == "" {
+					index.packageLoc = definitionLocation{File: f, Line: 1, Column: 1}
+				}
+				index.unparsed = append(index.unparsed, f)
 			}
 		}
 	}
@@ -1594,67 +1596,90 @@ func (index *packageIndex) ensureTypesLoaded() {
 	if index == nil {
 		return
 	}
-	index.once.Do(func() {
-		entries, err := filepath.Glob(filepath.Join(index.dir, "*.go"))
-		if err != nil {
-			return
-		}
-		ch := make(chan PackageFile, len(entries))
-		var wg sync.WaitGroup
-		for _, f := range entries {
-			if strings.HasSuffix(f, "_test.go") {
-				continue
+	index.mu.Lock()
+	defer index.mu.Unlock()
+	if index.loaded {
+		return
+	}
+	for len(index.unparsed) > 0 {
+		index.parseNextFileLocked()
+	}
+	index.loaded = true
+	sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
+}
+
+func (index *packageIndex) lookupTypeLazy(name string) (definitionLocation, bool) {
+	if index == nil {
+		return definitionLocation{}, false
+	}
+	index.mu.Lock()
+	defer index.mu.Unlock()
+
+	if loc, ok := index.types[name]; ok {
+		return loc, true
+	}
+	if index.loaded {
+		return definitionLocation{}, false
+	}
+
+	for len(index.unparsed) > 0 {
+		pf := index.parseNextFileLocked()
+		for _, d := range pf.Declarations {
+			if d.Kind == KindType && d.Name == name {
+				return definitionLocation(d.Location), true
 			}
-			wg.Add(1)
-			go func(file string) {
-				defer wg.Done()
-				fset := token.NewFileSet()
-				parsed, err := parser.ParseFile(fset, file, nil, parser.SkipObjectResolution)
-				if err != nil {
-					return
-				}
-				pf := PackageFile{Location: Location{File: file, Line: 1, Column: 1}}
-				add := func(id *ast.Ident, kind string) {
-					pos := fset.Position(id.Pos())
-					pf.Declarations = append(pf.Declarations, DeclarationSummary{
-						Name:     id.Name,
-						Kind:     kind,
-						Location: Location{File: file, Line: pos.Line, Column: pos.Column},
-					})
-				}
-				for _, decl := range parsed.Decls {
-					switch d := decl.(type) {
-					case *ast.FuncDecl:
-						add(d.Name, KindFunction)
-					case *ast.GenDecl:
-						for _, spec := range d.Specs {
-							switch s := spec.(type) {
-							case *ast.TypeSpec:
-								add(s.Name, KindType)
-							case *ast.ValueSpec:
-								for _, name := range s.Names {
-									add(name, KindVariable)
-								}
-							}
-						}
+		}
+	}
+
+	index.loaded = true
+	sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
+	return definitionLocation{}, false
+}
+
+func (index *packageIndex) parseNextFileLocked() PackageFile {
+	file := index.unparsed[0]
+	index.unparsed = index.unparsed[1:]
+
+	fset := token.NewFileSet()
+	parsed, err := parser.ParseFile(fset, file, nil, parser.SkipObjectResolution)
+	if err != nil {
+		return PackageFile{}
+	}
+	pf := PackageFile{Location: Location{File: file, Line: 1, Column: 1}}
+	add := func(id *ast.Ident, kind string) {
+		pos := fset.Position(id.Pos())
+		pf.Declarations = append(pf.Declarations, DeclarationSummary{
+			Name:     id.Name,
+			Kind:     kind,
+			Location: Location{File: file, Line: pos.Line, Column: pos.Column},
+		})
+	}
+	for _, decl := range parsed.Decls {
+		switch d := decl.(type) {
+		case *ast.FuncDecl:
+			add(d.Name, KindFunction)
+		case *ast.GenDecl:
+			for _, spec := range d.Specs {
+				switch s := spec.(type) {
+				case *ast.TypeSpec:
+					add(s.Name, KindType)
+				case *ast.ValueSpec:
+					for _, name := range s.Names {
+						add(name, KindVariable)
 					}
 				}
-				sort.Slice(pf.Declarations, func(i, j int) bool { return pf.Declarations[i].Line < pf.Declarations[j].Line })
-				ch <- pf
-			}(f)
-		}
-		wg.Wait()
-		close(ch)
-		for r := range ch {
-			index.files = append(index.files, r)
-			for _, d := range r.Declarations {
-				if d.Kind == KindType {
-					index.types[d.Name] = definitionLocation(d.Location)
-				}
 			}
 		}
-		sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
-	})
+	}
+	sort.Slice(pf.Declarations, func(i, j int) bool { return pf.Declarations[i].Line < pf.Declarations[j].Line })
+
+	index.files = append(index.files, pf)
+	for _, d := range pf.Declarations {
+		if d.Kind == KindType {
+			index.types[d.Name] = definitionLocation(d.Location)
+		}
+	}
+	return pf
 }
 
 func indirectCallTarget(fun ast.Expr, fset *token.FileSet) (string, token.Pos) {

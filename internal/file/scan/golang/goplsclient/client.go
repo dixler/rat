@@ -183,6 +183,20 @@ func (c *Client) initialize() error {
 			"version": "dev",
 		},
 		"capabilities": map[string]any{},
+		"initializationOptions": map[string]any{
+			"staticcheck":        false,
+			"vulncheck":          "Off",
+			"diagnosticsDelay":   "24h",
+			"completeUnimported": false,
+			"deepCompletion":     false,
+			"codelenses": map[string]any{
+				"generate":           false,
+				"regenerate_cgo":     false,
+				"tidy":               false,
+				"upgrade_dependency": false,
+				"vendor":             false,
+			},
+		},
 	})
 	if err != nil {
 		return err
