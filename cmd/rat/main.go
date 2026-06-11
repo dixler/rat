@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"rat/internal/ansihtml"
+	"rat/internal/file/scan/golang/goplsclient"
 	"rat/internal/highlight"
 )
 
@@ -39,8 +40,11 @@ func main() {
 	}
 }
 
-
 func run() (err error) {
+	defer func() {
+		err = errors.Join(err, goplsclient.CloseDefault())
+	}()
+
 	serve := flag.Bool("serve", false, "run HTTP server")
 	addr := flag.String("addr", ":8081", "server listen addr")
 	mode := flag.String("format", string(ModeANSI), "output format: ansi or html")

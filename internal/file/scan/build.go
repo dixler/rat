@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
-	"sync"
 )
 
 type Scanner interface {
@@ -12,12 +11,9 @@ type Scanner interface {
 	Build(file string, source []byte) (*Result, error)
 }
 
-var scannersMu sync.RWMutex
 var scannersByExtension = map[string]Scanner{}
 
 func Register(scanner Scanner) {
-	scannersMu.Lock()
-	defer scannersMu.Unlock()
 	for _, ext := range scanner.Extensions() {
 		ext = strings.ToLower(ext)
 		if ext != "" && !strings.HasPrefix(ext, ".") {
@@ -29,9 +25,7 @@ func Register(scanner Scanner) {
 
 func Build(file string, source []byte) (*Result, error) {
 	ext := strings.ToLower(filepath.Ext(file))
-	scannersMu.RLock()
 	scanner := scannersByExtension[ext]
-	scannersMu.RUnlock()
 	if scanner == nil {
 		return nil, fmt.Errorf("unsupported file type %q", filepath.Ext(file))
 	}

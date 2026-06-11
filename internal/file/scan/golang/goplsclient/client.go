@@ -42,7 +42,7 @@ type Client struct {
 
 type openDocument struct {
 	version int
-	content string
+	refs    int
 }
 
 var (
@@ -58,12 +58,20 @@ func Default() (*Client, error) {
 	return defaultInst, defaultErr
 }
 
+func CloseDefault() error {
+	if defaultInst == nil {
+		return nil
+	}
+	return defaultInst.Close()
+}
+
 func start() (*Client, error) {
 	goplsBin, err := binaryPath()
 	if err != nil {
 		return nil, err
 	}
 	cmd := exec.Command(goplsBin, "serve")
+	configureChildProcess(cmd)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
@@ -119,26 +127,49 @@ func (c *Client) SyncDocumentContent(file, content string) error {
 		}}); err != nil {
 			return err
 		}
-		c.opened[abs] = openDocument{version: 1, content: content}
+		c.opened[abs] = openDocument{version: 1, refs: 1}
 		return nil
 	}
 
-	if opened.content == content {
-		return nil
-	}
-
+	opened.refs++
 	opened.version++
-	opened.content = content
 	if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didChange", "params": map[string]any{
 		"textDocument": map[string]any{
 			"uri":     fileURI(abs),
 			"version": opened.version,
 		},
-		"contentChanges": []map[string]any{{"text": opened.content}},
+		"contentChanges": []map[string]any{{"text": content}},
 	}}); err != nil {
 		return err
 	}
 	c.opened[abs] = opened
+	return nil
+}
+
+func (c *Client) CloseDocument(file string) error {
+	abs, err := filepath.Abs(file)
+	if err != nil {
+		return err
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	opened, ok := c.opened[abs]
+	if !ok {
+		return nil
+	}
+	if opened.refs > 1 {
+		opened.refs--
+		c.opened[abs] = opened
+		return nil
+	}
+	if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didClose", "params": map[string]any{
+		"textDocument": map[string]any{"uri": fileURI(abs)},
+	}}); err != nil {
+		return err
+	}
+	delete(c.opened, abs)
 	return nil
 }
 

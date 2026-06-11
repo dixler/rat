@@ -67,6 +67,7 @@ type indirectLookup struct {
 
 type goplsLookupCache struct {
 	client              *goplsclient.Client
+	file                string
 	definitions         map[positionKey]definitionLookup
 	hovers              map[positionKey]string
 	indirectDefinitions map[positionKey]indirectLookup
@@ -81,9 +82,6 @@ type packageIndex struct {
 	files      []PackageFile
 	packageLoc definitionLocation
 	types      map[string]definitionLocation
-	mu         sync.Mutex
-	loaded     bool
-	unparsed   []string
 }
 
 const (
@@ -1578,72 +1576,38 @@ func loadPackageIndexWithDir(importPath, dir string) *packageIndex {
 		dir:   dir,
 		types: map[string]definitionLocation{},
 	}
+	var files []string
 	if entries, err := filepath.Glob(filepath.Join(dir, "*.go")); err == nil {
 		for _, f := range entries {
 			if !strings.HasSuffix(f, "_test.go") {
 				if index.packageLoc.File == "" {
 					index.packageLoc = definitionLocation{File: f, Line: 1, Column: 1}
 				}
-				index.unparsed = append(index.unparsed, f)
+				files = append(files, f)
 			}
 		}
 	}
+	for _, f := range files {
+		index.parseFile(f)
+	}
+	sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
 	packageIndexCache.Store(importPath, index)
 	return index
-}
-
-func (index *packageIndex) ensureTypesLoaded() {
-	if index == nil {
-		return
-	}
-	index.mu.Lock()
-	defer index.mu.Unlock()
-	if index.loaded {
-		return
-	}
-	for len(index.unparsed) > 0 {
-		index.parseNextFileLocked()
-	}
-	index.loaded = true
-	sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
 }
 
 func (index *packageIndex) lookupTypeLazy(name string) (definitionLocation, bool) {
 	if index == nil {
 		return definitionLocation{}, false
 	}
-	index.mu.Lock()
-	defer index.mu.Unlock()
-
-	if loc, ok := index.types[name]; ok {
-		return loc, true
-	}
-	if index.loaded {
-		return definitionLocation{}, false
-	}
-
-	for len(index.unparsed) > 0 {
-		pf := index.parseNextFileLocked()
-		for _, d := range pf.Declarations {
-			if d.Kind == KindType && d.Name == name {
-				return definitionLocation(d.Location), true
-			}
-		}
-	}
-
-	index.loaded = true
-	sort.Slice(index.files, func(i, j int) bool { return index.files[i].File < index.files[j].File })
-	return definitionLocation{}, false
+	loc, ok := index.types[name]
+	return loc, ok
 }
 
-func (index *packageIndex) parseNextFileLocked() PackageFile {
-	file := index.unparsed[0]
-	index.unparsed = index.unparsed[1:]
-
+func (index *packageIndex) parseFile(file string) {
 	fset := token.NewFileSet()
 	parsed, err := parser.ParseFile(fset, file, nil, parser.SkipObjectResolution)
 	if err != nil {
-		return PackageFile{}
+		return
 	}
 	pf := PackageFile{Location: Location{File: file, Line: 1, Column: 1}}
 	add := func(id *ast.Ident, kind string) {
@@ -1679,7 +1643,6 @@ func (index *packageIndex) parseNextFileLocked() PackageFile {
 			index.types[d.Name] = definitionLocation(d.Location)
 		}
 	}
-	return pf
 }
 
 func indirectCallTarget(fun ast.Expr, fset *token.FileSet) (string, token.Pos) {
@@ -1842,10 +1805,11 @@ func finalizeGoResult(res *Result, parsed *ast.File, info *types.Info, b *builde
 	if res == nil || client == nil {
 		return nil
 	}
-	if err := client.SyncDocumentContent(b.file, string(source)); err != nil {
+	lookup := newGoplsLookupCache(client, b.objByKey, b.file, string(source))
+	if err := lookup.SyncDocumentContent(); err != nil {
 		return err
 	}
-	lookup := newGoplsLookupCache(client, b.objByKey)
+	defer lookup.Close()
 	finalizeReferenceDeclarations(res.Declarations, lookup)
 	res.NamedFields = finalizeNamedFields(parsed, b, lookup)
 	finalizeIndirectCalls(res, pendingIndirectCalls, info, lookup)
@@ -1896,23 +1860,39 @@ func finalizeIndirectCalls(res *Result, pending []pendingIndirectCall, info *typ
 	}
 }
 
-func newGoplsLookupCache(client *goplsclient.Client, objByKey map[positionKey]types.Object) *goplsLookupCache {
+func newGoplsLookupCache(client *goplsclient.Client, objByKey map[positionKey]types.Object, file, source string) *goplsLookupCache {
+	fileSources := map[string]string{}
+	if file != "" && source != "" {
+		fileSources[file] = source
+	}
 	return &goplsLookupCache{
 		client:              client,
+		file:                file,
 		definitions:         map[positionKey]definitionLookup{},
 		hovers:              map[positionKey]string{},
 		indirectDefinitions: map[positionKey]indirectLookup{},
 		indirectCalls:       map[positionKey]bool{},
-		fileSources:         map[string]string{},
+		fileSources:         fileSources,
 		objByKey:            objByKey,
 		resolvedDefs:        map[types.Object]definitionLookup{},
 	}
 }
 
-func (c *goplsLookupCache) DefinitionForPosition(pos token.Position) (goplsclient.Location, bool, error) {
-	if c == nil || c.client == nil {
-		return goplsclient.Location{}, false, nil
+func (c *goplsLookupCache) SyncDocumentContent() error {
+	if c == nil || c.client == nil || c.file == "" {
+		return nil
 	}
+	return c.client.SyncDocumentContent(c.file, c.fileSources[c.file])
+}
+
+func (c *goplsLookupCache) Close() error {
+	if c == nil || c.client == nil || c.file == "" {
+		return nil
+	}
+	return c.client.CloseDocument(c.file)
+}
+
+func (c *goplsLookupCache) DefinitionForPosition(pos token.Position) (goplsclient.Location, bool, error) {
 	key, ok := lookupKey(pos)
 	if !ok {
 		return goplsclient.Location{}, false, nil
@@ -1925,6 +1905,9 @@ func (c *goplsLookupCache) DefinitionForPosition(pos token.Position) (goplsclien
 			c.definitions[key] = cached
 			return cached.loc, cached.ok, nil
 		}
+	}
+	if c.client == nil {
+		return goplsclient.Location{}, false, nil
 	}
 	loc, found, err := c.client.DefinitionForPosition(pos)
 	if err != nil {

@@ -32,10 +32,7 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 	}
 	pkgRefs := make([]PackageReference, 0, len(raw.PackageReferences))
 	for _, p := range raw.PackageReferences {
-		parent, ok := declMap[p.ParentID]
-		if !ok {
-			return nil, fmt.Errorf("missing package parent %q", p.ParentID)
-		}
+		parent := declMap[p.ParentID]
 		pkgRef := &packageReference{reference: &reference{
 			parent:   parent,
 			location: location{p.File, p.Line, p.Column},
