@@ -3,12 +3,13 @@ package file
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"rat/internal/file/scan"
 )
 
 func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
-	root := &declaration{name: filepath.Base(raw.File), kind: KindFile, location: location{file: raw.File, line: 1, column: 1}}
+	root := &declaration{name: filepath.Base(raw.File), kind: KindFile, location: fromScanLocation(scan.Location{File: raw.File, Line: 1, Column: 1})}
 	declMap := map[string]*declaration{"file": root}
 
 	for _, d := range raw.Declarations {
@@ -16,7 +17,9 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 		root.declarations = append(root.declarations, decl)
 	}
 
-	attachReferencesFromScan(raw.Declarations, declMap)
+	for _, rawDecl := range raw.Declarations {
+		attachDeclarationReferences(rawDecl, declMap)
+	}
 
 	decls := make([]Declaration, 0, len(root.declarations))
 	for _, d := range root.declarations {
@@ -29,13 +32,10 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 	}
 	pkgRefs := make([]PackageReference, 0, len(raw.PackageReferences))
 	for _, p := range raw.PackageReferences {
-		parent, ok := declMap[p.ParentID]
-		if !ok {
-			return nil, fmt.Errorf("missing package parent %q", p.ParentID)
-		}
+		parent := declMap[p.ParentID]
 		pkgRef := &packageReference{reference: &reference{
 			parent:   parent,
-			location: location{p.File, p.Line, p.Column},
+			location: fromScanLocation(p.Location),
 			text:     p.Text,
 			kind:     KindPackage,
 		}, pkg: pkgDecls[p.PackageID]}
@@ -45,7 +45,7 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 	var indirectCalls []IndirectCall
 	for _, c := range raw.IndirectCalls {
 		indirectCalls = append(indirectCalls, &indirectCall{
-			location: location{c.File, c.Line, c.Column},
+			location: fromScanLocation(c.Location),
 			text:     c.Text,
 		})
 	}
@@ -53,8 +53,9 @@ func buildTree(abs string, src string, raw *scan.Result) (*file, error) {
 	return &file{
 		name:          abs,
 		source:        src,
+		sourceLines:   strings.Split(src, "\n"),
 		root:          root,
-		nodes:         append([]scan.Node(nil), raw.Nodes...),
+		nodes:         clone(raw.Nodes),
 		packageRefs:   pkgRefs,
 		decls:         decls,
 		namedFields:   buildNamedFields(raw.NamedFields),
@@ -66,7 +67,7 @@ func toDeclaration(src scan.Declaration, parent Declaration, declMap map[string]
 	d := &declaration{
 		name:          src.Name,
 		kind:          Kind(src.Kind),
-		location:      location{src.File, src.Line, src.Column},
+		location:      fromScanLocation(src.Location),
 		referenceType: src.ReferenceType,
 		parent:        parent,
 	}
@@ -77,18 +78,12 @@ func toDeclaration(src scan.Declaration, parent Declaration, declMap map[string]
 	return d
 }
 
-func attachReferencesFromScan(rawDecls []scan.Declaration, declMap map[string]*declaration) {
-	for _, raw := range rawDecls {
-		attachDeclarationReferences(raw, declMap)
-	}
-}
-
 func attachDeclarationReferences(raw scan.Declaration, declMap map[string]*declaration) {
 	decl := declMap[raw.ID]
 	for _, rr := range raw.References {
 		ref := &reference{
 			parent:        decl,
-			location:      location{rr.File, rr.Line, rr.Column},
+			location:      fromScanLocation(rr.Location),
 			text:          rr.Text,
 			kind:          Kind(rr.Kind),
 			referenceType: rr.ReferenceType,
@@ -111,17 +106,17 @@ func externalDeclaration(raw scan.Reference, declMap map[string]*declaration) *d
 	if decl := declMap[key]; decl != nil {
 		return decl
 	}
-	decl := &declaration{name: raw.Text, kind: Kind(raw.Kind), location: location{loc.File, loc.Line, loc.Column}, referenceType: raw.ReferenceType}
+	decl := &declaration{name: raw.Text, kind: Kind(raw.Kind), location: fromScanLocation(loc), referenceType: raw.ReferenceType}
 	declMap[key] = decl
 	return decl
 }
 
 func buildPackageDeclaration(raw scan.Package) *packageDeclaration {
-	p := &packageDeclaration{name: raw.Name, location: location{raw.File, raw.Line, raw.Column}}
+	p := &packageDeclaration{name: raw.Name, location: fromScanLocation(raw.Location)}
 	for _, f := range raw.Files {
-		fd := &declaration{name: filepath.Base(f.File), kind: KindFile, location: location{f.File, f.Line, f.Column}}
+		fd := &declaration{name: filepath.Base(f.File), kind: KindFile, location: fromScanLocation(f.Location)}
 		for _, d := range f.Declarations {
-			fd.declarations = append(fd.declarations, &declaration{name: d.Name, kind: Kind(d.Kind), location: location{d.File, d.Line, d.Column}, parent: fd})
+			fd.declarations = append(fd.declarations, &declaration{name: d.Name, kind: Kind(d.Kind), location: fromScanLocation(d.Location), parent: fd})
 		}
 		p.files = append(p.files, fd)
 	}

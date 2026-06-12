@@ -19,7 +19,7 @@ import (
 
 var githubBlobPath = regexp.MustCompile(`^/([^/]+)/([^/]+)/blob/([^/]+)/(.+)$`)
 
-type RequestBody struct {
+type requestBody struct {
 	GithubURL string `json:"githubUrl"`
 }
 
@@ -58,6 +58,22 @@ func Process(githubURL string, ratBinary string) (string, int, error) {
 	return ansihtml.Convert(ansi), http.StatusOK, nil
 }
 
+func HandleRequest(body io.Reader, ratBinary string) (ResponseBody, int) {
+	var payload requestBody
+	if err := json.NewDecoder(body).Decode(&payload); err != nil {
+		return ResponseBody{Error: "invalid JSON payload"}, http.StatusBadRequest
+	}
+	if strings.TrimSpace(payload.GithubURL) == "" {
+		return ResponseBody{Error: "githubUrl is required"}, http.StatusBadRequest
+	}
+
+	html, code, err := Process(payload.GithubURL, ratBinary)
+	if err != nil {
+		return ResponseBody{Error: err.Error()}, code
+	}
+	return ResponseBody{HTML: html}, http.StatusOK
+}
+
 func Handler(ratBinary string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodOptions {
@@ -69,22 +85,8 @@ func Handler(ratBinary string) http.Handler {
 			return
 		}
 
-		var payload RequestBody
-		if err := json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&payload); err != nil {
-			writeJSON(w, http.StatusBadRequest, ResponseBody{Error: "invalid JSON payload"})
-			return
-		}
-		if strings.TrimSpace(payload.GithubURL) == "" {
-			writeJSON(w, http.StatusBadRequest, ResponseBody{Error: "githubUrl is required"})
-			return
-		}
-
-		html, code, err := Process(payload.GithubURL, ratBinary)
-		if err != nil {
-			writeJSON(w, code, ResponseBody{Error: err.Error()})
-			return
-		}
-		writeJSON(w, http.StatusOK, ResponseBody{HTML: html})
+		payload, code := HandleRequest(io.LimitReader(r.Body, 1<<20), ratBinary)
+		writeJSON(w, code, payload)
 	})
 }
 

@@ -7,16 +7,13 @@ import (
 	"rat/internal/file/scan"
 )
 
-func collectGoTypeNodes(fset *token.FileSet, parsed *ast.File) []scan.Node {
-	var out []scan.Node
-	ast.Inspect(parsed, func(n ast.Node) bool {
-		arrayType, ok := n.(*ast.ArrayType)
-		if !ok || arrayType.Len != nil {
-			return true
-		}
-		pos := fset.Position(arrayType.Lbrack)
-		out = append(out, scan.MutableTypeSyntaxNode{NodeSpans: []scan.Span{{Line: pos.Line, Column: pos.Column, Length: len("[]")}}})
-		return true
-	})
-	return out
+func arrayTypeNode(fset *token.FileSet, arrayType *ast.ArrayType) scan.Node {
+	if fset == nil || arrayType == nil || arrayType.Len != nil {
+		return nil
+	}
+	pos := fset.Position(arrayType.Lbrack)
+	if pos.Line < 1 || pos.Column < 1 {
+		return nil
+	}
+	return scan.MutableTypeSyntaxNode{NodeSpans: []scan.Span{{Line: pos.Line, Column: pos.Column, Length: len("[]")}}}
 }

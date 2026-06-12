@@ -68,7 +68,7 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 - Go tests: `go test ./...`
 - Update Go goldens after intentional highlighting changes: `ACCEPT=1 go test ./...`
 - Build CLI: `go build ./cmd/rat`
-- Build embedded `gopls`: `go build -o internal/goplsbin/gopls golang.org/x/tools/gopls`
+- Build embedded `gopls`: `go build -o internal/file/scan/golang/goplsclient/gopls golang.org/x/tools/gopls`
 - Build main targets: `make`
 - Run local server: `go run ./cmd/rat --serve --addr :8081`
 - Extension tests: from `vscode-text-semantic`, run `npm test`
@@ -84,7 +84,7 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 - Run `gofmt` on changed Go files.
 - Do not commit generated binaries or extension packages unless the user explicitly asks. Existing generated artifacts may already be present; avoid touching them unless necessary.
 - Avoid changing `third_party/` unless the task is specifically about vendored/replaced dependencies.
-- Rebuild `internal/goplsbin/gopls` only when necessary.
+- Rebuild `internal/file/scan/golang/goplsclient/gopls` only when necessary.
 - If a relevant test/build command is skipped because dependencies, time, or environment are unavailable, state that clearly in the final response.
 
 ## Infra Safety

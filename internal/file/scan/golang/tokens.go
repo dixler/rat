@@ -3,7 +3,6 @@ package golang
 import (
 	"go/scanner"
 	"go/token"
-	"os"
 
 	"rat/internal/file/scan"
 )
@@ -31,15 +30,11 @@ var goLiteralTokens = map[token.Token]bool{
 	token.STRING: true,
 }
 
-func collectGoTokenNodes(file string) []scan.Node {
-	source, err := readFileString(file)
-	if err != nil {
-		return nil
-	}
+func collectGoTokenNodes(file string, source []byte) []scan.Node {
 	fset := token.NewFileSet()
 	f := fset.AddFile(file, fset.Base(), len(source))
 	var s scanner.Scanner
-	s.Init(f, []byte(source), nil, 0)
+	s.Init(f, source, nil, 0)
 
 	var out []scan.Node
 	pendingPackageName := false
@@ -116,12 +111,4 @@ func collectGoTokenNodes(file string) []scan.Node {
 		}
 	}
 	return out
-}
-
-func readFileString(file string) (string, error) {
-	data, err := os.ReadFile(file)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
 }

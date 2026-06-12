@@ -20,10 +20,6 @@ const (
 
 type BasicStyle string
 
-type Style interface {
-	Format(str string) string
-}
-
 func (s BasicStyle) Format(str string) string {
 	return string(s) + str + string(Reset)
 }

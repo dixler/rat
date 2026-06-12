@@ -194,12 +194,11 @@ Build everything:
 make
 ```
 
-`make` does four things:
+`make` does three things:
 
-1. Builds `internal/goplsbin/gopls` so it can be embedded.
+1. Builds `internal/file/scan/golang/goplsclient/gopls` so it can be embedded.
 2. Builds `rat` in the repository root.
 3. Builds the VS Code `.vsix` package and moves it to the repository root.
-4. Runs `rat ./cmd/rat/main.go` and screenshots the colored terminal output to `.images/cli.png`.
 
 Install the CLI and generated extension package:
 
@@ -227,6 +226,24 @@ Generate HTML:
 
 ```bash
 rat -format html path/to/file.go
+```
+
+Write a CPU profile and convert it to callgrind format for `kcachegrind`:
+
+```bash
+rat -cpuprofile cpu.prof -callgrind cpu.callgrind path/to/file.go
+```
+
+If you only need the callgrind output, `rat` can automatically generate a `rat.callgrind` profile using `-profile`:
+
+```bash
+rat -profile path/to/file.go
+```
+
+Or you can use a custom name:
+
+```bash
+rat -callgrind cpu.callgrind path/to/file.go
 ```
 
 Run the local HTTP server used by the VS Code extension:
@@ -334,7 +351,7 @@ npm test
 Build the embedded `gopls` artifact:
 
 ```bash
-go build -o internal/goplsbin/gopls golang.org/x/tools/gopls
+go build -o internal/file/scan/golang/goplsclient/gopls golang.org/x/tools/gopls
 ```
 
 Build just the CLI in the repo root:
