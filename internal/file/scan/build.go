@@ -63,12 +63,12 @@ type CondNode struct {
 
 func (n CondNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
 
-type MatchNode struct {
+type PartialNode struct {
 	NodeSpans  []Span
-	HasDefault bool
+	IsComplete bool
 }
 
-func (n MatchNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+func (n PartialNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
 
 type LoopNode struct {
 	NodeSpans []Span

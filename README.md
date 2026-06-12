@@ -105,6 +105,14 @@ This applies to top-level struct fields, nested struct fields, inline struct lit
 
 Top-level and non-inline struct field declarations are inverted. Inline struct literal field names are not inverted. If a field's type mentions multiple named types, `rat` uses the farthest relationship so a field involving an external type still looks external. For struct literals whose struct type is declared outside the current package, `rat` uses package-level resolution instead of same-file resolution to avoid noisy external-package coloring.
 
+Struct literal braces are also semantic:
+
+- Green: the struct literal explicitly provides every field.
+- Muted orange: the struct literal omits at least one field and therefore relies on zero-value defaults.
+- Unkeyed struct literals count as complete when they provide every field positionally.
+
+This applies only to struct composite literal braces, including anonymous structs, pointer-to-struct literals, and nested struct literals. It does not apply to type declarations, function bodies, or non-struct composite literals.
+
 ### Control Flow Blocks
 
 Control-flow colors show whether a block can affect how execution leaves that block. Matching braces for recognized blocks get the same color as the block keyword.

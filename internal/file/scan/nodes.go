@@ -33,7 +33,7 @@ func appendControlFlowNodes(nodes *[]Node, block ControlFlowBlock, sourceLines [
 	case ConstructKindLoop:
 		*nodes = append(*nodes, LoopNode{NodeSpans: spans, HasExit: block.MayBreak || block.MayReturn})
 	case ConstructKindExhaustiveMatch:
-		*nodes = append(*nodes, MatchNode{NodeSpans: spans, HasDefault: block.HasDefault})
+		*nodes = append(*nodes, PartialNode{NodeSpans: spans, IsComplete: block.HasDefault})
 	}
 	for _, stmt := range block.Statements {
 		if jump := jumpNode(stmt); jump != nil {

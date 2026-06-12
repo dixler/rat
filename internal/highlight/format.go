@@ -374,9 +374,8 @@ func collectPackageReferenceSpans(root string, out map[int][]Span, sourceLines [
 
 func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
 	marks := make([]controlFlowMark, 0, len(nodes))
-	plain := display.MutedOrange
+	incomplete := display.MutedOrange
 	blue := display.Blue
-	exhaustive := display.Green
 
 	for _, node := range nodes {
 		var style display.BasicStyle
@@ -384,28 +383,25 @@ func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
 		case scan.CondNode:
 			style = blue
 			if !n.IsGuard {
-				style = plain
+				style = incomplete
 			}
-		case scan.MatchNode:
-			style = plain
-			if n.HasDefault {
-				style = exhaustive
-			}
+		case scan.PartialNode:
+			style = partialStyle(n.IsComplete)
 		case scan.LoopNode:
 			style = blue
 			if n.HasExit {
-				style = plain
+				style = incomplete
 			}
 		case scan.JumpNode:
 			switch n.Kind {
 			case scan.JumpKindExit:
 				style = blue
 			case scan.JumpKindErrorExit:
-				style = plain
+				style = incomplete
 			case scan.JumpKindContinue:
 				style = blue
 			case scan.JumpKindBreak:
-				style = plain
+				style = incomplete
 			case scan.JumpKindEscape:
 				style = display.LightRed
 			case scan.JumpKindFallthrough:
@@ -503,6 +499,8 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.BasicStyle) 
 		return display.LightRed
 	case scan.LiteralNode:
 		return display.LightPink
+	case scan.PartialNode:
+		return partialStyle(n.IsComplete)
 	case scan.PackageNameNode:
 		return _relationStyles[_relSamePackage]
 	case scan.CommentNode:
@@ -516,6 +514,13 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.BasicStyle) 
 	default:
 		return ""
 	}
+}
+
+func partialStyle(isComplete bool) display.BasicStyle {
+	if isComplete {
+		return display.Green
+	}
+	return display.MutedOrange
 }
 
 func lexicalNodePriority(node scan.Node) int {

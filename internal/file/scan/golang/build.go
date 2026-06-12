@@ -269,6 +269,10 @@ func collectGoSyntaxData(fset *token.FileSet, parsed *ast.File, info *types.Info
 				position: fset.Position(startPos),
 				text:     name,
 			})
+		case *ast.CompositeLit:
+			if syntaxNode := partialStructLiteralNode(fset, info, node); syntaxNode != nil {
+				nodes = append(nodes, syntaxNode)
+			}
 		case *ast.FuncDecl:
 			nodes = append(nodes, functionNode(fset, node.Type.Func, node.Body, signatureLastResultIsError(nodeSignature(node, info)), false)...)
 		case *ast.FuncLit:
@@ -294,6 +298,114 @@ func functionNode(fset *token.FileSet, funcPos token.Pos, body *ast.BlockStmt, r
 		}
 	}
 	return out
+}
+
+func partialStructLiteralNode(fset *token.FileSet, info *types.Info, lit *ast.CompositeLit) scan.Node {
+	if fset == nil || lit == nil || lit.Lbrace == token.NoPos || lit.Rbrace == token.NoPos {
+		return nil
+	}
+	st, _ := structTypeForCompositeLiteral(info, lit)
+	if st == nil {
+		return nil
+	}
+	open := fset.Position(lit.Lbrace)
+	close := fset.Position(lit.Rbrace)
+	if open.Line < 1 || open.Column < 1 || close.Line < 1 || close.Column < 1 {
+		return nil
+	}
+	complete, ok := structLiteralComplete(lit, st)
+	if !ok {
+		return nil
+	}
+	return scan.PartialNode{
+		NodeSpans: []scan.Span{
+			{Line: open.Line, Column: open.Column, Length: 1},
+			{Line: close.Line, Column: close.Column, Length: 1},
+		},
+		IsComplete: complete,
+	}
+}
+
+func structLiteralComplete(lit *ast.CompositeLit, st *types.Struct) (bool, bool) {
+	if lit == nil || st == nil {
+		return false, false
+	}
+	if len(lit.Elts) == 0 {
+		return st.NumFields() == 0, true
+	}
+	keyed := false
+	for _, elt := range lit.Elts {
+		if _, ok := elt.(*ast.KeyValueExpr); ok {
+			keyed = true
+			break
+		}
+	}
+	if !keyed {
+		return len(lit.Elts) == st.NumFields(), true
+	}
+	present := make(map[string]struct{}, len(lit.Elts))
+	for _, elt := range lit.Elts {
+		kv, ok := elt.(*ast.KeyValueExpr)
+		if !ok {
+			return false, false
+		}
+		key, ok := kv.Key.(*ast.Ident)
+		if !ok {
+			return false, false
+		}
+		present[key.Name] = struct{}{}
+	}
+	for field := range st.Fields() {
+		if field == nil {
+			continue
+		}
+		if _, ok := present[field.Name()]; !ok {
+			return false, true
+		}
+	}
+	return true, true
+}
+
+func structTypeForCompositeLiteral(info *types.Info, lit *ast.CompositeLit) (*types.Struct, *types.Named) {
+	if info == nil || lit == nil {
+		return nil, nil
+	}
+	t := compositeLiteralResolvedType(info, lit)
+	if t == nil {
+		return nil, nil
+	}
+	var named *types.Named
+	for t != nil {
+		t = types.Unalias(t)
+		switch tt := t.(type) {
+		case *types.Pointer:
+			t = tt.Elem()
+		case *types.Named:
+			named = tt
+			t = tt.Underlying()
+		case *types.Struct:
+			return tt, named
+		default:
+			return nil, nil
+		}
+	}
+	return nil, nil
+}
+
+func compositeLiteralResolvedType(info *types.Info, lit *ast.CompositeLit) types.Type {
+	if info == nil || lit == nil {
+		return nil
+	}
+	if tv, ok := info.Types[lit]; ok && tv.Type != nil {
+		return tv.Type
+	}
+	if lit.Type == nil {
+		return nil
+	}
+	if tv, ok := info.Types[lit.Type]; ok {
+		return tv.Type
+	}
+	return nil
 }
 
 func inlineFunctionIndentSpans(fset *token.FileSet, body *ast.BlockStmt) []scan.Span {
@@ -1039,22 +1151,8 @@ func (b *builder) collectNamedFields(fields *ast.FieldList, inline bool, out *[]
 }
 
 func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]NamedField) bool {
-	if b.info == nil {
-		return false
-	}
-	tv, ok := b.info.Types[lit.Type]
-	if !ok || tv.Type == nil {
-		return false
-	}
-	t := tv.Type
-	if ptr, ok := t.(*types.Pointer); ok {
-		t = ptr.Elem()
-	}
-	if named, ok := t.(*types.Named); ok {
-		t = named.Underlying()
-	}
-	st, ok := t.(*types.Struct)
-	if !ok {
+	st, named := structTypeForCompositeLiteral(b.info, lit)
+	if st == nil {
 		return false
 	}
 	byName := map[string]namedFieldInfo{}
@@ -1067,10 +1165,7 @@ func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]
 		}
 	}
 	structTypeLoc, hasStructTypeLoc := definitionLocation{}, false
-	if ptr, ok := tv.Type.(*types.Pointer); ok {
-		tv.Type = ptr.Elem()
-	}
-	if named, ok := tv.Type.(*types.Named); ok {
+	if named != nil {
 		structTypeLoc, hasStructTypeLoc = b.typeNameLocation(named.Obj())
 	}
 	return b.collectStructLiteralFields(lit, byName, structTypeLoc, hasStructTypeLoc, out)
