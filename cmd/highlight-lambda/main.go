@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -22,16 +23,8 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		body = string(decoded)
 	}
 
-	var payload highlightapi.RequestBody
-	if err := json.Unmarshal([]byte(body), &payload); err != nil {
-		return respond(http.StatusBadRequest, highlightapi.ResponseBody{Error: "invalid JSON payload"}), nil
-	}
-
-	html, status, err := highlightapi.Process(payload.GithubURL, "./rat")
-	if err != nil {
-		return respond(status, highlightapi.ResponseBody{Error: err.Error()}), nil
-	}
-	return respond(http.StatusOK, highlightapi.ResponseBody{HTML: html}), nil
+	payload, status := highlightapi.HandleRequest(strings.NewReader(body), "./rat")
+	return respond(status, payload), nil
 }
 
 func respond(code int, payload highlightapi.ResponseBody) events.APIGatewayProxyResponse {

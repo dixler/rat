@@ -9,11 +9,11 @@ import (
 )
 
 type Span struct {
-	Line     int           `json:"line,omitempty"`
-	Start    int           `json:"start"`
-	End      int           `json:"end"`
-	Style    display.Style `json:"style"`
-	Priority int           `json:"priority,omitempty"`
+	Line     int                `json:"line,omitempty"`
+	Start    int                `json:"start"`
+	End      int                `json:"end"`
+	Style    display.BasicStyle `json:"style"`
+	Priority int                `json:"priority,omitempty"`
 }
 
 func RenderSource(program ParseResult) string {

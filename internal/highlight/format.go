@@ -44,13 +44,11 @@ type ParseResult struct {
 }
 
 type controlFlowMark struct {
-	loc       file.Location
 	span      scan.Span
-	textStyle display.Style
-	lineStyle display.Style
+	textStyle display.BasicStyle
 }
 
-func declarationStyle(d file.Declaration) display.Style {
+func declarationStyle(d file.Declaration) display.BasicStyle {
 	switch {
 	case d == nil:
 		return _relationStyles[_relSameFile].Invert()
@@ -107,25 +105,8 @@ func sortSpans(spans []Span) {
 	})
 }
 
-func collectIndirectCallSpans(out map[int][]Span, call file.IndirectCall) {
-	text := call.Text()
-	loc := call.Location()
-	if loc == nil || text == "" {
-		return
-	}
-
-	line := loc.Line()
-	col := loc.Column()
-	if line < 1 || col < 1 {
-		return
-	}
-
-	out[line] = append(out[line], Span{
-		Start:    col - 1,
-		End:      col - 1 + len(text),
-		Style:    display.White,
-		Priority: 2,
-	})
+func collectIndirectCallSpans(out map[int][]Span, sourceLines []string, call file.IndirectCall) {
+	addSpan(out, sourceLines, call.Location(), call.Text(), Span{Style: display.White, Priority: 2})
 }
 
 func collectDeclarationSpans(root string, out map[int][]Span, sourceLines []string, decl file.Declaration) {
@@ -147,11 +128,8 @@ func collectDeclarationSpans(root string, out map[int][]Span, sourceLines []stri
 	}
 }
 
-func frameStyle(style display.Style) display.Style {
-	if basic, ok := style.(display.BasicStyle); ok {
-		return basic.Frame()
-	}
-	return style
+func frameStyle(style display.BasicStyle) display.BasicStyle {
+	return style.Frame()
 }
 
 func addSpan(out map[int][]Span, sourceLines []string, loc file.Location, text string, span Span) {
@@ -252,21 +230,22 @@ func (r *reference) relationshipStyle(root string) Span {
 	case file.KindParameter:
 		return Span{Style: kindStyle(file.KindParameter)}
 	case file.KindPackage:
-		return Span{Style: packageDeclarationStyle(root, r.Declaration())}
+		return Span{Style: packageDeclarationStyle(root, declarationLocation(r.Declaration()))}
 	default:
-		target, parent := r.Declaration(), r.Parent()
+		targetLoc := declarationLocation(r.Declaration())
+		parentLoc := declarationLocation(r.Parent())
 		switch {
-		case target == nil || target.Location() == nil:
+		case targetLoc == nil:
 			return Span{Style: _relationStyles[_relExternal]}
-		case isBuiltin(target):
+		case isBuiltinLocation(targetLoc):
 			return Span{Style: display.MutedOrange}
-		case sameFunction(parent, target):
+		case sameFunction(r.Parent(), r.Declaration()):
 			return Span{Style: _relationStyles[_relSameFunction], Priority: 3}
-		case sameFile(parent, target):
+		case sameFileLocation(parentLoc, targetLoc):
 			return Span{Style: _relationStyles[_relSameFile]}
-		case samePackage(parent, target):
+		case samePackageLocation(parentLoc, targetLoc):
 			return Span{Style: _relationStyles[_relSamePackage]}
-		case sameProject(root, parent, target):
+		case sameProjectLocation(root, parentLoc, targetLoc):
 			return Span{Style: _relationStyles[_relSameProject]}
 		default:
 			return Span{Style: _relationStyles[_relExternal]}
@@ -274,55 +253,17 @@ func (r *reference) relationshipStyle(root string) Span {
 	}
 }
 
-func packageDeclarationStyle(root string, target interface{ Location() file.Location }) display.BasicStyle {
-	if target == nil || target.Location() == nil {
+func packageDeclarationStyle(root string, loc file.Location) display.BasicStyle {
+	if !inProject(root, loc) {
 		return _relationStyles[_relExternal]
 	}
-	targetFile := filepath.Clean(target.Location().File())
-	if targetFile == "" {
-		return _relationStyles[_relExternal]
-	}
-	if root != "" {
-		cleanRoot := filepath.Clean(root)
-		if strings.HasPrefix(targetFile, cleanRoot+string(filepath.Separator)) {
-			return _relationStyles[_relSameProject]
-		}
-	}
-	return _relationStyles[_relExternal]
-}
-
-func isBuiltin(target file.Declaration) bool {
-	return scan.IsBuiltinFile(target.Location().File())
+	return _relationStyles[_relSameProject]
 }
 
 func sameFunction(left, right file.Declaration) bool {
 	lfn := enclosingFunction(left)
 	rfn := enclosingFunction(right)
 	return lfn != nil && rfn != nil && locationKey(lfn.Location()) == locationKey(rfn.Location())
-}
-
-func sameFile(left, right file.Declaration) bool {
-	if left == nil || right == nil || left.Location() == nil || right.Location() == nil {
-		return false
-	}
-	return filepath.Clean(left.Location().File()) == filepath.Clean(right.Location().File())
-}
-
-func samePackage(left, right file.Declaration) bool {
-	if sameFile(left, right) || left == nil || right == nil || left.Location() == nil || right.Location() == nil {
-		return false
-	}
-	return filepath.Dir(filepath.Clean(left.Location().File())) == filepath.Dir(filepath.Clean(right.Location().File()))
-}
-
-func sameProject(root string, left, right file.Declaration) bool {
-	if root == "" || left == nil || right == nil || left.Location() == nil || right.Location() == nil {
-		return false
-	}
-	lfile := filepath.Clean(left.Location().File())
-	rfile := filepath.Clean(right.Location().File())
-	root = filepath.Clean(root)
-	return strings.HasPrefix(lfile, root+string(filepath.Separator)) && strings.HasPrefix(rfile, root+string(filepath.Separator))
 }
 
 func enclosingFunction(decl file.Declaration) file.Declaration {
@@ -339,6 +280,13 @@ func locationKey(loc file.Location) string {
 		return ""
 	}
 	return fmt.Sprintf("%s:%d:%d", filepath.Clean(loc.File()), loc.Line(), loc.Column())
+}
+
+func declarationLocation(decl file.Declaration) file.Location {
+	if decl == nil {
+		return nil
+	}
+	return decl.Location()
 }
 
 func Analyze(path string) (ParseResult, error) {
@@ -377,15 +325,15 @@ func ParseFormats(f file.File) ParseResult {
 		Source:      f.Source(),
 		SourceSpans: map[int][]Span{},
 	}
-	sourceLines := file.SourceLines(f)
-	root := file.ProjectRoot(f.Name())
+	sourceLines := f.SourceLines()
+	root := f.ProjectRoot()
 	controlFlowMarks := collectNodeControlFlowMarks(f.Nodes())
 	collectLexicalNodeSpans(result.SourceSpans, sourceLines, f.Nodes(), loopStyleByLocation(controlFlowMarks))
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
 
 	for _, call := range f.IndirectCalls() {
-		collectIndirectCallSpans(result.SourceSpans, call)
+		collectIndirectCallSpans(result.SourceSpans, sourceLines, call)
 	}
 
 	for _, decl := range f.Declarations() {
@@ -393,7 +341,7 @@ func ParseFormats(f file.File) ParseResult {
 	}
 
 	for _, mark := range controlFlowMarks {
-		if mark.loc == nil || mark.loc.Line() < 1 {
+		if mark.span.Line < 1 {
 			continue
 		}
 		addScanSpan(result.SourceSpans, sourceLines, mark.span, Span{Style: mark.textStyle, Priority: 2})
@@ -410,20 +358,17 @@ func ParseFormats(f file.File) ParseResult {
 	return result
 }
 
-func loopStyleByLocation(marks []controlFlowMark) map[string]display.Style {
-	out := map[string]display.Style{}
+func loopStyleByLocation(marks []controlFlowMark) map[string]display.BasicStyle {
+	out := map[string]display.BasicStyle{}
 	for _, mark := range marks {
-		if mark.loc == nil {
-			continue
-		}
-		out[locationMapKey(mark.loc.Line(), mark.loc.Column())] = mark.textStyle
+		out[locationMapKey(mark.span.Line, mark.span.Column)] = mark.textStyle
 	}
 	return out
 }
 
 func collectPackageReferenceSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
 	for _, ref := range f.PackageReferences() {
-		addSpan(out, sourceLines, ref.Location(), ref.Text(), Span{Style: packageDeclarationStyle(root, ref.Package()).Invert()})
+		addSpan(out, sourceLines, ref.Location(), ref.Text(), Span{Style: packageDeclarationStyle(root, ref.Package().Location()).Invert()})
 	}
 }
 
@@ -434,7 +379,7 @@ func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
 	exhaustive := display.Green
 
 	for _, node := range nodes {
-		var style display.Style
+		var style display.BasicStyle
 		switch n := node.(type) {
 		case scan.CondNode:
 			style = blue
@@ -469,37 +414,27 @@ func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
 		default:
 			continue
 		}
-		if style == nil {
+		if style == "" {
 			continue
 		}
 		for _, span := range node.Spans() {
 			if span.Line < 1 || span.Column < 1 || span.Length < 1 {
 				continue
 			}
-			loc := scanNodeLocation{line: span.Line, column: span.Column}
-			marks = append(marks, controlFlowMark{loc: loc, span: span, textStyle: style, lineStyle: style})
+			marks = append(marks, controlFlowMark{span: span, textStyle: style})
 		}
 	}
 	sort.Slice(marks, func(i, j int) bool {
-		if marks[i].loc.Line() != marks[j].loc.Line() {
-			return marks[i].loc.Line() < marks[j].loc.Line()
+		if marks[i].span.Line != marks[j].span.Line {
+			return marks[i].span.Line < marks[j].span.Line
 		}
-		return marks[i].loc.Column() < marks[j].loc.Column()
+		return marks[i].span.Column < marks[j].span.Column
 	})
 	return marks
 }
 
-type scanNodeLocation struct {
-	line   int
-	column int
-}
-
-func (l scanNodeLocation) File() string { return "" }
-func (l scanNodeLocation) Line() int    { return l.line }
-func (l scanNodeLocation) Column() int  { return l.column }
-
 func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
-	for _, named := range file.TopLevelNamedFields(f) {
+	for _, named := range f.TopLevelNamedFields() {
 		distanceLoc := named.DistanceLocation()
 		externalStructInstantiation := distanceLoc != nil && !samePackageLocation(named.Location(), distanceLoc)
 		if distanceLoc == nil {
@@ -513,7 +448,7 @@ func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sou
 	}
 }
 
-func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Location, invert bool, packageResolution bool) display.Style {
+func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Location, invert bool, packageResolution bool) display.BasicStyle {
 	rank := fieldTypeDistanceBuiltin
 	if source == nil {
 		rank = fieldTypeDistanceExternal
@@ -537,10 +472,10 @@ func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Lo
 	}
 }
 
-func collectLexicalNodeSpans(out map[int][]Span, sourceLines []string, nodes []scan.Node, loopStyles map[string]display.Style) {
+func collectLexicalNodeSpans(out map[int][]Span, sourceLines []string, nodes []scan.Node, loopStyles map[string]display.BasicStyle) {
 	for _, node := range nodes {
 		style := lexicalNodeStyle(node, loopStyles)
-		if style == nil {
+		if style == "" {
 			continue
 		}
 		for _, span := range node.Spans() {
@@ -549,7 +484,7 @@ func collectLexicalNodeSpans(out map[int][]Span, sourceLines []string, nodes []s
 	}
 }
 
-func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) display.Style {
+func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.BasicStyle) display.BasicStyle {
 	switch n := node.(type) {
 	case scan.DeclarationSyntaxNode:
 		return display.MutedOrange
@@ -579,7 +514,7 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.Style) displ
 		}
 		return loopStyles[locationMapKey(anchor.Line, anchor.Column)]
 	default:
-		return nil
+		return ""
 	}
 }
 
@@ -596,7 +531,7 @@ func locationMapKey(line, col int) string {
 	return fmt.Sprintf("%d:%d", line, col)
 }
 
-func fieldStyle(style display.BasicStyle, invert bool) display.Style {
+func fieldStyle(style display.BasicStyle, invert bool) display.BasicStyle {
 	if invert {
 		return style.Invert()
 	}
@@ -652,11 +587,17 @@ func samePackageLocation(left, right file.Location) bool {
 }
 
 func sameProjectLocation(root string, left, right file.Location) bool {
-	if root == "" || left == nil || right == nil {
+	if left == nil || right == nil {
 		return false
 	}
-	lfile := filepath.Clean(left.File())
-	rfile := filepath.Clean(right.File())
+	return inProject(root, left) && inProject(root, right)
+}
+
+func inProject(root string, loc file.Location) bool {
+	if root == "" || loc == nil {
+		return false
+	}
+	file := filepath.Clean(loc.File())
 	root = filepath.Clean(root)
-	return strings.HasPrefix(lfile, root+string(filepath.Separator)) && strings.HasPrefix(rfile, root+string(filepath.Separator))
+	return file != "" && strings.HasPrefix(file, root+string(filepath.Separator))
 }
