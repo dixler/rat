@@ -236,23 +236,13 @@ Generate HTML:
 rat -format html path/to/file.go
 ```
 
-Write a CPU profile and convert it to callgrind format for `kcachegrind`:
+Set `PROFILE=1` to generate a callgrind profile for `kcachegrind`:
 
 ```bash
-rat -cpuprofile cpu.prof -callgrind cpu.callgrind path/to/file.go
+PROFILE=1 rat path/to/file.go
 ```
 
-If you only need the callgrind output, `rat` can automatically generate a `rat.callgrind` profile using `-profile`:
-
-```bash
-rat -profile path/to/file.go
-```
-
-Or you can use a custom name:
-
-```bash
-rat -callgrind cpu.callgrind path/to/file.go
-```
+`rat` writes the profile to a temporary `rat-*.callgrind` file in the current directory and prints the exact `kcachegrind` command to stderr when it finishes.
 
 Run the local HTTP server used by the VS Code extension:
 
