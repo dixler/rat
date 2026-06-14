@@ -105,6 +105,14 @@ This applies to top-level struct fields, nested struct fields, inline struct lit
 
 Top-level and non-inline struct field declarations are inverted. Inline struct literal field names are not inverted. If a field's type mentions multiple named types, `rat` uses the farthest relationship so a field involving an external type still looks external. For struct literals whose struct type is declared outside the current package, `rat` uses package-level resolution instead of same-file resolution to avoid noisy external-package coloring.
 
+Struct literal braces are also semantic:
+
+- Green: the struct literal explicitly provides every field.
+- Muted orange: the struct literal omits at least one field and therefore relies on zero-value defaults.
+- Unkeyed struct literals count as complete when they provide every field positionally.
+
+This applies only to struct composite literal braces, including anonymous structs, pointer-to-struct literals, and nested struct literals. It does not apply to type declarations, function bodies, or non-struct composite literals.
+
 ### Control Flow Blocks
 
 Control-flow colors show whether a block can affect how execution leaves that block. Matching braces for recognized blocks get the same color as the block keyword.
@@ -228,23 +236,13 @@ Generate HTML:
 rat -format html path/to/file.go
 ```
 
-Write a CPU profile and convert it to callgrind format for `kcachegrind`:
+Set `PROFILE=1` to generate a callgrind profile for `kcachegrind`:
 
 ```bash
-rat -cpuprofile cpu.prof -callgrind cpu.callgrind path/to/file.go
+PROFILE=1 rat path/to/file.go
 ```
 
-If you only need the callgrind output, `rat` can automatically generate a `rat.callgrind` profile using `-profile`:
-
-```bash
-rat -profile path/to/file.go
-```
-
-Or you can use a custom name:
-
-```bash
-rat -callgrind cpu.callgrind path/to/file.go
-```
+`rat` writes the profile to a temporary `rat-*.callgrind` file in the current directory and prints the exact `kcachegrind` command to stderr when it finishes.
 
 Run the local HTTP server used by the VS Code extension:
 

@@ -44,7 +44,7 @@
  [0m44 [97m    [0m[38;5;215m[7m[4mlocalFunc[0m[97m := [0m[38;5;198m[4mfn[0m[97m[0m
  [0m45 [97m    [0m[38;5;215m[7m[4mlocalContainer[0m[97m := [0m[38;5;198m[4mcontainer[0m[97m[0m
  [0m46 [97m    [0m[38;5;215m[7m[4mlocalAlias[0m[97m := [0m[38;5;198m[4malias[0m[97m[0m
- [0m47 [97m    [0m[38;5;215m[7m[4mlocalLiteral[0m[97m := [0m[38;5;120m[4mitemContainer[0m[97m{[0m[38;5;120m[4mitems[0m[97m: [0m[38;5;198m[4mnamed[0m[97m, [0m[38;5;120m[4mdone[0m[97m: [0m[38;5;198m[4mupdates[0m[97m, [0m[38;5;120m[4msink[0m[97m: [0m[38;5;198m[4msink[0m[97m, [0m[38;5;120m[4mfn[0m[97m: [0m[38;5;198m[4mfn[0m[97m, [0m[38;5;120mvalue[0m[97m: [0m[38;5;198mvalue[0m[97m}[0m
+ [0m47 [97m    [0m[38;5;215m[7m[4mlocalLiteral[0m[97m := [0m[38;5;120m[4mitemContainer[0m[97m[0m[32m{[0m[97m[0m[38;5;120m[4mitems[0m[97m: [0m[38;5;198m[4mnamed[0m[97m, [0m[38;5;120m[4mdone[0m[97m: [0m[38;5;198m[4mupdates[0m[97m, [0m[38;5;120m[4msink[0m[97m: [0m[38;5;198m[4msink[0m[97m, [0m[38;5;120m[4mfn[0m[97m: [0m[38;5;198m[4mfn[0m[97m, [0m[38;5;120mvalue[0m[97m: [0m[38;5;198mvalue[0m[97m[0m[32m}[0m[97m[0m
  [0m48 [97m    [0m[38;5;215m[7mlocalValue[0m[97m := [0m[38;5;198mvalue[0m[97m[0m
  [0m49 [97m[0m
  [0m50 [97m    [0m[38;5;120m[4mglobalPtr[0m[97m = [0m[38;5;215m[4mlocalPtr[0m[97m[0m

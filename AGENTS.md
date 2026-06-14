@@ -14,7 +14,10 @@ Agent-maintained. Update when prompts or feedback reveal stable, reusable code p
 
 - Prefer clearly separated, purpose-specific sections for durable guidance instead of mixing requirements with reference documentation.
 - Prefer context-efficient communication and edits; compact AGENTS.md when appropriate without losing useful guidance, and avoid unnecessary detail, churn, or broad rewrites.
+- Prefer removing words and lines over adding them when both options are correct.
+- Prefer not creating new files for code that is only referenced in one place.
 - Preserve package boundaries; do not make rendering/highlight code depend directly on language-specific scanner packages.
+- Rename identifiers (variables, functions, types, fields, etc.) if a more appropriate or accurate name would fit.
 
 ## Documentation Requirements
 

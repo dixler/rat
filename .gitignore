@@ -3,3 +3,4 @@ cmd/rat/rat
 internal/file/scan/golang/goplsclient/gopls
 internal/tsgobin/tsgo
 **/node_modules
+.opencode
