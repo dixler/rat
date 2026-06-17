@@ -772,9 +772,15 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 		if labeled.Label != nil {
 			switch s := labeled.Stmt.(type) {
 			case *ast.ForStmt:
-				return b.buildForBlock(s.For, s.Body, labeled.Label.Name)
+				return b.buildForBlock(s.Pos(), s.Body, labeled.Label.Name)
 			case *ast.RangeStmt:
-				return b.buildForBlock(s.For, s.Body, labeled.Label.Name)
+				return b.buildForBlock(s.Pos(), s.Body, labeled.Label.Name)
+			case *ast.SwitchStmt:
+				return b.buildSwitchBlock(s.Pos(), s.Body, labeled.Label.Name)
+			case *ast.TypeSwitchStmt:
+				return b.buildSwitchBlock(s.Pos(), s.Body, labeled.Label.Name)
+			case *ast.SelectStmt:
+				return b.buildSelectBlock(s, labeled.Label.Name)
 			}
 		}
 		return b.buildBlock(labeled.Stmt)
@@ -792,15 +798,15 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	case *ast.RangeStmt:
 		block = b.buildForBlock(s.Pos(), s.Body, "")
 	case *ast.SwitchStmt:
-		block = b.buildSwitchBlock(s.Pos(), s.Body)
+		block = b.buildSwitchBlock(s.Pos(), s.Body, "")
 	case *ast.TypeSwitchStmt:
-		block = b.buildSwitchBlock(s.Pos(), s.Body)
+		block = b.buildSwitchBlock(s.Pos(), s.Body, "")
 	case *ast.SelectStmt:
-		block = b.buildSelectBlock(s)
+		block = b.buildSelectBlock(s, "")
 	default:
 		block.Statements = b.collectControlFlowStatements(stmt)
 	}
-	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasAbort = controlFlowBlockHasAbort(block)
 	return block
 }
 
@@ -822,13 +828,13 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, kind string, keyword
 			elseBlock := ControlFlowBlock{Kind: BlockKindElse, Location: Location{b.file, elseLoc.Line, elseLoc.Column}}
 			setBlockBracesFromStmt(b.fset, &elseBlock, e)
 			elseBlock.Blocks = b.buildBlocks(e.List)
-			elseBlock.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(elseBlock)
+			elseBlock.HasAbort = controlFlowBlockHasAbort(elseBlock)
 			block.Blocks = append(block.Blocks, elseBlock)
 		default:
 			block.Blocks = append(block.Blocks, b.buildBlock(e))
 		}
 	}
-	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasAbort = controlFlowBlockHasAbort(block)
 	return block
 }
 
@@ -848,7 +854,7 @@ func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt, l
 	if controlFlowBlockHasStatementKind(block, "return") {
 		block.MayReturn = true
 	}
-	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasAbort = controlFlowBlockHasAbort(block)
 	return block
 }
 
@@ -866,22 +872,22 @@ func controlFlowBlockHasStatementKind(block ControlFlowBlock, kind string) bool 
 	return false
 }
 
-func controlFlowBlockHasTerminalStatement(block ControlFlowBlock) bool {
-	if !blockUsesDirectTerminalStatement(block.Kind) {
-		return block.HasTerminalControlFlowStmt(true)
+func controlFlowBlockHasAbort(block ControlFlowBlock) bool {
+	if !blockUsesDirectAbortStatement(block.Kind) {
+		return block.HasAbortStmt(true)
 	}
-	if block.HasTerminalControlFlowStmt(false) {
+	if block.HasAbortStmt(false) {
 		return true
 	}
 	for _, child := range block.Blocks {
-		if child.HasTerminalControlFlowStmt(false) {
+		if child.HasAbortStmt(false) {
 			return true
 		}
 	}
 	return false
 }
 
-func blockUsesDirectTerminalStatement(kind string) bool {
+func blockUsesDirectAbortStatement(kind string) bool {
 	switch scan.BlockConstructKind(kind) {
 	case scan.ConstructKindBranch, scan.ConstructKindBranchAlternative, scan.ConstructKindCase:
 		return true
@@ -890,11 +896,19 @@ func blockUsesDirectTerminalStatement(kind string) bool {
 	}
 }
 
-func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, body *ast.BlockStmt) ControlFlowBlock {
+func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, body *ast.BlockStmt, label string) ControlFlowBlock {
 	p := b.fset.Position(pos)
 	block := ControlFlowBlock{Kind: BlockKindSwitch, Location: Location{b.file, p.Line, p.Column}}
+	if label != "" {
+		b.labels[label] = &block
+		defer delete(b.labels, label)
+	}
 	setBlockBracesFromStmt(b.fset, &block, body)
 	b.breakStack = append(b.breakStack, &block)
+	if body == nil {
+		b.breakStack = b.breakStack[:len(b.breakStack)-1]
+		return block
+	}
 	for _, stmt := range body.List {
 		clause, ok := stmt.(*ast.CaseClause)
 		if !ok {
@@ -903,13 +917,17 @@ func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, body *ast.BlockStmt
 		b.appendCaseBlock(&block, clause.Case, clause.List == nil, clause.Body)
 	}
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
-	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasAbort = controlFlowBlockHasAbort(block)
 	return block
 }
 
-func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowBlock {
+func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt, label string) ControlFlowBlock {
 	p := b.fset.Position(stmt.Select)
 	block := ControlFlowBlock{Kind: BlockKindSelect, Location: Location{b.file, p.Line, p.Column}}
+	if label != "" {
+		b.labels[label] = &block
+		defer delete(b.labels, label)
+	}
 	setBlockBracesFromStmt(b.fset, &block, stmt.Body)
 	b.breakStack = append(b.breakStack, &block)
 	if stmt.Body != nil {
@@ -922,7 +940,7 @@ func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt) ControlFlowB
 		}
 	}
 	b.breakStack = b.breakStack[:len(b.breakStack)-1]
-	block.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(block)
+	block.HasAbort = controlFlowBlockHasAbort(block)
 	return block
 }
 
@@ -953,7 +971,7 @@ func (b *controlFlowBuilder) appendCaseBlock(parent *ControlFlowBlock, casePos t
 	}
 	caseBlock.Statements = b.collectControlFlowStatements(caseNodes...)
 	caseBlock.Blocks = b.buildBlocks(body)
-	caseBlock.HasTerminalControlFlowStatement = controlFlowBlockHasTerminalStatement(caseBlock)
+	caseBlock.HasAbort = controlFlowBlockHasAbort(caseBlock)
 	parent.Blocks = append(parent.Blocks, caseBlock)
 }
 
@@ -967,6 +985,12 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 			if n == nil {
 				return true
 			}
+			if n != node && selfContainedControlFlowStmt(n) {
+				return false
+			}
+			if selfContainedControlFlowStmt(node) {
+				return false
+			}
 			if _, ok := n.(*ast.FuncLit); ok && n != node {
 				return false
 			}
@@ -975,12 +999,14 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 				p := b.fset.Position(s.Return)
 				out = append(out, ControlFlowStatement{Kind: "return", Location: Location{b.file, p.Line, p.Column}, ReturnsError: b.returnErrors[s.Return]})
 			case *ast.BranchStmt:
-				if s.Tok == token.BREAK {
-					b.markBreakTarget(s)
-				}
 				kind := strings.ToLower(s.Tok.String())
+				isAbort := s.Tok == token.CONTINUE
+				if s.Tok == token.BREAK {
+					target := b.markBreakTarget(s)
+					isAbort = target != nil && (target.Kind == BlockKindSwitch || target.Kind == BlockKindSelect)
+				}
 				p := b.fset.Position(s.TokPos)
-				out = append(out, ControlFlowStatement{Kind: kind, Location: Location{b.file, p.Line, p.Column}})
+				out = append(out, ControlFlowStatement{Kind: kind, Location: Location{b.file, p.Line, p.Column}, IsAbort: isAbort})
 			case *ast.CallExpr:
 				id, ok := s.Fun.(*ast.Ident)
 				if !ok || id.Name != StatementKindPanic {
@@ -995,24 +1021,36 @@ func (b *controlFlowBuilder) collectControlFlowStatements(nodes ...ast.Node) []C
 	return out
 }
 
-func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) {
+func selfContainedControlFlowStmt(n ast.Node) bool {
+	switch s := n.(type) {
+	case *ast.IfStmt, *ast.ForStmt, *ast.RangeStmt, *ast.SwitchStmt, *ast.TypeSwitchStmt, *ast.SelectStmt:
+		return true
+	case *ast.LabeledStmt:
+		return selfContainedControlFlowStmt(s.Stmt)
+	default:
+		return false
+	}
+}
+
+func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) *ControlFlowBlock {
 	if stmt == nil || stmt.Tok != token.BREAK {
-		return
+		return nil
 	}
 	if stmt.Label != nil {
 		target := b.labels[stmt.Label.Name]
 		if target != nil && target.Kind == BlockKindFor {
 			target.MayBreak = true
 		}
-		return
+		return target
 	}
 	if len(b.breakStack) == 0 {
-		return
+		return nil
 	}
 	target := b.breakStack[len(b.breakStack)-1]
 	if target != nil && target.Kind == BlockKindFor {
 		target.MayBreak = true
 	}
+	return target
 }
 
 func (b *builder) appendFieldDeclarations(parent *Declaration, fields *ast.FieldList, kind string) {

@@ -119,8 +119,8 @@ Control-flow colors show whether a block can affect how execution leaves that bl
 
 For `if`, `else if`, and `else` branches and `case` and `default` branches:
 
-- Muted orange: branch contains terminal control flow: `return`, `continue`, `break`, `goto`, or `panic`.
-- Blue: no terminal control-flow statement was found in that branch.
+- Muted orange: branch contains terminal control flow: `return`, `continue`, a loop-targeting `break`, `goto`, or `panic`.
+- Blue: no terminal control-flow statement was found in that branch. A `break` that only exits the enclosing `switch`/`select` case is non-terminal.
 
 For `for` and `range` loops:
 
@@ -137,7 +137,7 @@ For control-flow statements:
 
 - `return` is muted orange when it returns a non-`nil` value in a result position typed as `error`; otherwise it is blue.
 - Bare `return` in a function with an `error` result is treated as returning an error.
-- `break` is muted orange.
+- `break` is muted orange, except a `break` that only exits an enclosing `switch`/`select` case is blue like `continue`.
 - `continue` is blue.
 - `fallthrough` is blue.
 - `goto` is light red.

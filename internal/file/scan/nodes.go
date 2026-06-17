@@ -29,7 +29,7 @@ func appendControlFlowNodes(nodes *[]Node, block ControlFlowBlock, sourceLines [
 	spans := blockSpans(block, sourceLines)
 	switch BlockConstructKind(block.Kind) {
 	case ConstructKindBranch, ConstructKindBranchAlternative, ConstructKindCase:
-		*nodes = append(*nodes, CondNode{NodeSpans: spans, IsGuard: !block.HasTerminalControlFlowStatement})
+		*nodes = append(*nodes, CondNode{NodeSpans: spans, IsGuard: !block.HasAbort})
 	case ConstructKindLoop:
 		*nodes = append(*nodes, LoopNode{NodeSpans: spans, HasExit: block.MayBreak || block.MayReturn})
 	case ConstructKindExhaustiveMatch:
@@ -106,14 +106,15 @@ func jumpNode(stmt ControlFlowStatement) *JumpNode {
 		if stmt.ReturnsError {
 			kind = JumpKindErrorExit
 		}
-	case "continue":
-		kind = JumpKindContinue
 	case "break":
 		kind = JumpKindBreak
 	case "goto", "panic":
 		kind = JumpKindEscape
 	case "fallthrough":
 		kind = JumpKindFallthrough
+	}
+	if stmt.IsAbort {
+		kind = JumpKindContinue
 	}
 	if kind == 0 {
 		return nil

@@ -193,33 +193,38 @@ type ControlFlowStatement struct {
 	Location
 	Kind         string
 	ReturnsError bool
+	IsAbort      bool
 }
 
 type ControlFlowBlock struct {
 	Location
-	Kind                            string
-	OpenBraceLine                   int
-	OpenBraceColumn                 int
-	CloseBraceLine                  int
-	CloseBraceColumn                int
-	HasTerminalControlFlowStatement bool
-	Statements                      []ControlFlowStatement
-	Blocks                          []ControlFlowBlock
-	HasDefault                      bool
-	MayBreak                        bool
-	MayReturn                       bool
+	Kind             string
+	OpenBraceLine    int
+	OpenBraceColumn  int
+	CloseBraceLine   int
+	CloseBraceColumn int
+	HasAbort         bool
+	Statements       []ControlFlowStatement
+	Blocks           []ControlFlowBlock
+	HasDefault       bool
+	MayBreak         bool
+	MayReturn        bool
 }
 
-func (b ControlFlowBlock) HasTerminalControlFlowStmt(recursive bool) bool {
+func (b ControlFlowBlock) HasAbortStmt(recursive bool) bool {
 	for _, stmt := range b.Statements {
 		switch stmt.Kind {
-		case "return", "throw", "continue", "break", "goto", StatementKindPanic:
+		case "return", "throw", "continue", "goto", StatementKindPanic:
 			return true
+		case "break":
+			if !stmt.IsAbort {
+				return true
+			}
 		}
 	}
 	if recursive {
 		for _, child := range b.Blocks {
-			if child.HasTerminalControlFlowStmt(true) {
+			if child.HasAbortStmt(true) {
 				return true
 			}
 		}
