@@ -25,7 +25,6 @@ var _kindStyles = map[file.Kind]display.BasicStyle{
 	file.KindType:      display.LightGreen,
 	file.KindVariable:  display.VibrantOrange,
 	file.KindParameter: display.HotMagenta,
-	file.KindFunction:  display.Yellow,
 	file.KindPackage:   display.Purple,
 	file.KindFile:      display.VibrantOrange,
 }
@@ -56,6 +55,8 @@ func declarationStyle(d file.Declaration) display.BasicStyle {
 		return _relationStyles[_relSameFile].Invert()
 	case isTopLevelDeclaration(d):
 		return _relationStyles[_relSameFile].Invert()
+	case d.Kind() == file.KindFunction:
+		return _relationStyles[_relSameFile].Invert()
 	case enclosingFunction(d) != nil && d.Kind() == file.KindVariable:
 		return _relationStyles[_relSameFunction].Invert()
 	default:
@@ -79,9 +80,6 @@ func usesTopLevelSameFileStyle(d file.Declaration) bool {
 	}
 	hasTypeAncestor := false
 	for curr := d; curr != nil; curr = curr.Parent() {
-		if curr.Kind() == file.KindFunction {
-			return false
-		}
 		if curr.Kind() == file.KindType {
 			hasTypeAncestor = true
 		}
