@@ -148,6 +148,14 @@ func New(name string) (File, error) {
 	if err != nil {
 		return nil, err
 	}
+	return NewContent(abs, src)
+}
+
+func NewContent(name string, src []byte) (File, error) {
+	abs, err := filepath.Abs(name)
+	if err != nil {
+		return nil, err
+	}
 	raw, err := scan.Build(abs, src)
 	if err != nil {
 		return nil, err

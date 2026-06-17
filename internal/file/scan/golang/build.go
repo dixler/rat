@@ -123,7 +123,7 @@ func (Scanner) Build(file string, source []byte) (*scan.Result, error) { return 
 func buildGo(file string, source []byte) (*Result, error) {
 	fset := token.NewFileSet()
 	parsed, err := parser.ParseFile(fset, file, source, parser.ParseComments|parser.SkipObjectResolution)
-	if err != nil {
+	if parsed == nil {
 		return nil, err
 	}
 	var toPreload []string

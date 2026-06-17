@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const cp = require('child_process');
 const fs = require('fs');
+const path = require('path');
 
 const output = vscode.window.createOutputChannel('Text Semantic Highlight');
 const DEFAULT_LANGUAGES = ['go'];
@@ -204,7 +205,7 @@ function stateFor(document) {
   const key = documentKey(document);
   let state = decorationStates.get(key);
   if (!state) {
-    state = { decorations: [], generation: 0, timer: undefined, signature: undefined };
+    state = { decorations: [], generation: 0, timer: undefined, signature: undefined, abort: undefined };
     decorationStates.set(key, state);
   }
   return state;
@@ -228,6 +229,7 @@ function clearDocument(document) {
   if (!state) return;
 
   clearTimeout(state.timer);
+  state.abort?.abort();
   for (const decoration of state.decorations) {
     decoration.type.dispose();
   }
@@ -238,6 +240,7 @@ function clearAll() {
   for (const key of [...decorationStates.keys()]) {
     const state = decorationStates.get(key);
     clearTimeout(state?.timer);
+    state?.abort?.abort();
     for (const decoration of state?.decorations || []) {
       decoration.type.dispose();
     }
@@ -246,9 +249,11 @@ function clearAll() {
 }
 
 function isSupportedDocument(document) {
+  if (!new Set(cfg().get('languages', DEFAULT_LANGUAGES)).has(document.languageId)) return false;
+  if (document.uri.scheme === 'untitled') return true;
   if (document.uri.scheme !== 'file') return false;
-  if (![...SUPPORTED_EXTENSIONS].some((extension) => document.fileName.endsWith(extension))) return false;
-  return new Set(cfg().get('languages', DEFAULT_LANGUAGES)).has(document.languageId);
+  if ([...SUPPORTED_EXTENSIONS].some((extension) => document.fileName.endsWith(extension))) return true;
+  return document.languageId === 'go';
 }
 
 function normalizeSpans(payload) {
@@ -266,12 +271,22 @@ function normalizeSpans(payload) {
   return out;
 }
 
-async function fetchSpans(document) {
+function documentPath(document) {
+  if (document.uri.scheme === 'file') return document.fileName;
+
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || resolveServerCwd();
+  const base = path.basename(document.fileName || 'untitled.go');
+  const name = path.extname(base) ? base : `${base}.go`;
+  return path.join(workspaceFolder, name);
+}
+
+async function fetchSpans(document, signal) {
   const baseUrl = cfg().get('serverUrl', 'http://localhost:8081').replace(/\/$/, '');
   const response = await fetch(`${baseUrl}/spans`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ path: document.fileName })
+    signal,
+    body: JSON.stringify({ path: documentPath(document), content: document.getText() })
   });
 
   const body = await response.json().catch(() => ({}));
@@ -285,8 +300,9 @@ function refreshSignature(document) {
     enabled: configuration.get('enabled', true),
     languages: configuration.get('languages', DEFAULT_LANGUAGES),
     serverUrl: configuration.get('serverUrl', 'http://localhost:8081'),
-    fileName: document.fileName,
-    version: document.version
+    fileName: documentPath(document),
+    version: document.version,
+    text: document.getText()
   });
 }
 
@@ -386,7 +402,11 @@ async function refreshEditor(editor, force = false) {
   }
 
   try {
-    const spans = await fetchSpans(document);
+    state.abort?.abort();
+    const abort = new AbortController();
+    state.abort = abort;
+    const spans = await fetchSpans(document, abort.signal);
+    if (state.abort === abort) state.abort = undefined;
     if (generation !== state.generation) return;
     if (document.isClosed || decorationStates.get(documentKey(document)) !== state) return;
 
@@ -406,6 +426,7 @@ async function refreshEditor(editor, force = false) {
 
     log('applied decorations', { file: document.fileName, spans: spans.length, decorations: newDecorations.length });
   } catch (err) {
+    if (err?.name === 'AbortError') return;
     log('refresh failed', { file: document.fileName, message: err instanceof Error ? err.message : String(err) });
   }
 }
@@ -414,6 +435,8 @@ function scheduleRefresh(editor = vscode.window.activeTextEditor, delay = 100, f
   if (!editor) return;
   const state = stateFor(editor.document);
   clearTimeout(state.timer);
+  state.abort?.abort();
+  state.abort = undefined;
   state.timer = setTimeout(() => void refreshEditor(editor, force), delay);
 }
 
@@ -433,6 +456,11 @@ function activate(context) {
       scheduleVisibleRefreshes(0, true);
     }),
     vscode.window.onDidChangeActiveTextEditor((editor) => scheduleRefresh(editor)),
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      for (const editor of visibleEditorsFor(event.document)) {
+        scheduleRefresh(editor, 250, true);
+      }
+    }),
     vscode.workspace.onDidSaveTextDocument((document) => {
       const editor = vscode.window.visibleTextEditors.find((candidate) => candidate.document === document);
       if (!editor) return;
@@ -472,6 +500,7 @@ module.exports = {
     ansiColor,
     buildDecorationSpecs,
     decorationOptions,
+    documentPath,
     isSupportedDocument,
     normalizeSpans,
     parseAnsiStyle,
