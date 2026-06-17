@@ -210,6 +210,23 @@ type ControlFlowBlock struct {
 	MayReturn                       bool
 }
 
+func (b ControlFlowBlock) HasTerminalControlFlowStmt(recursive bool) bool {
+	for _, stmt := range b.Statements {
+		switch stmt.Kind {
+		case "return", "throw", "continue", "break", "goto", StatementKindPanic:
+			return true
+		}
+	}
+	if recursive {
+		for _, child := range b.Blocks {
+			if child.HasTerminalControlFlowStmt(true) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 type Reference struct {
 	Location
 	DeclarationID string

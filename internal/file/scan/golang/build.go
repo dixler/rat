@@ -867,36 +867,14 @@ func controlFlowBlockHasStatementKind(block ControlFlowBlock, kind string) bool 
 }
 
 func controlFlowBlockHasTerminalStatement(block ControlFlowBlock) bool {
-	if blockUsesDirectTerminalStatement(block.Kind) {
-		return controlFlowBlockHasDirectTerminalStatement(block)
+	if !blockUsesDirectTerminalStatement(block.Kind) {
+		return block.HasTerminalControlFlowStmt(true)
 	}
-	return controlFlowBlockHasNestedTerminalStatement(block)
-}
-
-func controlFlowBlockHasDirectTerminalStatement(block ControlFlowBlock) bool {
-	for _, stmt := range block.Statements {
-		if isTerminalControlFlowKind(stmt.Kind) {
-			return true
-		}
+	if block.HasTerminalControlFlowStmt(false) {
+		return true
 	}
 	for _, child := range block.Blocks {
-		for _, stmt := range child.Statements {
-			if isTerminalControlFlowKind(stmt.Kind) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func controlFlowBlockHasNestedTerminalStatement(block ControlFlowBlock) bool {
-	for _, stmt := range block.Statements {
-		if isTerminalControlFlowKind(stmt.Kind) {
-			return true
-		}
-	}
-	for _, child := range block.Blocks {
-		if controlFlowBlockHasNestedTerminalStatement(child) {
+		if child.HasTerminalControlFlowStmt(false) {
 			return true
 		}
 	}
@@ -906,15 +884,6 @@ func controlFlowBlockHasNestedTerminalStatement(block ControlFlowBlock) bool {
 func blockUsesDirectTerminalStatement(kind string) bool {
 	switch scan.BlockConstructKind(kind) {
 	case scan.ConstructKindBranch, scan.ConstructKindBranchAlternative, scan.ConstructKindCase:
-		return true
-	default:
-		return false
-	}
-}
-
-func isTerminalControlFlowKind(kind string) bool {
-	switch kind {
-	case "return", "throw", "continue", "break", "goto", "panic":
 		return true
 	default:
 		return false
