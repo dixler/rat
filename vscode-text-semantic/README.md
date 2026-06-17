@@ -4,6 +4,8 @@ This extension fetches semantic spans from a `rat` HTTP server and decorates tho
 
 Only spans returned by `rat` are decorated. Text outside those ranges is left to VS Code's normal syntax highlighting so editor syntax colors do not cover rat span colors.
 
+The extension sends the current editor contents, so dirty and untitled Go buffers refresh while you type. Changes are debounced and stale in-flight requests are cancelled.
+
 ## Auto-start server
 
 By default, the extension starts the server process automatically:
@@ -27,4 +29,4 @@ Config keys:
 
 1. Open the repo/workspace in VS Code.
 2. Press `F5`.
-3. Open/save a Go file to refresh decorations.
+3. Open or edit a Go file to refresh decorations.

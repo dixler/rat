@@ -9,7 +9,8 @@ import (
 )
 
 type apiRequest struct {
-	Path string `json:"path"`
+	Path    string  `json:"path"`
+	Content *string `json:"content,omitempty"`
 }
 type apiResponse struct {
 	Spans map[int][]highlight.Span `json:"spans,omitempty"`
@@ -39,7 +40,15 @@ func handle(r *http.Request) (int, apiResponse) {
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Path) == "" {
 			return http.StatusBadRequest, apiResponse{Error: "invalid request"}
 		}
-		program, err := highlight.Analyze(req.Path)
+		var (
+			program highlight.ParseResult
+			err     error
+		)
+		if req.Content != nil {
+			program, err = highlight.AnalyzeContent(req.Path, []byte(*req.Content))
+		} else {
+			program, err = highlight.Analyze(req.Path)
+		}
 		if err != nil {
 			return http.StatusBadRequest, apiResponse{Error: err.Error()}
 		}

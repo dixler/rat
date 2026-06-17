@@ -298,6 +298,15 @@ func Analyze(path string) (ParseResult, error) {
 	return res, nil
 }
 
+func AnalyzeContent(path string, src []byte) (ParseResult, error) {
+	f, err := file.NewContent(path, src)
+	if err != nil {
+		return ParseResult{}, err
+	}
+	res := ParseFormats(f)
+	return res, nil
+}
+
 func flattenSpans(line string, spans []Span) []Span {
 	if len(spans) == 0 {
 		return nil

@@ -54,7 +54,7 @@ Core behavior is semantic highlighting, not plain syntax highlighting. Preserve 
 The local server exposes `POST /spans` with:
 
 ```json
-{ "path": "/absolute/path/to/file.go" }
+{ "path": "/absolute/path/to/file.go", "content": "optional in-memory source" }
 ```
 
 It returns spans grouped by 1-based line number. Preserve this shape when editing `cmd/rat`, `internal/highlightapi`, or the VS Code extension.
