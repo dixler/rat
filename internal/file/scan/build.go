@@ -56,26 +56,24 @@ type Node interface {
 	Spans() []Span
 }
 
+type NodeSpans []Span
+
+func (spans NodeSpans) Spans() []Span { return append([]Span(nil), spans...) }
+
 type CondNode struct {
-	NodeSpans []Span
-	IsGuard   bool
+	NodeSpans
+	IsGuard bool
 }
 
-func (n CondNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
-
 type PartialNode struct {
-	NodeSpans  []Span
+	NodeSpans
 	IsComplete bool
 }
 
-func (n PartialNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
-
 type LoopNode struct {
-	NodeSpans []Span
-	HasExit   bool
+	NodeSpans
+	HasExit bool
 }
-
-func (n LoopNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
 
 type JumpKind int
 
@@ -95,44 +93,26 @@ type JumpNode struct {
 
 func (n JumpNode) Spans() []Span { return oneSpan(n.Span) }
 
-type DeclarationSyntaxNode struct{ NodeSpans []Span }
+type DeclarationSyntaxNode struct{ NodeSpans }
 
-func (n DeclarationSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
-
-type MutableTypeSyntaxNode struct{ NodeSpans []Span }
-
-func (n MutableTypeSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+type MutableTypeSyntaxNode struct{ NodeSpans }
 
 type FunctionSyntaxNode struct {
-	NodeSpans    []Span
+	NodeSpans
 	ReturnsError bool
 }
 
-func (n FunctionSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+type InlineFunctionIndentNode struct{ NodeSpans }
 
-type InlineFunctionIndentNode struct{ NodeSpans []Span }
+type ProgramSyntaxNode struct{ NodeSpans }
 
-func (n InlineFunctionIndentNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+type EscapeSyntaxNode struct{ NodeSpans }
 
-type ProgramSyntaxNode struct{ NodeSpans []Span }
+type LiteralNode struct{ NodeSpans }
 
-func (n ProgramSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+type CommentNode struct{ NodeSpans }
 
-type EscapeSyntaxNode struct{ NodeSpans []Span }
-
-func (n EscapeSyntaxNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
-
-type LiteralNode struct{ NodeSpans []Span }
-
-func (n LiteralNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
-
-type CommentNode struct{ NodeSpans []Span }
-
-func (n CommentNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
-
-type PackageNameNode struct{ NodeSpans []Span }
-
-func (n PackageNameNode) Spans() []Span { return append([]Span(nil), n.NodeSpans...) }
+type PackageNameNode struct{ NodeSpans }
 
 type LoopOperatorNode struct {
 	Span   Span
