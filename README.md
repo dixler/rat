@@ -65,10 +65,10 @@ Declarations use an inverted/background style so definitions stand out from uses
 
 - Top-level declarations use the same-file declaration style.
 - Function declarations use the same-file declaration style.
-- Declarations nested under top-level type declarations, such as struct fields and interface methods, use the same-file declaration style.
+- Declarations nested under top-level type declarations, such as struct fields and interface methods, use the same-file declaration style, except type parameters.
 - Local variable declarations inside functions use the same-function declaration style.
-- Parameters and type parameters use the parameter declaration style.
-- Other declarations fall back to their kind style: type, variable, parameter, package, or file.
+- Parameters and type parameters, including generic type parameters on top-level types and functions, use the parameter declaration style.
+- Other declarations fall back to their kind style: type, variable, package, or file.
 
 References to locally declared functions are treated as same-function or same-file references according to their declaration relationship, not as a separate function color.
 
