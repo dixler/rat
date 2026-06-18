@@ -121,6 +121,11 @@ type LoopOperatorNode struct {
 
 func (n LoopOperatorNode) Spans() []Span { return oneSpan(n.Span) }
 
+type CallParenNode struct {
+	NodeSpans
+	Indirect bool
+}
+
 func oneSpan(span Span) []Span {
 	if span.Line < 1 || span.Column < 1 || span.Length < 1 {
 		return nil

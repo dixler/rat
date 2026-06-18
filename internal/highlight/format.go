@@ -11,32 +11,22 @@ import (
 	"rat/internal/file/scan"
 )
 
-type relation string
-
-const (
-	_relSameFunction relation = "same-function"
-	_relSameFile     relation = "same-file"
-	_relSamePackage  relation = "same-package"
-	_relSameProject  relation = "same-project"
-	_relExternal     relation = "external"
-)
-
 var _kindStyles = map[file.Kind]display.BasicStyle{
 	file.KindType:      display.LightGreen,
 	file.KindVariable:  display.VibrantOrange,
 	file.KindParameter: display.HotMagenta,
-	file.KindFunction:  display.Yellow,
 	file.KindPackage:   display.Purple,
 	file.KindFile:      display.VibrantOrange,
 }
 
-var _relationStyles = map[relation]display.BasicStyle{
-	_relSameFunction: display.VibrantOrange,
-	_relSameFile:     display.LightGreen,
-	_relSamePackage:  display.Green,
-	_relSameProject:  display.Blue,
-	_relExternal:     display.Purple,
-}
+var (
+	builtinStyle      = display.MutedOrange
+	sameFunctionStyle = display.VibrantOrange
+	sameFileStyle     = display.LightGreen
+	samePackageStyle  = display.Green
+	sameProjectStyle  = display.Blue
+	externalStyle     = display.Purple
+)
 
 type ParseResult struct {
 	Source      string
@@ -51,13 +41,15 @@ type controlFlowMark struct {
 func declarationStyle(d file.Declaration) display.BasicStyle {
 	switch {
 	case d == nil:
-		return _relationStyles[_relSameFile].Invert()
+		return sameFileStyle.Invert()
 	case usesTopLevelSameFileStyle(d):
-		return _relationStyles[_relSameFile].Invert()
+		return sameFileStyle.Invert()
 	case isTopLevelDeclaration(d):
-		return _relationStyles[_relSameFile].Invert()
+		return sameFileStyle.Invert()
+	case d.Kind() == file.KindFunction:
+		return sameFileStyle.Invert()
 	case enclosingFunction(d) != nil && d.Kind() == file.KindVariable:
-		return _relationStyles[_relSameFunction].Invert()
+		return sameFunctionStyle.Invert()
 	default:
 		return kindStyle(d.Kind()).Invert()
 	}
@@ -74,14 +66,14 @@ func usesTopLevelSameFileStyle(d file.Declaration) bool {
 	if d == nil {
 		return false
 	}
+	if d.Kind() == file.KindParameter {
+		return false
+	}
 	if d.Kind() == file.KindFunction && isTopLevelDeclaration(d) {
 		return true
 	}
 	hasTypeAncestor := false
 	for curr := d; curr != nil; curr = curr.Parent() {
-		if curr.Kind() == file.KindFunction {
-			return false
-		}
 		if curr.Kind() == file.KindType {
 			hasTypeAncestor = true
 		}
@@ -103,10 +95,6 @@ func sortSpans(spans []Span) {
 
 		return spans[i].End < spans[j].End
 	})
-}
-
-func collectIndirectCallSpans(out map[int][]Span, sourceLines []string, call file.IndirectCall) {
-	addSpan(out, sourceLines, call.Location(), call.Text(), Span{Style: display.White, Priority: 2})
 }
 
 func collectDeclarationSpans(root string, out map[int][]Span, sourceLines []string, decl file.Declaration) {
@@ -236,28 +224,28 @@ func (r *reference) relationshipStyle(root string) Span {
 		parentLoc := declarationLocation(r.Parent())
 		switch {
 		case targetLoc == nil:
-			return Span{Style: _relationStyles[_relExternal]}
+			return Span{Style: externalStyle}
 		case isBuiltinLocation(targetLoc):
-			return Span{Style: display.MutedOrange}
+			return Span{Style: builtinStyle}
 		case sameFunction(r.Parent(), r.Declaration()):
-			return Span{Style: _relationStyles[_relSameFunction], Priority: 3}
+			return Span{Style: sameFunctionStyle, Priority: 3}
 		case sameFileLocation(parentLoc, targetLoc):
-			return Span{Style: _relationStyles[_relSameFile]}
+			return Span{Style: sameFileStyle}
 		case samePackageLocation(parentLoc, targetLoc):
-			return Span{Style: _relationStyles[_relSamePackage]}
+			return Span{Style: samePackageStyle}
 		case sameProjectLocation(root, parentLoc, targetLoc):
-			return Span{Style: _relationStyles[_relSameProject]}
+			return Span{Style: sameProjectStyle}
 		default:
-			return Span{Style: _relationStyles[_relExternal]}
+			return Span{Style: externalStyle}
 		}
 	}
 }
 
 func packageDeclarationStyle(root string, loc file.Location) display.BasicStyle {
 	if !inProject(root, loc) {
-		return _relationStyles[_relExternal]
+		return externalStyle
 	}
-	return _relationStyles[_relSameProject]
+	return sameProjectStyle
 }
 
 func sameFunction(left, right file.Declaration) bool {
@@ -340,10 +328,6 @@ func ParseFormats(f file.File) ParseResult {
 	collectLexicalNodeSpans(result.SourceSpans, sourceLines, f.Nodes(), loopStyleByLocation(controlFlowMarks))
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
-
-	for _, call := range f.IndirectCalls() {
-		collectIndirectCallSpans(result.SourceSpans, sourceLines, call)
-	}
 
 	for _, decl := range f.Declarations() {
 		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl)
@@ -467,11 +451,11 @@ func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Lo
 	case fieldTypeDistanceBuiltin:
 		return fieldStyle(display.MutedOrange, invert)
 	case fieldTypeDistanceSameFile:
-		return fieldStyle(_relationStyles[_relSameFile], invert)
+		return fieldStyle(sameFileStyle, invert)
 	case fieldTypeDistanceSamePackage:
-		return fieldStyle(_relationStyles[_relSamePackage], invert)
+		return fieldStyle(samePackageStyle, invert)
 	case fieldTypeDistanceSameProject:
-		return fieldStyle(_relationStyles[_relSameProject], invert)
+		return fieldStyle(sameProjectStyle, invert)
 	default:
 		return fieldStyle(display.Purple, invert)
 	}
@@ -511,7 +495,7 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.BasicStyle) 
 	case scan.PartialNode:
 		return partialStyle(n.IsComplete)
 	case scan.PackageNameNode:
-		return _relationStyles[_relSamePackage]
+		return samePackageStyle
 	case scan.CommentNode:
 		return display.Gray
 	case scan.LoopOperatorNode:
@@ -520,6 +504,11 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.BasicStyle) 
 			anchor = n.Span
 		}
 		return loopStyles[locationMapKey(anchor.Line, anchor.Column)]
+	case scan.CallParenNode:
+		if n.Indirect {
+			return kindStyle(file.KindParameter)
+		}
+		return display.VibrantOrange
 	default:
 		return ""
 	}

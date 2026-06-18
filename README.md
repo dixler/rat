@@ -64,11 +64,11 @@ The project root is the nearest parent directory containing `.git` or `go.mod`. 
 Declarations use an inverted/background style so definitions stand out from uses.
 
 - Top-level declarations use the same-file declaration style.
-- Top-level function declarations also use the same-file declaration style.
-- Declarations nested under top-level type declarations, such as struct fields and interface methods, use the same-file declaration style.
+- Function declarations use the same-file declaration style.
+- Declarations nested under top-level type declarations, such as struct fields and interface methods, use the same-file declaration style, except type parameters.
 - Local variable declarations inside functions use the same-function declaration style.
-- Parameters and type parameters use the parameter declaration style.
-- Other declarations fall back to their kind style: type, variable, parameter, function, package, or file.
+- Parameters and type parameters, including generic type parameters on top-level types and functions, use the parameter declaration style.
+- Other declarations fall back to their kind style: type, variable, package, or file.
 
 References to locally declared functions are treated as same-function or same-file references according to their declaration relationship, not as a separate function color.
 
@@ -143,10 +143,12 @@ For control-flow statements:
 - `goto` is light red.
 - `panic` is light red as a statement mark. It can also make an enclosing branch terminal.
 
-### Indirect Calls
+### Call Parentheses
 
-Indirect calls are white because the concrete target is not obvious from the call site.
+Procedure call parentheses are highlighted by call kind.
 
+- Indirect call parentheses are hot magenta like parameters.
+- Other call parentheses are vibrant orange.
 - Calls through function values are indirect.
 - Calls through interface receivers are indirect.
 - Calls through indexed call expressions are indirect.
@@ -330,6 +332,8 @@ If a color seems wrong:
 - `rat` is conservative and experimental; some cross-package or dynamic cases depend on what `gopls` can resolve.
 - Interface calls and function-value calls are intentionally marked as indirect.
 - Declaration backgrounds are intentional so definitions are easy to spot.
+
+If `rat` panics while processing a file from the CLI, it prints the source with line numbers to stderr before re-panicking. Include that output when reporting a bug.
 
 ## Development Commands
 

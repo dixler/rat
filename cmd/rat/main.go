@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"rat/internal/ansihtml"
 	"rat/internal/file/scan/golang/goplsclient"
@@ -19,6 +20,8 @@ const (
 )
 
 func ProcessPipeline(filepath string, mode OutputMode) (string, error) {
+	defer logSourceOnPanic(filepath)
+
 	program, err := highlight.Analyze(filepath)
 	if err != nil {
 		return "", err
@@ -77,6 +80,23 @@ func run() (err error) {
 	}
 	fmt.Print(out)
 	return nil
+}
+
+func logSourceOnPanic(path string) {
+	if r := recover(); r != nil {
+		if source, err := os.ReadFile(path); err == nil {
+			fmt.Fprintf(os.Stderr, "panic while processing %s:\n%s\n", path, numberedLines(string(source)))
+		}
+		panic(r)
+	}
+}
+
+func numberedLines(source string) string {
+	lines := strings.Split(source, "\n")
+	for i, line := range lines {
+		lines[i] = fmt.Sprintf("%5d | %s", i+1, line)
+	}
+	return strings.Join(lines, "\n")
 }
 
 func die(msg string) {
