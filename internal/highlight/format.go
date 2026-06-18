@@ -75,6 +75,9 @@ func usesTopLevelSameFileStyle(d file.Declaration) bool {
 	if d == nil {
 		return false
 	}
+	if d.Kind() == file.KindParameter {
+		return false
+	}
 	if d.Kind() == file.KindFunction && isTopLevelDeclaration(d) {
 		return true
 	}
