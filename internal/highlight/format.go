@@ -97,10 +97,6 @@ func sortSpans(spans []Span) {
 	})
 }
 
-func collectIndirectCallSpans(out map[int][]Span, sourceLines []string, call file.IndirectCall) {
-	addSpan(out, sourceLines, call.Location(), call.Text(), Span{Style: display.White, Priority: 2})
-}
-
 func collectDeclarationSpans(root string, out map[int][]Span, sourceLines []string, decl file.Declaration) {
 	declStyle := declarationStyle(decl)
 	if decl.ReferenceType() {
@@ -333,10 +329,6 @@ func ParseFormats(f file.File) ParseResult {
 	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
 	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
 
-	for _, call := range f.IndirectCalls() {
-		collectIndirectCallSpans(result.SourceSpans, sourceLines, call)
-	}
-
 	for _, decl := range f.Declarations() {
 		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl)
 	}
@@ -512,6 +504,11 @@ func lexicalNodeStyle(node scan.Node, loopStyles map[string]display.BasicStyle) 
 			anchor = n.Span
 		}
 		return loopStyles[locationMapKey(anchor.Line, anchor.Column)]
+	case scan.CallParenNode:
+		if n.Indirect {
+			return kindStyle(file.KindParameter)
+		}
+		return display.VibrantOrange
 	default:
 		return ""
 	}

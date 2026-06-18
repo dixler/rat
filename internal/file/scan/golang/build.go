@@ -47,6 +47,7 @@ type pendingIndirectCall struct {
 	fun      ast.Expr
 	position token.Position
 	text     string
+	parens   scan.NodeSpans
 }
 
 type positionKey struct {
@@ -260,6 +261,7 @@ func collectGoSyntaxData(fset *token.FileSet, parsed *ast.File, info *types.Info
 				nodes = append(nodes, syntaxNode)
 			}
 		case *ast.CallExpr:
+			parens := callParenSpans(fset, node)
 			name, startPos := indirectCallTarget(node.Fun, fset)
 			if name == "" || startPos == token.NoPos {
 				break
@@ -268,6 +270,7 @@ func collectGoSyntaxData(fset *token.FileSet, parsed *ast.File, info *types.Info
 				fun:      node.Fun,
 				position: fset.Position(startPos),
 				text:     name,
+				parens:   parens,
 			})
 		case *ast.CompositeLit:
 			if syntaxNode := partialStructLiteralNode(fset, info, node); syntaxNode != nil {
@@ -281,6 +284,23 @@ func collectGoSyntaxData(fset *token.FileSet, parsed *ast.File, info *types.Info
 		return true
 	})
 	return nodes, pending
+}
+
+func callParenSpans(fset *token.FileSet, call *ast.CallExpr) scan.NodeSpans {
+	if fset == nil || call == nil {
+		return nil
+	}
+	spans := make(scan.NodeSpans, 0, 2)
+	for _, pos := range []token.Pos{call.Lparen, call.Rparen} {
+		if pos == token.NoPos {
+			continue
+		}
+		p := fset.Position(pos)
+		if p.Line > 0 && p.Column > 0 {
+			spans = append(spans, scan.Span{Line: p.Line, Column: p.Column, Length: 1})
+		}
+	}
+	return spans
 }
 
 func functionNode(fset *token.FileSet, funcPos token.Pos, body *ast.BlockStmt, returnsError, inline bool) []scan.Node {
@@ -1955,10 +1975,13 @@ func finalizeIndirectCalls(res *Result, pending []pendingIndirectCall, info *typ
 		if call.text == "" || call.position.Line < 1 || call.position.Column < 1 {
 			continue
 		}
-		if !isIndirectCall(call.fun, info, lookup, call.position) {
-			continue
+		indirect := isIndirectCall(call.fun, info, lookup, call.position)
+		if indirect {
+			res.IndirectCalls = append(res.IndirectCalls, IndirectCall{Location: Location{File: call.position.Filename, Line: call.position.Line, Column: call.position.Column}, Text: call.text})
 		}
-		res.IndirectCalls = append(res.IndirectCalls, IndirectCall{Location: Location{File: call.position.Filename, Line: call.position.Line, Column: call.position.Column}, Text: call.text})
+		if len(call.parens) > 0 {
+			res.Nodes = append(res.Nodes, scan.CallParenNode{NodeSpans: call.parens, Indirect: indirect})
+		}
 	}
 }
 

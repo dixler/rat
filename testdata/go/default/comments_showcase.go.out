@@ -18,6 +18,6 @@
  [0m18 [97m    [0m[38;5;215m[7mstr2[0m[97m := [0m[38;5;218m"literal with // not a comment either"[0m[97m[0m
  [0m19 [97m    [0m[38;5;215m[7mstr3[0m[97m := [0m[38;5;218m`raw string with /* and // still not comments`[0m[97m[0m
  [0m20 [97m[0m
- [0m21 [97m    [0m[35mfmt[0m[97m.[0m[35m[4mPrintln[0m[97m([0m[38;5;215mx[0m[97m, [0m[38;5;215my[0m[97m, [0m[38;5;215mz[0m[97m, [0m[38;5;215mstr1[0m[97m, [0m[38;5;215mstr2[0m[97m, [0m[38;5;215mstr3[0m[97m) [0m[90m// ending line comment[0m[97m[0m
+ [0m21 [97m    [0m[35mfmt[0m[97m.[0m[35m[4mPrintln[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mx[0m[97m, [0m[38;5;215my[0m[97m, [0m[38;5;215mz[0m[97m, [0m[38;5;215mstr1[0m[97m, [0m[38;5;215mstr2[0m[97m, [0m[38;5;215mstr3[0m[97m[0m[38;5;215m)[0m[97m [0m[90m// ending line comment[0m[97m[0m
  [0m22 [97m[0m[94m}[0m[97m[0m
  [0m23 [97m[0m

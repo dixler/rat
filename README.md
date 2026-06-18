@@ -143,10 +143,12 @@ For control-flow statements:
 - `goto` is light red.
 - `panic` is light red as a statement mark. It can also make an enclosing branch terminal.
 
-### Indirect Calls
+### Call Parentheses
 
-Indirect calls are white because the concrete target is not obvious from the call site.
+Procedure call parentheses are highlighted by call kind.
 
+- Indirect call parentheses are hot magenta like parameters.
+- Other call parentheses are vibrant orange.
 - Calls through function values are indirect.
 - Calls through interface receivers are indirect.
 - Calls through indexed call expressions are indirect.
