@@ -64,11 +64,11 @@ The project root is the nearest parent directory containing `.git` or `go.mod`. 
 Declarations use an inverted/background style so definitions stand out from uses.
 
 - Top-level declarations use the same-file declaration style.
-- Top-level function declarations also use the same-file declaration style.
+- Function declarations use the same-file declaration style.
 - Declarations nested under top-level type declarations, such as struct fields and interface methods, use the same-file declaration style.
 - Local variable declarations inside functions use the same-function declaration style.
 - Parameters and type parameters use the parameter declaration style.
-- Other declarations fall back to their kind style: type, variable, parameter, function, package, or file.
+- Other declarations fall back to their kind style: type, variable, parameter, package, or file.
 
 References to locally declared functions are treated as same-function or same-file references according to their declaration relationship, not as a separate function color.
 
@@ -332,6 +332,8 @@ If a color seems wrong:
 - `rat` is conservative and experimental; some cross-package or dynamic cases depend on what `gopls` can resolve.
 - Interface calls and function-value calls are intentionally marked as indirect.
 - Declaration backgrounds are intentional so definitions are easy to spot.
+
+If `rat` panics while processing a file from the CLI, it prints the source with line numbers to stderr before re-panicking. Include that output when reporting a bug.
 
 ## Development Commands
 
