@@ -375,6 +375,14 @@ Regenerate the CLI screenshot:
 make .images/cli.png
 ```
 
+Regenerate both feature showcase screenshots:
+
+```bash
+make screenshots
+```
+
+The CLI screenshot is recorded with `asciinema`, rendered with `agg`, then converted to PNG with ImageMagick. The VS Code screenshot uses Chromium/Chrome/Edge to capture the extension decoration rendering.
+
 ## Known Limitations And Next Steps
 
 This is experimental and Go-specific today.

@@ -1,4 +1,4 @@
-.PHONY: all install
+.PHONY: all install screenshots
 
 GOPLS_EMBED_PATH := internal/file/scan/golang/goplsclient/gopls
 
@@ -9,6 +9,9 @@ all: $(GOPLS_EMBED_PATH)
 install: all
 	bash -c 'mv rat "$$HOME/bin"'
 	bash -c 'code --install-extension ./text-semantic-highlight-0.0.4.vsix'
+
+screenshots:
+	node tools/generate-feature-screenshots.js
 
 
 $(GOPLS_EMBED_PATH):
