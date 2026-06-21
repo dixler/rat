@@ -26,6 +26,7 @@ var (
 	samePackageStyle  = display.Green
 	sameProjectStyle  = display.Blue
 	externalStyle     = display.Purple
+	unknownStyle      = display.White
 )
 
 type ParseResult struct {
@@ -224,7 +225,7 @@ func (r *reference) relationshipStyle(root string) Span {
 		parentLoc := declarationLocation(r.Parent())
 		switch {
 		case targetLoc == nil:
-			return Span{Style: externalStyle}
+			return Span{Style: unknownStyle}
 		case isBuiltinLocation(targetLoc):
 			return Span{Style: builtinStyle}
 		case sameFunction(r.Parent(), r.Declaration()):
@@ -424,12 +425,7 @@ func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
 
 func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
 	for _, named := range f.TopLevelNamedFields() {
-		distanceLoc := named.DistanceLocation()
-		externalStructInstantiation := distanceLoc != nil && !samePackageLocation(named.Location(), distanceLoc)
-		if distanceLoc == nil {
-			distanceLoc = named.Location()
-		}
-		style := fieldTypeDistanceStyle(root, distanceLoc, named.DeclarationLocations(), !named.Inline(), externalStructInstantiation)
+		style := fieldTypeDistanceStyle(root, named)
 		if named.ReferenceType() {
 			style = frameStyle(style)
 		}
@@ -437,27 +433,43 @@ func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sou
 	}
 }
 
-func fieldTypeDistanceStyle(root string, source file.Location, targets []file.Location, invert bool, packageResolution bool) display.BasicStyle {
-	rank := fieldTypeDistanceBuiltin
-	if source == nil {
-		rank = fieldTypeDistanceExternal
-	} else {
-		for _, target := range targets {
-			rank = max(rank, fieldTypeDistanceRank(root, source, target, packageResolution))
+func fieldTypeDistanceStyle(root string, field file.NamedLocation) display.BasicStyle {
+	distanceLoc := field.DistanceLocation()
+	//externalStructInstantiation := !samePackageLocation(field.Location(), distanceLoc)
+	if distanceLoc == nil {
+		distanceLoc = field.Location()
+	}
+	invert := !field.Inline()
+
+	var target file.Location
+	if distanceLoc != nil {
+		maxRank := fieldTypeDistanceUnknown
+		for _, t := range field.DeclarationLocations() {
+			rank := fieldTypeDistanceRank(root, distanceLoc, t)
+			if rank >= maxRank {
+				target = t
+				maxRank = rank
+			}
 		}
 	}
 
-	switch rank {
-	case fieldTypeDistanceBuiltin:
-		return fieldStyle(display.MutedOrange, invert)
-	case fieldTypeDistanceSameFile:
+	if isBuiltinLocation(target) {
+		return fieldStyle(builtinStyle, invert)
+	}
+
+	switch {
+	case samePackageLocation(field.Location(), target) && sameFileLocation(distanceLoc, target):
 		return fieldStyle(sameFileStyle, invert)
-	case fieldTypeDistanceSamePackage:
+	case samePackageLocation(field.Location(), target) && samePackageLocation(distanceLoc, target):
 		return fieldStyle(samePackageStyle, invert)
-	case fieldTypeDistanceSameProject:
+	}
+	switch {
+	case sameProjectLocation(root, distanceLoc, target):
 		return fieldStyle(sameProjectStyle, invert)
+	case target == nil:
+		return fieldStyle(unknownStyle, invert)
 	default:
-		return fieldStyle(display.Purple, invert)
+		return fieldStyle(externalStyle, invert)
 	}
 }
 
@@ -544,20 +556,21 @@ func fieldStyle(style display.BasicStyle, invert bool) display.BasicStyle {
 type fieldTypeDistance int
 
 const (
-	fieldTypeDistanceBuiltin fieldTypeDistance = iota
+	fieldTypeDistanceUnknown fieldTypeDistance = iota
+	fieldTypeDistanceBuiltin
 	fieldTypeDistanceSameFile
 	fieldTypeDistanceSamePackage
 	fieldTypeDistanceSameProject
 	fieldTypeDistanceExternal
 )
 
-func fieldTypeDistanceRank(root string, source, target file.Location, packageResolution bool) fieldTypeDistance {
+func fieldTypeDistanceRank(root string, source, target file.Location) fieldTypeDistance {
 	switch {
 	case target == nil:
-		return fieldTypeDistanceExternal
+		return fieldTypeDistanceUnknown
 	case isBuiltinLocation(target):
 		return fieldTypeDistanceBuiltin
-	case !packageResolution && sameFileLocation(source, target):
+	case sameFileLocation(source, target):
 		return fieldTypeDistanceSameFile
 	case samePackageLocation(source, target):
 		return fieldTypeDistanceSamePackage

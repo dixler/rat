@@ -1,4 +1,4 @@
-package defaultfixtures
+package sample
 
 import "fmt"
 

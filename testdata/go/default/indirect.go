@@ -1,4 +1,4 @@
-package p
+package sample
 
 type I interface{ M() }
 

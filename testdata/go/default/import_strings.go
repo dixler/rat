@@ -1,14 +1,14 @@
-package defaultfixtures
+package sample
 
 import (
-	"fmt"
+	_ "errors"
 	. "fmt"
-	_ "fmt"
-	"rat/internal/display"
 	alias "rat/internal/display"
+	"strings"
 )
 
 func importStrings() {
-	_, _ = alias.Blue, Blue
+	_ = alias.Blue
 	Println("ok")
+	_ = strings.Builder
 }
