@@ -1,4 +1,4 @@
-package main
+package sample
 
 type item struct {
 	value int

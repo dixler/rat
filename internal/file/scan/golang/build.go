@@ -1123,7 +1123,7 @@ func (b *builder) collectTopLevelNamedFields(node *ast.File) []NamedField {
 			if b.collectNamedStructLiteralFields(n, structFieldsByType, &out) {
 				return true
 			}
-			b.collectTypedStructLiteralFields(n, &out)
+			b.collectTypedStructLiteralFields(n, structFieldsByType, &out)
 		}
 		return true
 	})
@@ -1177,17 +1177,23 @@ func (b *builder) collectNamedFields(fields *ast.FieldList, inline bool, out *[]
 	}
 }
 
-func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]NamedField) bool {
+func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, structFieldsByType map[string]map[string]namedFieldInfo, out *[]NamedField) bool {
 	st, named := structTypeForCompositeLiteral(b.info, lit)
 	if st == nil {
 		return false
 	}
-	byName := map[string]namedFieldInfo{}
-	for field := range st.Fields() {
-		if field != nil {
-			byName[field.Name()] = namedFieldInfo{
-				ReferenceType:    isReferenceType(field.Type()),
-				TypeDeclarations: b.namedFieldTypeDeclarationsForType(field.Type()),
+	var byName map[string]namedFieldInfo
+	if named != nil && named.Obj() != nil && named.Obj().Pkg() != nil && named.Obj().Pkg().Path() == b.pkgPath {
+		byName = structFieldsByType[named.Obj().Name()]
+	}
+	if len(byName) == 0 {
+		byName = map[string]namedFieldInfo{}
+		for field := range st.Fields() {
+			if field != nil {
+				byName[field.Name()] = namedFieldInfo{
+					ReferenceType:    isReferenceType(field.Type()),
+					TypeDeclarations: b.namedFieldTypeDeclarationsForType(field.Type()),
+				}
 			}
 		}
 	}
@@ -1199,11 +1205,23 @@ func (b *builder) collectTypedStructLiteralFields(lit *ast.CompositeLit, out *[]
 }
 
 func (b *builder) collectInlineStructLiteralFields(lit *ast.CompositeLit, out *[]NamedField) bool {
-	st, ok := lit.Type.(*ast.StructType)
-	if !ok || st.Fields == nil {
+	var fields *ast.FieldList
+	switch t := lit.Type.(type) {
+	case *ast.StructType:
+		fields = t.Fields
+	case *ast.ArrayType:
+		st, ok := t.Elt.(*ast.StructType)
+		if !ok {
+			return false
+		}
+		fields = st.Fields
+	default:
 		return false
 	}
-	byName := b.structFieldTypes(st.Fields)
+	if fields == nil {
+		return false
+	}
+	byName := b.structFieldTypes(fields)
 	return b.collectStructLiteralFields(lit, byName, definitionLocation{}, false, out)
 }
 
@@ -1234,6 +1252,12 @@ func compositeLiteralTypeName(expr ast.Expr) (string, bool) {
 func (b *builder) collectStructLiteralFields(lit *ast.CompositeLit, byName map[string]namedFieldInfo, typeLoc definitionLocation, hasTypeLoc bool, out *[]NamedField) bool {
 	collected := false
 	for _, elt := range lit.Elts {
+		if child, ok := elt.(*ast.CompositeLit); ok && child.Type == nil {
+			if b.collectStructLiteralFields(child, byName, typeLoc, hasTypeLoc, out) {
+				collected = true
+			}
+			continue
+		}
 		kv, ok := elt.(*ast.KeyValueExpr)
 		if !ok {
 			continue
@@ -1287,8 +1311,10 @@ func (b *builder) namedFieldTypeDeclarationsForType(t types.Type) []NamedFieldTy
 
 func (b *builder) appendTypeDeclarations(t types.Type, out *[]NamedFieldTypeDeclaration) {
 	switch t := t.(type) {
-	case nil, *types.Basic:
+	case nil:
 		return
+	case *types.Basic:
+		b.appendNamedFieldTypeDeclaration(out, definitionLocation{File: "", Line: 1, Column: 1})
 	case *types.Named:
 		if loc, ok := b.typeNameLocation(t.Obj()); ok {
 			b.appendNamedFieldTypeDeclaration(out, loc)

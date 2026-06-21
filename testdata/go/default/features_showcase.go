@@ -13,11 +13,11 @@ var sameFile string
 
 func showcaseNoError(v int) int { return v + 1 }
 func showcaseWithError(numerator int, divisor int) (int, error) {
-	switch b { // Partial switch statement (no default)
+	switch divisor { // Partial switch statement (no default)
 	case 0: // Guard block.
 		return 0, fmt.Errorf("division by zero")
 	}
-	return a / b, nil
+	return numerator / divisor, nil
 }
 
 func showcaseFeatures(param int, flag bool, input int, runner showcaseRunner) (int, error) {
@@ -40,7 +40,7 @@ func showcaseFeatures(param int, flag bool, input int, runner showcaseRunner) (i
 			break
 		}
 	}
-	result, err := runner.Run(total)
+	result, err := runner.IndirectCall(total)
 	if err != nil {
 		return 0, err
 	}
