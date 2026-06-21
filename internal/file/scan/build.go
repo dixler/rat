@@ -330,6 +330,9 @@ const (
 )
 
 func IsBuiltinFile(file string) bool {
+	if file == "" {
+		return true
+	}
 	p := filepath.Clean(file)
-	return p == "" || strings.Contains(p, BuiltinFile)
+	return strings.Contains(p, BuiltinFile)
 }

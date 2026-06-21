@@ -1305,56 +1305,57 @@ func (b *builder) isReferenceTypeExpr(expr ast.Expr) bool {
 
 func (b *builder) namedFieldTypeDeclarationsForType(t types.Type) []NamedFieldTypeDeclaration {
 	var out []NamedFieldTypeDeclaration
-	b.appendTypeDeclarations(t, &out)
+	b.appendTypeDeclarations(t, &out, map[string]struct{}{})
 	return out
 }
 
-func (b *builder) appendTypeDeclarations(t types.Type, out *[]NamedFieldTypeDeclaration) {
+func (b *builder) appendTypeDeclarations(t types.Type, out *[]NamedFieldTypeDeclaration, seen map[string]struct{}) {
+	t = types.Unalias(t)
 	switch t := t.(type) {
 	case nil:
 		return
 	case *types.Basic:
-		b.appendNamedFieldTypeDeclaration(out, definitionLocation{File: "", Line: 1, Column: 1})
+		appendNamedFieldTypeDeclaration(out, seen, definitionLocation{File: "", Line: 1, Column: 1})
 	case *types.Named:
 		if loc, ok := b.typeNameLocation(t.Obj()); ok {
-			b.appendNamedFieldTypeDeclaration(out, loc)
+			appendNamedFieldTypeDeclaration(out, seen, loc)
 		}
 		if typeArgs := t.TypeArgs(); typeArgs != nil {
 			for i := 0; i < typeArgs.Len(); i++ {
-				b.appendTypeDeclarations(typeArgs.At(i), out)
+				b.appendTypeDeclarations(typeArgs.At(i), out, seen)
 			}
 		}
 	case *types.Pointer:
-		b.appendTypeDeclarations(t.Elem(), out)
+		b.appendTypeDeclarations(t.Elem(), out, seen)
 	case *types.Slice:
-		b.appendTypeDeclarations(t.Elem(), out)
+		b.appendTypeDeclarations(t.Elem(), out, seen)
 	case *types.Array:
-		b.appendTypeDeclarations(t.Elem(), out)
+		b.appendTypeDeclarations(t.Elem(), out, seen)
 	case *types.Map:
-		b.appendTypeDeclarations(t.Key(), out)
-		b.appendTypeDeclarations(t.Elem(), out)
+		b.appendTypeDeclarations(t.Key(), out, seen)
+		b.appendTypeDeclarations(t.Elem(), out, seen)
 	case *types.Chan:
-		b.appendTypeDeclarations(t.Elem(), out)
+		b.appendTypeDeclarations(t.Elem(), out, seen)
 	case *types.Signature:
-		b.appendTupleTypeDeclarations(t.Params(), out)
-		b.appendTupleTypeDeclarations(t.Results(), out)
+		b.appendTupleTypeDeclarations(t.Params(), out, seen)
+		b.appendTupleTypeDeclarations(t.Results(), out, seen)
 	case *types.Struct:
 		for field := range t.Fields() {
-			b.appendTypeDeclarations(field.Type(), out)
+			b.appendTypeDeclarations(field.Type(), out, seen)
 		}
 	case *types.Interface:
 		for etyp := range t.EmbeddedTypes() {
-			b.appendTypeDeclarations(etyp, out)
+			b.appendTypeDeclarations(etyp, out, seen)
 		}
 	}
 }
 
-func (b *builder) appendTupleTypeDeclarations(tuple *types.Tuple, out *[]NamedFieldTypeDeclaration) {
+func (b *builder) appendTupleTypeDeclarations(tuple *types.Tuple, out *[]NamedFieldTypeDeclaration, seen map[string]struct{}) {
 	if tuple == nil {
 		return
 	}
 	for v := range tuple.Variables() {
-		b.appendTypeDeclarations(v.Type(), out)
+		b.appendTypeDeclarations(v.Type(), out, seen)
 	}
 }
 
@@ -1388,12 +1389,12 @@ func (b *builder) packageTypeDefinition(importPath, name string) (definitionLoca
 	return index.lookupTypeLazy(name)
 }
 
-func (b *builder) appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, loc definitionLocation) {
+func appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, seen map[string]struct{}, loc definitionLocation) {
 	key := fmt.Sprintf("%s:%d:%d", loc.File, loc.Line, loc.Column)
-	if _, ok := b.seen[key]; ok {
+	if _, ok := seen[key]; ok {
 		return
 	}
-	b.seen[key] = struct{}{}
+	seen[key] = struct{}{}
 	*out = append(*out, NamedFieldTypeDeclaration{Location: loc})
 }
 
