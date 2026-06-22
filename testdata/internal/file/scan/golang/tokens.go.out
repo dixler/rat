@@ -1,0 +1,115 @@
+ [0m  1 [97m[0m[38;5;130mpackage[0m[97m [0m[32mgolang[0m[97m[0m
+ [0m  2 [97m[0m
+ [0m  3 [97m[0m[38;5;130mimport[0m[97m ([0m
+ [0m  4 [97m    [0m[90m"go/[0m[97m[0m[35m[7mscanner[0m[97m[0m[90m"[0m[97m[0m
+ [0m  5 [97m    [0m[90m"go/[0m[97m[0m[35m[7mtoken[0m[97m[0m[90m"[0m[97m[0m
+ [0m  6 [97m[0m
+ [0m  7 [97m    [0m[90m"rat/internal/file/[0m[97m[0m[94m[7mscan[0m[97m[0m[90m"[0m[97m[0m
+ [0m  8 [97m)[0m
+ [0m  9 [97m[0m
+ [0m 10 [97m[0m[38;5;130mvar[0m[97m [0m[38;5;120m[7m[4mgoKeywordTokens[0m[97m = [0m[38;5;130m[4mmap[0m[97m[[0m[35mtoken[0m[97m.[0m[35mToken[0m[97m][0m[38;5;130mstring[0m[97m{[0m
+ [0m 11 [97m    [0m[35mtoken[0m[97m.[0m[35mTYPE[0m[97m:      [0m[38;5;218m"declaration"[0m[97m,[0m
+ [0m 12 [97m    [0m[35mtoken[0m[97m.[0m[35mSTRUCT[0m[97m:    [0m[38;5;218m"declaration"[0m[97m,[0m
+ [0m 13 [97m    [0m[35mtoken[0m[97m.[0m[35mINTERFACE[0m[97m: [0m[38;5;218m"declaration"[0m[97m,[0m
+ [0m 14 [97m    [0m[35mtoken[0m[97m.[0m[35mMAP[0m[97m:       [0m[38;5;218m"mutable-type"[0m[97m,[0m
+ [0m 15 [97m    [0m[35mtoken[0m[97m.[0m[35mCHAN[0m[97m:      [0m[38;5;218m"mutable-type"[0m[97m,[0m
+ [0m 16 [97m    [0m[35mtoken[0m[97m.[0m[35mVAR[0m[97m:       [0m[38;5;218m"declaration"[0m[97m,[0m
+ [0m 17 [97m    [0m[35mtoken[0m[97m.[0m[35mPACKAGE[0m[97m:   [0m[38;5;218m"declaration"[0m[97m,[0m
+ [0m 18 [97m    [0m[35mtoken[0m[97m.[0m[35mIMPORT[0m[97m:    [0m[38;5;218m"declaration"[0m[97m,[0m
+ [0m 19 [97m    [0m[35mtoken[0m[97m.[0m[35mDEFER[0m[97m:     [0m[38;5;218m"program"[0m[97m,[0m
+ [0m 20 [97m    [0m[35mtoken[0m[97m.[0m[35mGO[0m[97m:        [0m[38;5;218m"program"[0m[97m,[0m
+ [0m 21 [97m    [0m[35mtoken[0m[97m.[0m[35mCONST[0m[97m:     [0m[38;5;218m"program"[0m[97m,[0m
+ [0m 22 [97m    [0m[35mtoken[0m[97m.[0m[35mGOTO[0m[97m:      [0m[38;5;218m"escape"[0m[97m,[0m
+ [0m 23 [97m}[0m
+ [0m 24 [97m[0m
+ [0m 25 [97m[0m[38;5;130mvar[0m[97m [0m[38;5;120m[7m[4mgoLiteralTokens[0m[97m = [0m[38;5;130m[4mmap[0m[97m[[0m[35mtoken[0m[97m.[0m[35mToken[0m[97m][0m[38;5;130mbool[0m[97m{[0m
+ [0m 26 [97m    [0m[35mtoken[0m[97m.[0m[35mCHAR[0m[97m:   [0m[38;5;130mtrue[0m[97m,[0m
+ [0m 27 [97m    [0m[35mtoken[0m[97m.[0m[35mFLOAT[0m[97m:  [0m[38;5;130mtrue[0m[97m,[0m
+ [0m 28 [97m    [0m[35mtoken[0m[97m.[0m[35mIMAG[0m[97m:   [0m[38;5;130mtrue[0m[97m,[0m
+ [0m 29 [97m    [0m[35mtoken[0m[97m.[0m[35mINT[0m[97m:    [0m[38;5;130mtrue[0m[97m,[0m
+ [0m 30 [97m    [0m[35mtoken[0m[97m.[0m[35mSTRING[0m[97m: [0m[38;5;130mtrue[0m[97m,[0m
+ [0m 31 [97m}[0m
+ [0m 32 [97m[0m
+ [0m 33 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mcollectGoTokenNodes[0m[97m([0m[38;5;198m[7mfile[0m[97m [0m[38;5;130mstring[0m[97m, [0m[38;5;198m[7m[4msource[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;130mbyte[0m[97m) [0m[38;5;130m[4m[][0m[97m[0m[94mscan[0m[97m.[0m[94mNode[0m[97m [0m[94m{[0m[97m[0m
+ [0m 34 [97m    [0m[38;5;215m[7m[4mfset[0m[97m := [0m[35mtoken[0m[97m.[0m[35m[4mNewFileSet[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 35 [97m    [0m[38;5;215m[7m[4mf[0m[97m := [0m[38;5;215m[4mfset[0m[97m.[0m[35m[4mAddFile[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mfile[0m[97m, [0m[38;5;215m[4mfset[0m[97m.[0m[35m[4mBase[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m, [0m[38;5;130mlen[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4msource[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 36 [97m    [0m[38;5;130mvar[0m[97m [0m[38;5;215m[7m[4ms[0m[97m [0m[35mscanner[0m[97m.[0m[35m[4mScanner[0m[97m[0m
+ [0m 37 [97m    [0m[38;5;215m[4ms[0m[97m.[0m[35m[4mInit[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mf[0m[97m, [0m[38;5;198m[4msource[0m[97m, [0m[38;5;130mnil[0m[97m, [0m[38;5;218m0[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 38 [97m[0m
+ [0m 39 [97m    [0m[38;5;130mvar[0m[97m [0m[38;5;215m[7m[4mout[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[94mscan[0m[97m.[0m[94mNode[0m[97m[0m
+ [0m 40 [97m    [0m[38;5;215m[7mpendingPackageName[0m[97m := [0m[38;5;130mfalse[0m[97m[0m
+ [0m 41 [97m    [0m[38;5;215m[7mpendingImportSpec[0m[97m := [0m[38;5;130mfalse[0m[97m[0m
+ [0m 42 [97m    [0m[38;5;215m[7mimportBlockDepth[0m[97m := [0m[38;5;218m0[0m[97m[0m
+ [0m 43 [97m    [0m[38;5;130mvar[0m[97m [0m[38;5;215m[7mpendingLoopAnchor[0m[97m [0m[94mscan[0m[97m.[0m[94mSpan[0m[97m[0m
+ [0m 44 [97m    [0m[38;5;130mfor[0m[97m [0m[38;5;130m{[0m[97m[0m
+ [0m 45 [97m        [0m[38;5;215m[7mpos[0m[97m, [0m[38;5;215m[7mtok[0m[97m, [0m[38;5;215m[7mlit[0m[97m := [0m[38;5;215m[4ms[0m[97m.[0m[35m[4mScan[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 46 [97m        [0m[38;5;130mif[0m[97m [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mEOF[0m[97m [0m[38;5;130m{[0m[97m[0m
+ [0m 47 [97m            [0m[38;5;130mbreak[0m[97m[0m
+ [0m 48 [97m        [0m[38;5;130m}[0m[97m[0m
+ [0m 49 [97m[0m
+ [0m 50 [97m        [0m[38;5;215m[7mp[0m[97m := [0m[38;5;215m[4mfset[0m[97m.[0m[35m[4mPosition[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mpos[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 51 [97m        [0m[38;5;215m[7mtext[0m[97m := [0m[38;5;215mlit[0m[97m[0m
+ [0m 52 [97m        [0m[94mif[0m[97m [0m[38;5;215mtext[0m[97m == [0m[38;5;218m""[0m[97m [0m[94m{[0m[97m[0m
+ [0m 53 [97m            [0m[38;5;215mtext[0m[97m = [0m[38;5;215mtok[0m[97m.[0m[35m[4mString[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 54 [97m        [0m[94m}[0m[97m[0m
+ [0m 55 [97m[0m
+ [0m 56 [97m        [0m[94mif[0m[97m [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mFOR[0m[97m [0m[94m{[0m[97m[0m
+ [0m 57 [97m            [0m[38;5;215mpendingLoopAnchor[0m[97m = [0m[94mscan[0m[97m.[0m[94mSpan[0m[97m{[0m[94mLine[0m[97m: [0m[38;5;215mp[0m[97m.[0m[35mLine[0m[97m, [0m[94mColumn[0m[97m: [0m[38;5;215mp[0m[97m.[0m[35mColumn[0m[97m, [0m[94mLength[0m[97m: [0m[38;5;130mlen[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mtok[0m[97m.[0m[35m[4mString[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m}[0m
+ [0m 58 [97m        [0m[94m}[0m[97m[0m
+ [0m 59 [97m        [0m[94mif[0m[97m [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mPACKAGE[0m[97m [0m[94m{[0m[97m[0m
+ [0m 60 [97m            [0m[38;5;215mpendingPackageName[0m[97m = [0m[38;5;130mtrue[0m[97m[0m
+ [0m 61 [97m        [0m[94m}[0m[97m[0m
+ [0m 62 [97m        [0m[94mif[0m[97m [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mIMPORT[0m[97m [0m[94m{[0m[97m[0m
+ [0m 63 [97m            [0m[38;5;215mpendingImportSpec[0m[97m = [0m[38;5;130mtrue[0m[97m[0m
+ [0m 64 [97m        [0m[94m}[0m[97m[0m
+ [0m 65 [97m        [0m[94mif[0m[97m [0m[38;5;215mpendingImportSpec[0m[97m && [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mLPAREN[0m[97m [0m[94m{[0m[97m[0m
+ [0m 66 [97m            [0m[38;5;215mimportBlockDepth[0m[97m = [0m[38;5;218m1[0m[97m[0m
+ [0m 67 [97m            [0m[38;5;215mpendingImportSpec[0m[97m = [0m[38;5;130mfalse[0m[97m[0m
+ [0m 68 [97m        [0m[94m}[0m[97m [0m[94melse if[0m[97m [0m[38;5;215mimportBlockDepth[0m[97m > [0m[38;5;218m0[0m[97m && [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mLPAREN[0m[97m [0m[94m{[0m[97m[0m
+ [0m 69 [97m            [0m[38;5;215mimportBlockDepth[0m[97m++[0m
+ [0m 70 [97m        [0m[94m}[0m[97m [0m[94melse if[0m[97m [0m[38;5;215mimportBlockDepth[0m[97m > [0m[38;5;218m0[0m[97m && [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mRPAREN[0m[97m [0m[94m{[0m[97m[0m
+ [0m 71 [97m            [0m[38;5;215mimportBlockDepth[0m[97m--[0m
+ [0m 72 [97m        [0m[94m}[0m[97m[0m
+ [0m 73 [97m[0m
+ [0m 74 [97m        [0m[38;5;215m[7mkind[0m[97m, [0m[38;5;215m[7mok[0m[97m := [0m[38;5;120m[4mgoKeywordTokens[0m[97m[[0m[38;5;215mtok[0m[97m][0m
+ [0m 75 [97m        [0m[94mif[0m[97m [0m[38;5;215mpendingPackageName[0m[97m && [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mIDENT[0m[97m [0m[94m{[0m[97m[0m
+ [0m 76 [97m            [0m[38;5;215mkind[0m[97m, [0m[38;5;215mok[0m[97m = [0m[38;5;218m"package-name"[0m[97m, [0m[38;5;130mtrue[0m[97m[0m
+ [0m 77 [97m            [0m[38;5;215mpendingPackageName[0m[97m = [0m[38;5;130mfalse[0m[97m[0m
+ [0m 78 [97m        [0m[94m}[0m[97m [0m[94melse if[0m[97m [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mRANGE[0m[97m [0m[94m{[0m[97m[0m
+ [0m 79 [97m            [0m[38;5;215mkind[0m[97m, [0m[38;5;215mok[0m[97m = [0m[38;5;218m"loop-operator"[0m[97m, [0m[38;5;130mtrue[0m[97m[0m
+ [0m 80 [97m        [0m[94m}[0m[97m [0m[94melse if[0m[97m [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mSTRING[0m[97m && ([0m[38;5;215mpendingImportSpec[0m[97m || [0m[38;5;215mimportBlockDepth[0m[97m > [0m[38;5;218m0[0m[97m) [0m[94m{[0m[97m[0m
+ [0m 81 [97m            [0m[38;5;215mok[0m[97m = [0m[38;5;130mfalse[0m[97m[0m
+ [0m 82 [97m        [0m[94m}[0m[97m [0m[94melse if[0m[97m [0m[38;5;120m[4mgoLiteralTokens[0m[97m[[0m[38;5;215mtok[0m[97m] [0m[94m{[0m[97m[0m
+ [0m 83 [97m            [0m[38;5;215mkind[0m[97m, [0m[38;5;215mok[0m[97m = [0m[38;5;218m"literal"[0m[97m, [0m[38;5;130mtrue[0m[97m[0m
+ [0m 84 [97m        [0m[94m}[0m[97m[0m
+ [0m 85 [97m        [0m[94mif[0m[97m [0m[38;5;215mpendingImportSpec[0m[97m && ([0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mSTRING[0m[97m || [0m[38;5;215mtok[0m[97m == [0m[35mtoken[0m[97m.[0m[35mSEMICOLON[0m[97m) [0m[94m{[0m[97m[0m
+ [0m 86 [97m            [0m[38;5;215mpendingImportSpec[0m[97m = [0m[38;5;130mfalse[0m[97m[0m
+ [0m 87 [97m        [0m[94m}[0m[97m[0m
+ [0m 88 [97m        [0m[94mif[0m[97m [0m[38;5;215mok[0m[97m && [0m[38;5;215mtext[0m[97m != [0m[38;5;218m""[0m[97m [0m[94m{[0m[97m[0m
+ [0m 89 [97m            [0m[38;5;215m[7mspans[0m[97m := [0m[94mscan[0m[97m.[0m[94mSpansForText[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mp[0m[97m.[0m[35mLine[0m[97m, [0m[38;5;215mp[0m[97m.[0m[35mColumn[0m[97m, [0m[38;5;215mtext[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 90 [97m            [0m[38;5;130mif[0m[97m [0m[38;5;130mlen[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mspans[0m[97m[0m[38;5;215m)[0m[97m == [0m[38;5;218m0[0m[97m [0m[38;5;130m{[0m[97m[0m
+ [0m 91 [97m                [0m[94mcontinue[0m[97m[0m
+ [0m 92 [97m            [0m[38;5;130m}[0m[97m[0m
+ [0m 93 [97m            [0m[38;5;215m[7mspan[0m[97m := [0m[38;5;215mspans[0m[97m[[0m[38;5;218m0[0m[97m][0m
+ [0m 94 [97m            [0m[38;5;130mswitch[0m[97m [0m[38;5;215mkind[0m[97m [0m[38;5;130m{[0m[97m[0m
+ [0m 95 [97m            [0m[94mcase[0m[97m [0m[38;5;218m"declaration"[0m[97m:[0m
+ [0m 96 [97m                [0m[38;5;215m[4mout[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mout[0m[97m, [0m[94mscan[0m[97m.[0m[94mDeclarationSyntaxNode[0m[97m{[0m[94mNodeSpans[0m[97m: [0m[38;5;215mspans[0m[97m}[0m[38;5;215m)[0m[97m[0m
+ [0m 97 [97m            [0m[94mcase[0m[97m [0m[38;5;218m"mutable-type"[0m[97m:[0m
+ [0m 98 [97m                [0m[38;5;215m[4mout[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mout[0m[97m, [0m[94mscan[0m[97m.[0m[94mMutableTypeSyntaxNode[0m[97m{[0m[94mNodeSpans[0m[97m: [0m[38;5;215mspans[0m[97m}[0m[38;5;215m)[0m[97m[0m
+ [0m 99 [97m            [0m[94mcase[0m[97m [0m[38;5;218m"program"[0m[97m:[0m
+ [0m100 [97m                [0m[38;5;215m[4mout[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mout[0m[97m, [0m[94mscan[0m[97m.[0m[94mProgramSyntaxNode[0m[97m{[0m[94mNodeSpans[0m[97m: [0m[38;5;215mspans[0m[97m}[0m[38;5;215m)[0m[97m[0m
+ [0m101 [97m            [0m[94mcase[0m[97m [0m[38;5;218m"escape"[0m[97m:[0m
+ [0m102 [97m                [0m[38;5;215m[4mout[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mout[0m[97m, [0m[94mscan[0m[97m.[0m[94mEscapeSyntaxNode[0m[97m{[0m[94mNodeSpans[0m[97m: [0m[38;5;215mspans[0m[97m}[0m[38;5;215m)[0m[97m[0m
+ [0m103 [97m            [0m[94mcase[0m[97m [0m[38;5;218m"literal"[0m[97m:[0m
+ [0m104 [97m                [0m[38;5;215m[4mout[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mout[0m[97m, [0m[94mscan[0m[97m.[0m[94mLiteralNode[0m[97m{[0m[94mNodeSpans[0m[97m: [0m[38;5;215mspans[0m[97m}[0m[38;5;215m)[0m[97m[0m
+ [0m105 [97m            [0m[94mcase[0m[97m [0m[38;5;218m"package-name"[0m[97m:[0m
+ [0m106 [97m                [0m[38;5;215m[4mout[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mout[0m[97m, [0m[94mscan[0m[97m.[0m[94mPackageNameNode[0m[97m{[0m[94mNodeSpans[0m[97m: [0m[38;5;215mspans[0m[97m}[0m[38;5;215m)[0m[97m[0m
+ [0m107 [97m            [0m[94mcase[0m[97m [0m[38;5;218m"loop-operator"[0m[97m:[0m
+ [0m108 [97m                [0m[38;5;215m[4mout[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mout[0m[97m, [0m[94mscan[0m[97m.[0m[94mLoopOperatorNode[0m[97m{[0m[94mSpan[0m[97m: [0m[38;5;215mspan[0m[97m, [0m[94mAnchor[0m[97m: [0m[38;5;215mpendingLoopAnchor[0m[97m}[0m[38;5;215m)[0m[97m[0m
+ [0m109 [97m                [0m[38;5;215mpendingLoopAnchor[0m[97m = [0m[94mscan[0m[97m.[0m[94mSpan[0m[97m{}[0m
+ [0m110 [97m            [0m[38;5;130m}[0m[97m[0m
+ [0m111 [97m        [0m[94m}[0m[97m[0m
+ [0m112 [97m    [0m[38;5;130m}[0m[97m[0m
+ [0m113 [97m    [0m[94mreturn[0m[97m [0m[38;5;215m[4mout[0m[97m[0m
+ [0m114 [97m[0m[94m}[0m[97m[0m
+ [0m115 [97m[0m

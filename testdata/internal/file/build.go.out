@@ -1,0 +1,125 @@
+ [0m  1 [97m[0m[38;5;130mpackage[0m[97m [0m[32mfile[0m[97m[0m
+ [0m  2 [97m[0m
+ [0m  3 [97m[0m[38;5;130mimport[0m[97m ([0m
+ [0m  4 [97m    [0m[90m"[0m[97m[0m[35m[7mfmt[0m[97m[0m[90m"[0m[97m[0m
+ [0m  5 [97m    [0m[90m"path/[0m[97m[0m[35m[7mfilepath[0m[97m[0m[90m"[0m[97m[0m
+ [0m  6 [97m    [0m[90m"[0m[97m[0m[35m[7mstrings[0m[97m[0m[90m"[0m[97m[0m
+ [0m  7 [97m[0m
+ [0m  8 [97m    [0m[90m"rat/internal/file/[0m[97m[0m[94m[7mscan[0m[97m[0m[90m"[0m[97m[0m
+ [0m  9 [97m)[0m
+ [0m 10 [97m[0m
+ [0m 11 [97m[0m[38;5;130mfunc[0m[97m [0m[38;5;120m[7m[4mbuildTree[0m[97m([0m[38;5;198m[7mabs[0m[97m [0m[38;5;130mstring[0m[97m, [0m[38;5;198m[7msrc[0m[97m [0m[38;5;130mstring[0m[97m, [0m[38;5;198m[7mraw[0m[97m *[0m[94mscan[0m[97m.[0m[94mResult[0m[97m) (*[0m[32mfile[0m[97m, [0m[38;5;130m[4merror[0m[97m) [0m[38;5;130m{[0m[97m[0m
+ [0m 12 [97m    [0m[38;5;215m[7m[4mroot[0m[97m := &[0m[32mdeclaration[0m[97m{[0m[32mname[0m[97m: [0m[35mfilepath[0m[97m.[0m[35m[4mBase[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mraw[0m[97m.[0m[94mFile[0m[97m[0m[38;5;215m)[0m[97m, [0m[32mkind[0m[97m: [0m[32mKindFile[0m[97m, [0m[32mlocation[0m[97m: [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[94mscan[0m[97m.[0m[94mLocation[0m[97m{[0m[94mFile[0m[97m: [0m[38;5;198mraw[0m[97m.[0m[94mFile[0m[97m, [0m[94mLine[0m[97m: [0m[38;5;218m1[0m[97m, [0m[94mColumn[0m[97m: [0m[38;5;218m1[0m[97m}[0m[38;5;215m)[0m[97m}[0m
+ [0m 13 [97m    [0m[38;5;215m[7m[4mdeclMap[0m[97m := [0m[38;5;130m[4mmap[0m[97m[[0m[38;5;130mstring[0m[97m]*[0m[32mdeclaration[0m[97m{[0m[38;5;218m"file"[0m[97m: [0m[38;5;215m[4mroot[0m[97m}[0m
+ [0m 14 [97m[0m
+ [0m 15 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7md[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198mraw[0m[97m.[0m[94mDeclarations[0m[97m [0m[94m{[0m[97m[0m
+ [0m 16 [97m        [0m[38;5;215m[7mdecl[0m[97m := [0m[38;5;120m[4mtoDeclaration[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215md[0m[97m, [0m[38;5;215m[4mroot[0m[97m, [0m[38;5;215m[4mdeclMap[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 17 [97m        [0m[38;5;215m[4mroot[0m[97m.[0m[32mdeclarations[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mroot[0m[97m.[0m[32mdeclarations[0m[97m, [0m[38;5;215mdecl[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 18 [97m    [0m[94m}[0m[97m[0m
+ [0m 19 [97m[0m
+ [0m 20 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mrawDecl[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198mraw[0m[97m.[0m[94mDeclarations[0m[97m [0m[94m{[0m[97m[0m
+ [0m 21 [97m        [0m[38;5;120m[4mattachDeclarationReferences[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mrawDecl[0m[97m, [0m[38;5;215m[4mdeclMap[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 22 [97m    [0m[94m}[0m[97m[0m
+ [0m 23 [97m[0m
+ [0m 24 [97m    [0m[38;5;215m[7m[4mdecls[0m[97m := [0m[38;5;130mmake[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;130m[4m[][0m[97m[0m[32mDeclaration[0m[97m, [0m[38;5;218m0[0m[97m, [0m[38;5;130mlen[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mroot[0m[97m.[0m[32mdeclarations[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 25 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7md[0m[97m := [0m[94mrange[0m[97m [0m[38;5;215m[4mroot[0m[97m.[0m[32mdeclarations[0m[97m [0m[94m{[0m[97m[0m
+ [0m 26 [97m        [0m[38;5;215m[4mdecls[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mdecls[0m[97m, [0m[38;5;215md[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 27 [97m    [0m[94m}[0m[97m[0m
+ [0m 28 [97m[0m
+ [0m 29 [97m    [0m[38;5;215m[7m[4mpkgDecls[0m[97m := [0m[38;5;130m[4mmap[0m[97m[[0m[38;5;130mstring[0m[97m]*[0m[32mpackageDeclaration[0m[97m{}[0m
+ [0m 30 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mp[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198mraw[0m[97m.[0m[94mPackages[0m[97m [0m[94m{[0m[97m[0m
+ [0m 31 [97m        [0m[38;5;215m[4mpkgDecls[0m[97m[[0m[38;5;215mp[0m[97m.[0m[94mID[0m[97m] = [0m[38;5;120m[4mbuildPackageDeclaration[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mp[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 32 [97m    [0m[94m}[0m[97m[0m
+ [0m 33 [97m    [0m[38;5;215m[7m[4mpkgRefs[0m[97m := [0m[38;5;130mmake[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;130m[4m[][0m[97m[0m[32mPackageReference[0m[97m, [0m[38;5;218m0[0m[97m, [0m[38;5;130mlen[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mraw[0m[97m.[0m[94mPackageReferences[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 34 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mp[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198mraw[0m[97m.[0m[94mPackageReferences[0m[97m [0m[94m{[0m[97m[0m
+ [0m 35 [97m        [0m[38;5;215m[7mparent[0m[97m := [0m[38;5;215m[4mdeclMap[0m[97m[[0m[38;5;215mp[0m[97m.[0m[94mParentID[0m[97m][0m
+ [0m 36 [97m        [0m[38;5;215m[7m[4mpkgRef[0m[97m := &[0m[32mpackageReference[0m[97m{[0m[32mreference[0m[97m: &[0m[32mreference[0m[97m{[0m
+ [0m 37 [97m            [0m[32mparent[0m[97m:   [0m[38;5;215mparent[0m[97m,[0m
+ [0m 38 [97m            [0m[32mlocation[0m[97m: [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mp[0m[97m.[0m[94mLocation[0m[97m[0m[38;5;215m)[0m[97m,[0m
+ [0m 39 [97m            [0m[32mtext[0m[97m:     [0m[38;5;215mp[0m[97m.[0m[94mText[0m[97m,[0m
+ [0m 40 [97m            [0m[32mkind[0m[97m:     [0m[32mKindPackage[0m[97m,[0m
+ [0m 41 [97m        }, [0m[32mpkg[0m[97m: [0m[38;5;215m[4mpkgDecls[0m[97m[[0m[38;5;215mp[0m[97m.[0m[94mPackageID[0m[97m]}[0m
+ [0m 42 [97m        [0m[38;5;215m[4mpkgRefs[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mpkgRefs[0m[97m, [0m[38;5;215m[4mpkgRef[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 43 [97m    [0m[94m}[0m[97m[0m
+ [0m 44 [97m[0m
+ [0m 45 [97m    [0m[38;5;130mvar[0m[97m [0m[38;5;215m[7m[4mindirectCalls[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[32mIndirectCall[0m[97m[0m
+ [0m 46 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mc[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198mraw[0m[97m.[0m[94mIndirectCalls[0m[97m [0m[94m{[0m[97m[0m
+ [0m 47 [97m        [0m[38;5;215m[4mindirectCalls[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mindirectCalls[0m[97m, &[0m[32mindirectCall[0m[97m{[0m
+ [0m 48 [97m            [0m[32mlocation[0m[97m: [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mc[0m[97m.[0m[94mLocation[0m[97m[0m[38;5;215m)[0m[97m,[0m
+ [0m 49 [97m            [0m[32mtext[0m[97m:     [0m[38;5;215mc[0m[97m.[0m[94mText[0m[97m,[0m
+ [0m 50 [97m        }[0m[38;5;215m)[0m[97m[0m
+ [0m 51 [97m    [0m[94m}[0m[97m[0m
+ [0m 52 [97m[0m
+ [0m 53 [97m    [0m[94mreturn[0m[97m &[0m[32mfile[0m[97m{[0m
+ [0m 54 [97m        [0m[32mname[0m[97m:          [0m[38;5;198mabs[0m[97m,[0m
+ [0m 55 [97m        [0m[32msource[0m[97m:        [0m[38;5;198msrc[0m[97m,[0m
+ [0m 56 [97m        [0m[32msourceLines[0m[97m:   [0m[35mstrings[0m[97m.[0m[35m[4mSplit[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198msrc[0m[97m, [0m[38;5;218m"\n"[0m[97m[0m[38;5;215m)[0m[97m,[0m
+ [0m 57 [97m        [0m[32mroot[0m[97m:          [0m[38;5;215m[4mroot[0m[97m,[0m
+ [0m 58 [97m        [0m[32mnodes[0m[97m:         [0m[32mclone[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mraw[0m[97m.[0m[94mNodes[0m[97m[0m[38;5;215m)[0m[97m,[0m
+ [0m 59 [97m        [0m[32mpackageRefs[0m[97m:   [0m[38;5;215m[4mpkgRefs[0m[97m,[0m
+ [0m 60 [97m        [0m[32mdecls[0m[97m:         [0m[38;5;215m[4mdecls[0m[97m,[0m
+ [0m 61 [97m        [0m[32mnamedFields[0m[97m:   [0m[32mbuildNamedFields[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mraw[0m[97m.[0m[94mNamedFields[0m[97m[0m[38;5;215m)[0m[97m,[0m
+ [0m 62 [97m        [0m[32mindirectCalls[0m[97m: [0m[38;5;215m[4mindirectCalls[0m[97m,[0m
+ [0m 63 [97m    }, [0m[38;5;130mnil[0m[97m[0m
+ [0m 64 [97m[0m[38;5;130m}[0m[97m[0m
+ [0m 65 [97m[0m
+ [0m 66 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mtoDeclaration[0m[97m([0m[38;5;198m[7msrc[0m[97m [0m[94mscan[0m[97m.[0m[94mDeclaration[0m[97m, [0m[38;5;198m[7mparent[0m[97m [0m[32mDeclaration[0m[97m, [0m[38;5;198m[7m[4mdeclMap[0m[97m [0m[38;5;130m[4mmap[0m[97m[[0m[38;5;130mstring[0m[97m]*[0m[32mdeclaration[0m[97m) *[0m[32mdeclaration[0m[97m [0m[94m{[0m[97m[0m
+ [0m 67 [97m    [0m[38;5;215m[7m[4md[0m[97m := &[0m[32mdeclaration[0m[97m{[0m
+ [0m 68 [97m        [0m[32mname[0m[97m:          [0m[38;5;198msrc[0m[97m.[0m[94mName[0m[97m,[0m
+ [0m 69 [97m        [0m[32mkind[0m[97m:          [0m[32mKind[0m[97m[0m[38;5;198m([0m[97m[0m[38;5;198msrc[0m[97m.[0m[94mKind[0m[97m[0m[38;5;198m)[0m[97m,[0m
+ [0m 70 [97m        [0m[32mlocation[0m[97m:      [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198msrc[0m[97m.[0m[94mLocation[0m[97m[0m[38;5;215m)[0m[97m,[0m
+ [0m 71 [97m        [0m[32mreferenceType[0m[97m: [0m[38;5;198msrc[0m[97m.[0m[94mReferenceType[0m[97m,[0m
+ [0m 72 [97m        [0m[32mparent[0m[97m:        [0m[38;5;198mparent[0m[97m,[0m
+ [0m 73 [97m    }[0m
+ [0m 74 [97m    [0m[38;5;198m[4mdeclMap[0m[97m[[0m[38;5;198msrc[0m[97m.[0m[94mID[0m[97m] = [0m[38;5;215m[4md[0m[97m[0m
+ [0m 75 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mchild[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198msrc[0m[97m.[0m[94mDeclarations[0m[97m [0m[94m{[0m[97m[0m
+ [0m 76 [97m        [0m[38;5;215m[4md[0m[97m.[0m[32mdeclarations[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4md[0m[97m.[0m[32mdeclarations[0m[97m, [0m[38;5;215m[4mtoDeclaration[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mchild[0m[97m, [0m[38;5;215m[4md[0m[97m, [0m[38;5;198m[4mdeclMap[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 77 [97m    [0m[94m}[0m[97m[0m
+ [0m 78 [97m    [0m[94mreturn[0m[97m [0m[38;5;215m[4md[0m[97m[0m
+ [0m 79 [97m[0m[94m}[0m[97m[0m
+ [0m 80 [97m[0m
+ [0m 81 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mattachDeclarationReferences[0m[97m([0m[38;5;198m[7mraw[0m[97m [0m[94mscan[0m[97m.[0m[94mDeclaration[0m[97m, [0m[38;5;198m[7m[4mdeclMap[0m[97m [0m[38;5;130m[4mmap[0m[97m[[0m[38;5;130mstring[0m[97m]*[0m[32mdeclaration[0m[97m) [0m[94m{[0m[97m[0m
+ [0m 82 [97m    [0m[38;5;215m[7mdecl[0m[97m := [0m[38;5;198m[4mdeclMap[0m[97m[[0m[38;5;198mraw[0m[97m.[0m[94mID[0m[97m][0m
+ [0m 83 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mrr[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198mraw[0m[97m.[0m[94mReferences[0m[97m [0m[94m{[0m[97m[0m
+ [0m 84 [97m        [0m[38;5;215m[7m[4mref[0m[97m := &[0m[32mreference[0m[97m{[0m
+ [0m 85 [97m            [0m[32mparent[0m[97m:        [0m[38;5;215mdecl[0m[97m,[0m
+ [0m 86 [97m            [0m[32mlocation[0m[97m:      [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mrr[0m[97m.[0m[94mLocation[0m[97m[0m[38;5;215m)[0m[97m,[0m
+ [0m 87 [97m            [0m[32mtext[0m[97m:          [0m[38;5;215mrr[0m[97m.[0m[94mText[0m[97m,[0m
+ [0m 88 [97m            [0m[32mkind[0m[97m:          [0m[32mKind[0m[97m[0m[38;5;198m([0m[97m[0m[38;5;215mrr[0m[97m.[0m[94mKind[0m[97m[0m[38;5;198m)[0m[97m,[0m
+ [0m 89 [97m            [0m[32mreferenceType[0m[97m: [0m[38;5;215mrr[0m[97m.[0m[94mReferenceType[0m[97m,[0m
+ [0m 90 [97m        }[0m
+ [0m 91 [97m        [0m[94mif[0m[97m [0m[38;5;215mrr[0m[97m.[0m[94mDeclarationID[0m[97m != [0m[38;5;218m""[0m[97m [0m[94m{[0m[97m[0m
+ [0m 92 [97m            [0m[38;5;215m[4mref[0m[97m.[0m[32mdeclaration[0m[97m = [0m[38;5;198m[4mdeclMap[0m[97m[[0m[38;5;215mrr[0m[97m.[0m[94mDeclarationID[0m[97m][0m
+ [0m 93 [97m        [0m[94m}[0m[97m [0m[94melse if[0m[97m [0m[94mscan[0m[97m.[0m[94mHasLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mrr[0m[97m.[0m[94mDeclaration[0m[97m[0m[38;5;215m)[0m[97m [0m[94m{[0m[97m[0m
+ [0m 94 [97m            [0m[38;5;215m[4mref[0m[97m.[0m[32mdeclaration[0m[97m = [0m[38;5;120m[4mexternalDeclaration[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mrr[0m[97m, [0m[38;5;198m[4mdeclMap[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 95 [97m        [0m[94m}[0m[97m[0m
+ [0m 96 [97m        [0m[38;5;215mdecl[0m[97m.[0m[32mreferences[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mdecl[0m[97m.[0m[32mreferences[0m[97m, [0m[38;5;215m[4mref[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m 97 [97m    [0m[94m}[0m[97m[0m
+ [0m 98 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mchild[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198mraw[0m[97m.[0m[94mDeclarations[0m[97m [0m[94m{[0m[97m[0m
+ [0m 99 [97m        [0m[38;5;215m[4mattachDeclarationReferences[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mchild[0m[97m, [0m[38;5;198m[4mdeclMap[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m100 [97m    [0m[94m}[0m[97m[0m
+ [0m101 [97m[0m[94m}[0m[97m[0m
+ [0m102 [97m[0m
+ [0m103 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mexternalDeclaration[0m[97m([0m[38;5;198m[7mraw[0m[97m [0m[94mscan[0m[97m.[0m[94mReference[0m[97m, [0m[38;5;198m[7m[4mdeclMap[0m[97m [0m[38;5;130m[4mmap[0m[97m[[0m[38;5;130mstring[0m[97m]*[0m[32mdeclaration[0m[97m) *[0m[32mdeclaration[0m[97m [0m[94m{[0m[97m[0m
+ [0m104 [97m    [0m[38;5;215m[7mloc[0m[97m := [0m[38;5;198mraw[0m[97m.[0m[94mDeclaration[0m[97m[0m
+ [0m105 [97m    [0m[38;5;215m[7mkey[0m[97m := [0m[35mfmt[0m[97m.[0m[35m[4mSprintf[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;218m"external:%s:%d:%d:%s"[0m[97m, [0m[38;5;215mloc[0m[97m.[0m[94mFile[0m[97m, [0m[38;5;215mloc[0m[97m.[0m[94mLine[0m[97m, [0m[38;5;215mloc[0m[97m.[0m[94mColumn[0m[97m, [0m[38;5;198mraw[0m[97m.[0m[94mKind[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m106 [97m    [0m[38;5;130mif[0m[97m [0m[38;5;215m[7mdecl[0m[97m := [0m[38;5;198m[4mdeclMap[0m[97m[[0m[38;5;215mkey[0m[97m]; [0m[38;5;215mdecl[0m[97m != [0m[38;5;130mnil[0m[97m [0m[38;5;130m{[0m[97m[0m
+ [0m107 [97m        [0m[94mreturn[0m[97m [0m[38;5;215mdecl[0m[97m[0m
+ [0m108 [97m    [0m[38;5;130m}[0m[97m[0m
+ [0m109 [97m    [0m[38;5;215m[7m[4mdecl[0m[97m := &[0m[32mdeclaration[0m[97m{[0m[32mname[0m[97m: [0m[38;5;198mraw[0m[97m.[0m[94mText[0m[97m, [0m[32mkind[0m[97m: [0m[32mKind[0m[97m[0m[38;5;198m([0m[97m[0m[38;5;198mraw[0m[97m.[0m[94mKind[0m[97m[0m[38;5;198m)[0m[97m, [0m[32mlocation[0m[97m: [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mloc[0m[97m[0m[38;5;215m)[0m[97m, [0m[32mreferenceType[0m[97m: [0m[38;5;198mraw[0m[97m.[0m[94mReferenceType[0m[97m}[0m
+ [0m110 [97m    [0m[38;5;198m[4mdeclMap[0m[97m[[0m[38;5;215mkey[0m[97m] = [0m[38;5;215m[4mdecl[0m[97m[0m
+ [0m111 [97m    [0m[94mreturn[0m[97m [0m[38;5;215m[4mdecl[0m[97m[0m
+ [0m112 [97m[0m[94m}[0m[97m[0m
+ [0m113 [97m[0m
+ [0m114 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mbuildPackageDeclaration[0m[97m([0m[38;5;198m[7mraw[0m[97m [0m[94mscan[0m[97m.[0m[94mPackage[0m[97m) *[0m[32mpackageDeclaration[0m[97m [0m[94m{[0m[97m[0m
+ [0m115 [97m    [0m[38;5;215m[7m[4mp[0m[97m := &[0m[32mpackageDeclaration[0m[97m{[0m[32mname[0m[97m: [0m[38;5;198mraw[0m[97m.[0m[94mName[0m[97m, [0m[32mlocation[0m[97m: [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mraw[0m[97m.[0m[94mLocation[0m[97m[0m[38;5;215m)[0m[97m}[0m
+ [0m116 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mf[0m[97m := [0m[94mrange[0m[97m [0m[38;5;198mraw[0m[97m.[0m[94mFiles[0m[97m [0m[94m{[0m[97m[0m
+ [0m117 [97m        [0m[38;5;215m[7m[4mfd[0m[97m := &[0m[32mdeclaration[0m[97m{[0m[32mname[0m[97m: [0m[35mfilepath[0m[97m.[0m[35m[4mBase[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mf[0m[97m.[0m[94mFile[0m[97m[0m[38;5;215m)[0m[97m, [0m[32mkind[0m[97m: [0m[32mKindFile[0m[97m, [0m[32mlocation[0m[97m: [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mf[0m[97m.[0m[94mLocation[0m[97m[0m[38;5;215m)[0m[97m}[0m
+ [0m118 [97m        [0m[94mfor[0m[97m _, [0m[38;5;215m[7md[0m[97m := [0m[94mrange[0m[97m [0m[38;5;215mf[0m[97m.[0m[94mDeclarations[0m[97m [0m[94m{[0m[97m[0m
+ [0m119 [97m            [0m[38;5;215m[4mfd[0m[97m.[0m[32mdeclarations[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mfd[0m[97m.[0m[32mdeclarations[0m[97m, &[0m[32mdeclaration[0m[97m{[0m[32mname[0m[97m: [0m[38;5;215md[0m[97m.[0m[94mName[0m[97m, [0m[32mkind[0m[97m: [0m[32mKind[0m[97m[0m[38;5;198m([0m[97m[0m[38;5;215md[0m[97m.[0m[94mKind[0m[97m[0m[38;5;198m)[0m[97m, [0m[32mlocation[0m[97m: [0m[32mfromScanLocation[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215md[0m[97m.[0m[94mLocation[0m[97m[0m[38;5;215m)[0m[97m, [0m[32mparent[0m[97m: [0m[38;5;215m[4mfd[0m[97m}[0m[38;5;215m)[0m[97m[0m
+ [0m120 [97m        [0m[94m}[0m[97m[0m
+ [0m121 [97m        [0m[38;5;215m[4mp[0m[97m.[0m[32mfiles[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mp[0m[97m.[0m[32mfiles[0m[97m, [0m[38;5;215m[4mfd[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m122 [97m    [0m[94m}[0m[97m[0m
+ [0m123 [97m    [0m[94mreturn[0m[97m [0m[38;5;215m[4mp[0m[97m[0m
+ [0m124 [97m[0m[94m}[0m[97m[0m
+ [0m125 [97m[0m
