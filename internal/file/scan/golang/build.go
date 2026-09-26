@@ -524,20 +524,10 @@ func collectReturnErrorClassifications(parsed *ast.File, info *types.Info) map[t
 		case nil:
 			return true
 		case *ast.FuncDecl:
-			if node.Body != nil {
-				if obj, ok := info.Defs[node.Name].(*types.Func); ok {
-					if sig, ok := obj.Type().(*types.Signature); ok {
-						collectReturnErrorClassificationsInBody(node.Body, sig, info, out)
-					}
-				}
-			}
+			collectReturnErrorClassificationsInBody(node.Body, nodeSignature(node, info), info, out)
 			return false
 		case *ast.FuncLit:
-			if tv, ok := info.Types[node]; ok {
-				if sig, ok := tv.Type.(*types.Signature); ok {
-					collectReturnErrorClassificationsInBody(node.Body, sig, info, out)
-				}
-			}
+			collectReturnErrorClassificationsInBody(node.Body, nodeSignature(node, info), info, out)
 			return false
 		}
 		return true
@@ -556,11 +546,7 @@ func collectReturnErrorClassificationsInBody(body *ast.BlockStmt, sig *types.Sig
 		case *ast.ReturnStmt:
 			out[node.Return] = returnStmtReturnsError(node, sig, info)
 		case *ast.FuncLit:
-			if tv, ok := info.Types[node]; ok {
-				if nestedSig, ok := tv.Type.(*types.Signature); ok {
-					collectReturnErrorClassificationsInBody(node.Body, nestedSig, info, out)
-				}
-			}
+			collectReturnErrorClassificationsInBody(node.Body, nodeSignature(node, info), info, out)
 			return false
 		}
 		return true
@@ -686,21 +672,22 @@ func (b *builder) buildFunc(fn *ast.FuncDecl) Declaration {
 		b.appendFieldDeclarations(&decl, fn.Recv, KindParameter)
 		b.collectReferences(fn.Recv, &decl)
 	}
-	b.appendFieldDeclarations(&decl, fn.Type.TypeParams, KindParameter)
-	b.appendFieldDeclarations(&decl, fn.Type.Params, KindParameter)
-	b.collectReferences(fn.Type, &decl)
-	b.appendFunctionBody(&decl, fn.Body)
+	b.appendFunction(&decl, fn.Type, fn.Body)
 	return decl
 }
 
 func (b *builder) buildFuncLit(fn *ast.FuncLit) Declaration {
 	p := b.fset.Position(fn.Type.Func)
 	decl := Declaration{ID: b.nextID(KindFunction), Kind: KindFunction, Location: Location{b.file, p.Line, p.Column}}
-	b.appendFieldDeclarations(&decl, fn.Type.TypeParams, KindParameter)
-	b.appendFieldDeclarations(&decl, fn.Type.Params, KindParameter)
-	b.collectReferences(fn.Type, &decl)
-	b.appendFunctionBody(&decl, fn.Body)
+	b.appendFunction(&decl, fn.Type, fn.Body)
 	return decl
+}
+
+func (b *builder) appendFunction(decl *Declaration, signature *ast.FuncType, body *ast.BlockStmt) {
+	b.appendFieldDeclarations(decl, signature.TypeParams, KindParameter)
+	b.appendFieldDeclarations(decl, signature.Params, KindParameter)
+	b.collectReferences(signature, decl)
+	b.appendFunctionBody(decl, body)
 }
 
 func (b *builder) appendFunctionBody(decl *Declaration, body *ast.BlockStmt) {
@@ -788,22 +775,17 @@ func (b *controlFlowBuilder) buildBlocks(stmts []ast.Stmt) []ControlFlowBlock {
 }
 
 func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
-	if labeled, ok := stmt.(*ast.LabeledStmt); ok {
-		if labeled.Label != nil {
-			switch s := labeled.Stmt.(type) {
-			case *ast.ForStmt:
-				return b.buildForBlock(s.Pos(), s.Body, labeled.Label.Name)
-			case *ast.RangeStmt:
-				return b.buildForBlock(s.Pos(), s.Body, labeled.Label.Name)
-			case *ast.SwitchStmt:
-				return b.buildSwitchBlock(s.Pos(), s.Body, labeled.Label.Name)
-			case *ast.TypeSwitchStmt:
-				return b.buildSwitchBlock(s.Pos(), s.Body, labeled.Label.Name)
-			case *ast.SelectStmt:
-				return b.buildSelectBlock(s, labeled.Label.Name)
-			}
+	label := ""
+	for {
+		labeled, ok := stmt.(*ast.LabeledStmt)
+		if !ok {
+			break
 		}
-		return b.buildBlock(labeled.Stmt)
+		label = ""
+		if labeled.Label != nil {
+			label = labeled.Label.Name
+		}
+		stmt = labeled.Stmt
 	}
 
 	pos := b.fset.Position(stmt.Pos())
@@ -814,15 +796,15 @@ func (b *controlFlowBuilder) buildBlock(stmt ast.Stmt) ControlFlowBlock {
 	case *ast.IfStmt:
 		block = b.buildIfChain(s, BlockKindIf, s.If)
 	case *ast.ForStmt:
-		block = b.buildForBlock(s.Pos(), s.Body, "")
+		return b.buildBreakableBlock(BlockKindFor, s.Pos(), s.Body, label)
 	case *ast.RangeStmt:
-		block = b.buildForBlock(s.Pos(), s.Body, "")
+		return b.buildBreakableBlock(BlockKindFor, s.Pos(), s.Body, label)
 	case *ast.SwitchStmt:
-		block = b.buildSwitchBlock(s.Pos(), s.Body, "")
+		return b.buildBreakableBlock(BlockKindSwitch, s.Pos(), s.Body, label)
 	case *ast.TypeSwitchStmt:
-		block = b.buildSwitchBlock(s.Pos(), s.Body, "")
+		return b.buildBreakableBlock(BlockKindSwitch, s.Pos(), s.Body, label)
 	case *ast.SelectStmt:
-		block = b.buildSelectBlock(s, "")
+		return b.buildBreakableBlock(BlockKindSelect, s.Pos(), s.Body, label)
 	default:
 		block.Statements = b.collectControlFlowStatements(stmt)
 	}
@@ -858,9 +840,9 @@ func (b *controlFlowBuilder) buildIfChain(stmt *ast.IfStmt, kind string, keyword
 	return block
 }
 
-func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt, label string) ControlFlowBlock {
+func (b *controlFlowBuilder) buildBreakableBlock(kind string, pos token.Pos, body *ast.BlockStmt, label string) ControlFlowBlock {
 	p := b.fset.Position(pos)
-	block := ControlFlowBlock{Kind: BlockKindFor, Location: Location{b.file, p.Line, p.Column}}
+	block := ControlFlowBlock{Kind: kind, Location: Location{b.file, p.Line, p.Column}}
 	if label != "" {
 		b.labels[label] = &block
 		defer delete(b.labels, label)
@@ -869,10 +851,21 @@ func (b *controlFlowBuilder) buildForBlock(pos token.Pos, body *ast.BlockStmt, l
 	defer func() { b.breakStack = b.breakStack[:len(b.breakStack)-1] }()
 	if body != nil {
 		setBlockBracesFromStmt(b.fset, &block, body)
-		block.Blocks = b.buildBlocks(body.List)
+		if kind == BlockKindFor {
+			block.Blocks = b.buildBlocks(body.List)
+		} else {
+			for _, stmt := range body.List {
+				switch clause := stmt.(type) {
+				case *ast.CaseClause:
+					b.appendCaseBlock(&block, clause.Case, clause.List == nil, clause.Body)
+				case *ast.CommClause:
+					b.appendCaseBlock(&block, clause.Case, clause.Comm == nil, clause.Body)
+				}
+			}
+		}
 	}
-	if controlFlowBlockHasStatementKind(block, "return") {
-		block.MayReturn = true
+	if kind == BlockKindFor {
+		block.MayReturn = controlFlowBlockHasStatementKind(block, "return")
 	}
 	block.HasAbort = controlFlowBlockHasAbort(block)
 	return block
@@ -914,54 +907,6 @@ func blockUsesDirectAbortStatement(kind string) bool {
 	default:
 		return false
 	}
-}
-
-func (b *controlFlowBuilder) buildSwitchBlock(pos token.Pos, body *ast.BlockStmt, label string) ControlFlowBlock {
-	p := b.fset.Position(pos)
-	block := ControlFlowBlock{Kind: BlockKindSwitch, Location: Location{b.file, p.Line, p.Column}}
-	if label != "" {
-		b.labels[label] = &block
-		defer delete(b.labels, label)
-	}
-	setBlockBracesFromStmt(b.fset, &block, body)
-	b.breakStack = append(b.breakStack, &block)
-	if body == nil {
-		b.breakStack = b.breakStack[:len(b.breakStack)-1]
-		return block
-	}
-	for _, stmt := range body.List {
-		clause, ok := stmt.(*ast.CaseClause)
-		if !ok {
-			continue
-		}
-		b.appendCaseBlock(&block, clause.Case, clause.List == nil, clause.Body)
-	}
-	b.breakStack = b.breakStack[:len(b.breakStack)-1]
-	block.HasAbort = controlFlowBlockHasAbort(block)
-	return block
-}
-
-func (b *controlFlowBuilder) buildSelectBlock(stmt *ast.SelectStmt, label string) ControlFlowBlock {
-	p := b.fset.Position(stmt.Select)
-	block := ControlFlowBlock{Kind: BlockKindSelect, Location: Location{b.file, p.Line, p.Column}}
-	if label != "" {
-		b.labels[label] = &block
-		defer delete(b.labels, label)
-	}
-	setBlockBracesFromStmt(b.fset, &block, stmt.Body)
-	b.breakStack = append(b.breakStack, &block)
-	if stmt.Body != nil {
-		for _, entry := range stmt.Body.List {
-			clause, ok := entry.(*ast.CommClause)
-			if !ok {
-				continue
-			}
-			b.appendCaseBlock(&block, clause.Case, clause.Comm == nil, clause.Body)
-		}
-	}
-	b.breakStack = b.breakStack[:len(b.breakStack)-1]
-	block.HasAbort = controlFlowBlockHasAbort(block)
-	return block
 }
 
 func setBlockBracesFromStmt(fset *token.FileSet, block *ControlFlowBlock, body *ast.BlockStmt) {
@@ -1056,17 +1001,12 @@ func (b *controlFlowBuilder) markBreakTarget(stmt *ast.BranchStmt) *ControlFlowB
 	if stmt == nil || stmt.Tok != token.BREAK {
 		return nil
 	}
+	var target *ControlFlowBlock
 	if stmt.Label != nil {
-		target := b.labels[stmt.Label.Name]
-		if target != nil && target.Kind == BlockKindFor {
-			target.MayBreak = true
-		}
-		return target
+		target = b.labels[stmt.Label.Name]
+	} else if len(b.breakStack) > 0 {
+		target = b.breakStack[len(b.breakStack)-1]
 	}
-	if len(b.breakStack) == 0 {
-		return nil
-	}
-	target := b.breakStack[len(b.breakStack)-1]
 	if target != nil && target.Kind == BlockKindFor {
 		target.MayBreak = true
 	}
@@ -1401,6 +1341,13 @@ func appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, seen map[
 func (b *builder) typeDeclarationsFor(expr ast.Expr) []definitionLocation {
 	var ids []*ast.Ident
 	var walk func(ast.Expr)
+	walkFields := func(fields *ast.FieldList) {
+		if fields != nil {
+			for _, field := range fields.List {
+				walk(field.Type)
+			}
+		}
+	}
 	walk = func(expr ast.Expr) {
 		switch n := expr.(type) {
 		case *ast.Ident:
@@ -1427,26 +1374,12 @@ func (b *builder) typeDeclarationsFor(expr ast.Expr) []definitionLocation {
 		case *ast.ParenExpr:
 			walk(n.X)
 		case *ast.FuncType:
-			for _, fields := range []*ast.FieldList{n.Params, n.Results} {
-				if fields == nil {
-					continue
-				}
-				for _, field := range fields.List {
-					walk(field.Type)
-				}
-			}
+			walkFields(n.Params)
+			walkFields(n.Results)
 		case *ast.InterfaceType:
-			if n.Methods != nil {
-				for _, field := range n.Methods.List {
-					walk(field.Type)
-				}
-			}
+			walkFields(n.Methods)
 		case *ast.StructType:
-			if n.Fields != nil {
-				for _, field := range n.Fields.List {
-					walk(field.Type)
-				}
-			}
+			walkFields(n.Fields)
 		}
 	}
 	walk(expr)
