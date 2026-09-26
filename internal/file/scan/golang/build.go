@@ -1250,52 +1250,39 @@ func (b *builder) namedFieldTypeDeclarationsForType(t types.Type) []NamedFieldTy
 }
 
 func (b *builder) appendTypeDeclarations(t types.Type, out *[]NamedFieldTypeDeclaration, seen map[string]struct{}) {
-	t = types.Unalias(t)
-	switch t := t.(type) {
-	case nil:
-		return
+	visit := func(types ...types.Type) {
+		for _, t := range types {
+			b.appendTypeDeclarations(t, out, seen)
+		}
+	}
+	switch t := types.Unalias(t).(type) {
 	case *types.Basic:
 		appendNamedFieldTypeDeclaration(out, seen, definitionLocation{File: "", Line: 1, Column: 1})
 	case *types.Named:
 		if loc, ok := b.typeNameLocation(t.Obj()); ok {
 			appendNamedFieldTypeDeclaration(out, seen, loc)
 		}
-		if typeArgs := t.TypeArgs(); typeArgs != nil {
-			for i := 0; i < typeArgs.Len(); i++ {
-				b.appendTypeDeclarations(typeArgs.At(i), out, seen)
-			}
+		for arg := range t.TypeArgs().Types() {
+			visit(arg)
 		}
-	case *types.Pointer:
-		b.appendTypeDeclarations(t.Elem(), out, seen)
-	case *types.Slice:
-		b.appendTypeDeclarations(t.Elem(), out, seen)
-	case *types.Array:
-		b.appendTypeDeclarations(t.Elem(), out, seen)
 	case *types.Map:
-		b.appendTypeDeclarations(t.Key(), out, seen)
-		b.appendTypeDeclarations(t.Elem(), out, seen)
-	case *types.Chan:
-		b.appendTypeDeclarations(t.Elem(), out, seen)
+		visit(t.Key(), t.Elem())
+	case interface{ Elem() types.Type }:
+		visit(t.Elem())
 	case *types.Signature:
-		b.appendTupleTypeDeclarations(t.Params(), out, seen)
-		b.appendTupleTypeDeclarations(t.Results(), out, seen)
+		visit(t.Params(), t.Results())
+	case *types.Tuple:
+		for v := range t.Variables() {
+			visit(v.Type())
+		}
 	case *types.Struct:
 		for field := range t.Fields() {
-			b.appendTypeDeclarations(field.Type(), out, seen)
+			visit(field.Type())
 		}
 	case *types.Interface:
 		for etyp := range t.EmbeddedTypes() {
-			b.appendTypeDeclarations(etyp, out, seen)
+			visit(etyp)
 		}
-	}
-}
-
-func (b *builder) appendTupleTypeDeclarations(tuple *types.Tuple, out *[]NamedFieldTypeDeclaration, seen map[string]struct{}) {
-	if tuple == nil {
-		return
-	}
-	for v := range tuple.Variables() {
-		b.appendTypeDeclarations(v.Type(), out, seen)
 	}
 }
 
@@ -1339,67 +1326,34 @@ func appendNamedFieldTypeDeclaration(out *[]NamedFieldTypeDeclaration, seen map[
 }
 
 func (b *builder) typeDeclarationsFor(expr ast.Expr) []definitionLocation {
-	var ids []*ast.Ident
-	var walk func(ast.Expr)
-	walkFields := func(fields *ast.FieldList) {
-		if fields != nil {
-			for _, field := range fields.List {
-				walk(field.Type)
-			}
-		}
-	}
-	walk = func(expr ast.Expr) {
-		switch n := expr.(type) {
+	out := []definitionLocation{}
+	seen := map[definitionLocation]bool{}
+	var walk func(ast.Node) bool
+	walk = func(node ast.Node) bool {
+		switch n := node.(type) {
 		case *ast.Ident:
-			ids = append(ids, n)
-		case *ast.SelectorExpr:
-			ids = append(ids, n.Sel)
-		case *ast.StarExpr:
-			walk(n.X)
-		case *ast.ArrayType:
-			walk(n.Elt)
-		case *ast.MapType:
-			walk(n.Key)
-			walk(n.Value)
-		case *ast.ChanType:
-			walk(n.Value)
-		case *ast.IndexExpr:
-			walk(n.X)
-			walk(n.Index)
-		case *ast.IndexListExpr:
-			walk(n.X)
-			for _, idx := range n.Indices {
-				walk(idx)
+			if n != nil && n.Pos() != token.NoPos {
+				if loc, ok := b.typeDeclarationForIdent(n); ok && !seen[loc] {
+					seen[loc] = true
+					out = append(out, loc)
+				}
 			}
-		case *ast.ParenExpr:
-			walk(n.X)
+		case *ast.SelectorExpr:
+			walk(n.Sel)
+		case *ast.ArrayType:
+			ast.Inspect(n.Elt, walk)
+		case *ast.Field:
+			ast.Inspect(n.Type, walk)
 		case *ast.FuncType:
-			walkFields(n.Params)
-			walkFields(n.Results)
-		case *ast.InterfaceType:
-			walkFields(n.Methods)
-		case *ast.StructType:
-			walkFields(n.Fields)
+			ast.Inspect(n.Params, walk)
+			ast.Inspect(n.Results, walk)
+		case *ast.StarExpr, *ast.MapType, *ast.ChanType, *ast.IndexExpr, *ast.IndexListExpr,
+			*ast.ParenExpr, *ast.InterfaceType, *ast.StructType, *ast.FieldList:
+			return true
 		}
+		return false
 	}
-	walk(expr)
-	out := make([]definitionLocation, 0, len(ids))
-	seen := map[string]struct{}{}
-	for _, id := range ids {
-		if id == nil || id.Pos() == token.NoPos {
-			continue
-		}
-		loc, ok := b.typeDeclarationForIdent(id)
-		if !ok {
-			continue
-		}
-		key := fmt.Sprintf("%s:%d:%d", loc.File, loc.Line, loc.Column)
-		if _, ok := seen[key]; ok {
-			continue
-		}
-		seen[key] = struct{}{}
-		out = append(out, loc)
-	}
+	ast.Inspect(expr, walk)
 	return out
 }
 
