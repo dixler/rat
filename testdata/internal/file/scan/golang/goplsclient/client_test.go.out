@@ -1,24 +1,61 @@
  [0m 1 [97m[0m[38;5;130mpackage[0m[97m [0m[32mgoplsclient[0m[97m[0m
  [0m 2 [97m[0m
  [0m 3 [97m[0m[38;5;130mimport[0m[97m ([0m
- [0m 4 [97m    [0m[90m"encoding/[0m[97m[0m[35m[7mjson[0m[97m[0m[90m"[0m[97m[0m
- [0m 5 [97m    [0m[90m"[0m[97m[0m[35m[7mtesting[0m[97m[0m[90m"[0m[97m[0m
- [0m 6 [97m[0m
- [0m 7 [97m    [0m[90m"github.com/stretchr/testify/[0m[97m[0m[94m[7mrequire[0m[97m[0m[90m"[0m[97m[0m
- [0m 8 [97m)[0m
- [0m 9 [97m[0m
- [0m10 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mTestParseDefinitionLocationLinkUsesTargetSelectionRange[0m[97m([0m[38;5;198m[7m[4mt[0m[97m *[0m[35mtesting[0m[97m.[0m[35m[4mT[0m[97m) [0m[94m{[0m[97m[0m
- [0m11 [97m    [0m[38;5;215m[7m[4mraw[0m[97m := [0m[35mjson[0m[97m.[0m[35m[4mRawMessage[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;218m`[[0m[97m[0m
- [0m12 [97m[0m[38;5;218m        {[0m[97m[0m
- [0m13 [97m[0m[38;5;218m            "targetUri":"file:///tmp/example.go",[0m[97m[0m
- [0m14 [97m[0m[38;5;218m            "targetRange":{"start":{"line":9,"character":0},"end":{"line":12,"character":1}},[0m[97m[0m
- [0m15 [97m[0m[38;5;218m            "targetSelectionRange":{"start":{"line":10,"character":4},"end":{"line":10,"character":10}}[0m[97m[0m
- [0m16 [97m[0m[38;5;218m        }[0m[97m[0m
- [0m17 [97m[0m[38;5;218m    ]`[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m18 [97m[0m
- [0m19 [97m    [0m[38;5;215m[7mloc[0m[97m, [0m[38;5;215m[7mok[0m[97m, [0m[38;5;215m[7merr[0m[97m := [0m[32mparseDefinition[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mraw[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m20 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215merr[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m21 [97m    [0m[94mrequire[0m[97m.[0m[94mTrue[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215mok[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m22 [97m    [0m[94mrequire[0m[97m.[0m[94mEqual[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[32mLocation[0m[97m{[0m[32mFile[0m[97m: [0m[38;5;218m"/tmp/example.go"[0m[97m, [0m[32mLine[0m[97m: [0m[38;5;218m11[0m[97m, [0m[32mColumn[0m[97m: [0m[38;5;218m5[0m[97m}, [0m[38;5;215mloc[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m23 [97m[0m[94m}[0m[97m[0m
- [0m24 [97m[0m
+ [0m 4 [97m    [0m[90m"[0m[97m[0m[35m[7mbufio[0m[97m[0m[90m"[0m[97m[0m
+ [0m 5 [97m    [0m[90m"encoding/[0m[97m[0m[35m[7mjson[0m[97m[0m[90m"[0m[97m[0m
+ [0m 6 [97m    [0m[90m"[0m[97m[0m[35m[7mfmt[0m[97m[0m[90m"[0m[97m[0m
+ [0m 7 [97m    [0m[90m"[0m[97m[0m[35m[7mio[0m[97m[0m[90m"[0m[97m[0m
+ [0m 8 [97m    [0m[90m"[0m[97m[0m[35m[7mos[0m[97m[0m[90m"[0m[97m[0m
+ [0m 9 [97m    [0m[90m"path/[0m[97m[0m[35m[7mfilepath[0m[97m[0m[90m"[0m[97m[0m
+ [0m10 [97m    [0m[90m"[0m[97m[0m[35m[7mtesting[0m[97m[0m[90m"[0m[97m[0m
+ [0m11 [97m[0m
+ [0m12 [97m    [0m[90m"github.com/stretchr/testify/[0m[97m[0m[94m[7mrequire[0m[97m[0m[90m"[0m[97m[0m
+ [0m13 [97m)[0m
+ [0m14 [97m[0m
+ [0m15 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mTestDocumentLifecycle[0m[97m([0m[38;5;198m[7m[4mt[0m[97m *[0m[35mtesting[0m[97m.[0m[35m[4mT[0m[97m) [0m[94m{[0m[97m[0m
+ [0m16 [97m    [0m[38;5;215m[7m[4mstream[0m[97m, [0m[38;5;215m[7m[4merr[0m[97m := [0m[35mos[0m[97m.[0m[35m[4mCreateTemp[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m.[0m[35m[4mTempDir[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m, [0m[38;5;218m"messages"[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m17 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4merr[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m18 [97m    [0m[94mdefer[0m[97m [0m[38;5;215m[4mstream[0m[97m.[0m[35m[4mClose[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m19 [97m    [0m[38;5;215m[7m[4mc[0m[97m := &[0m[32mClient[0m[97m{[0m[32mstdin[0m[97m: [0m[38;5;215m[4mstream[0m[97m, [0m[32mopened[0m[97m: [0m[38;5;130m[4mmap[0m[97m[[0m[38;5;130mstring[0m[97m][0m[32mopenDocument[0m[97m{}}[0m
+ [0m20 [97m    [0m[38;5;215m[7mpath[0m[97m := [0m[35mfilepath[0m[97m.[0m[35m[4mJoin[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m.[0m[35m[4mTempDir[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m, [0m[38;5;218m"sample.go"[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m21 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4mc[0m[97m.[0m[32mSyncDocumentContent[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mpath[0m[97m, [0m[38;5;218m"package first"[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m22 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4mc[0m[97m.[0m[32mSyncDocumentContent[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mpath[0m[97m, [0m[38;5;218m"package second"[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m23 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4mc[0m[97m.[0m[32mCloseDocument[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mpath[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m24 [97m    [0m[94mrequire[0m[97m.[0m[94mEqual[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[32mopenDocument[0m[97m{[0m[32mversion[0m[97m: [0m[38;5;218m2[0m[97m, [0m[32mrefs[0m[97m: [0m[38;5;218m1[0m[97m}, [0m[38;5;215m[4mc[0m[97m.[0m[32mopened[0m[97m[[0m[38;5;215mpath[0m[97m][0m[38;5;215m)[0m[97m[0m
+ [0m25 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4mc[0m[97m.[0m[32mCloseDocument[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mpath[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m26 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4mc[0m[97m.[0m[32mCloseDocument[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mpath[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m27 [97m    [0m[94mrequire[0m[97m.[0m[94mLen[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4mc[0m[97m.[0m[32mopened[0m[97m, [0m[38;5;218m0[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m28 [97m    _, [0m[38;5;215m[4merr[0m[97m = [0m[38;5;215m[4mstream[0m[97m.[0m[35m[4mSeek[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;218m0[0m[97m, [0m[35mio[0m[97m.[0m[35mSeekStart[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m29 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4merr[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m30 [97m    [0m[38;5;215m[7m[4mreader[0m[97m := [0m[35mbufio[0m[97m.[0m[35m[4mNewReader[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mstream[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m31 [97m    [0m[94mfor[0m[97m _, [0m[38;5;215m[7mwant[0m[97m := [0m[94mrange[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;130mstring[0m[97m{[0m
+ [0m32 [97m        [0m[38;5;218m`{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":%q,"languageId":"go","version":1,"text":"package first"}}}`[0m[97m,[0m
+ [0m33 [97m        [0m[38;5;218m`{"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"uri":%q,"version":2},"contentChanges":[{"text":"package second"}]}}`[0m[97m,[0m
+ [0m34 [97m        [0m[38;5;218m`{"jsonrpc":"2.0","method":"textDocument/didClose","params":{"textDocument":{"uri":%q}}}`[0m[97m,[0m
+ [0m35 [97m    } [0m[94m{[0m[97m[0m
+ [0m36 [97m        [0m[38;5;215m[7mraw[0m[97m, [0m[38;5;215m[7merr[0m[97m := [0m[32mreadMessage[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mreader[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m37 [97m        [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215merr[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m38 [97m        [0m[38;5;130mvar[0m[97m [0m[38;5;215m[7m[4mactual[0m[97m, [0m[38;5;215m[7m[4mexpected[0m[97m [0m[38;5;130m[4many[0m[97m[0m
+ [0m39 [97m        [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[35mjson[0m[97m.[0m[35m[4mUnmarshal[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mraw[0m[97m, &[0m[38;5;215m[4mactual[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m40 [97m        [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[35mjson[0m[97m.[0m[35m[4mUnmarshal[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;130m[4m[][0m[97m[0m[38;5;130mbyte[0m[97m[0m[38;5;215m([0m[97m[0m[35mfmt[0m[97m.[0m[35m[4mSprintf[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mwant[0m[97m, [0m[32mfileURI[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mpath[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m, &[0m[38;5;215m[4mexpected[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m41 [97m        [0m[94mrequire[0m[97m.[0m[94mEqual[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215m[4mexpected[0m[97m, [0m[38;5;215m[4mactual[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m42 [97m    [0m[94m}[0m[97m[0m
+ [0m43 [97m    _, [0m[38;5;215m[4merr[0m[97m = [0m[38;5;215m[4mreader[0m[97m.[0m[35m[4mReadByte[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m44 [97m    [0m[94mrequire[0m[97m.[0m[94mEqual[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[35mio[0m[97m.[0m[35m[4mEOF[0m[97m, [0m[38;5;215m[4merr[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m45 [97m[0m[94m}[0m[97m[0m
+ [0m46 [97m[0m
+ [0m47 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mTestParseDefinitionLocationLinkUsesTargetSelectionRange[0m[97m([0m[38;5;198m[7m[4mt[0m[97m *[0m[35mtesting[0m[97m.[0m[35m[4mT[0m[97m) [0m[94m{[0m[97m[0m
+ [0m48 [97m    [0m[38;5;215m[7m[4mraw[0m[97m := [0m[35mjson[0m[97m.[0m[35m[4mRawMessage[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;218m`[[0m[97m[0m
+ [0m49 [97m[0m[38;5;218m        {[0m[97m[0m
+ [0m50 [97m[0m[38;5;218m            "targetUri":"file:///tmp/example.go",[0m[97m[0m
+ [0m51 [97m[0m[38;5;218m            "targetRange":{"start":{"line":9,"character":0},"end":{"line":12,"character":1}},[0m[97m[0m
+ [0m52 [97m[0m[38;5;218m            "targetSelectionRange":{"start":{"line":10,"character":4},"end":{"line":10,"character":10}}[0m[97m[0m
+ [0m53 [97m[0m[38;5;218m        }[0m[97m[0m
+ [0m54 [97m[0m[38;5;218m    ]`[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m55 [97m[0m
+ [0m56 [97m    [0m[38;5;215m[7mloc[0m[97m, [0m[38;5;215m[7mok[0m[97m, [0m[38;5;215m[7merr[0m[97m := [0m[32mparseDefinition[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mraw[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m57 [97m    [0m[94mrequire[0m[97m.[0m[94mNoError[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215merr[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m58 [97m    [0m[94mrequire[0m[97m.[0m[94mTrue[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[38;5;215mok[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m59 [97m    [0m[94mrequire[0m[97m.[0m[94mEqual[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198m[4mt[0m[97m, [0m[32mLocation[0m[97m{[0m[32mFile[0m[97m: [0m[38;5;218m"/tmp/example.go"[0m[97m, [0m[32mLine[0m[97m: [0m[38;5;218m11[0m[97m, [0m[32mColumn[0m[97m: [0m[38;5;218m5[0m[97m}, [0m[38;5;215mloc[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m60 [97m[0m[94m}[0m[97m[0m
+ [0m61 [97m[0m
