@@ -73,7 +73,7 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 ## Commands
 
 - Go tests: `go test ./...`
-- Frozen scanner contracts and probes: `go test ./cmd/rat -run '^TestScanner'`. Snapshots in `testdata/scanner` preserve record ordering, links, flags, concrete node types, and spans; comparisons normalize paths and opaque IDs. `ACCEPT` never changes them.
+- Scanner concurrency, workspace-failure, and package-isolation tests: `go test ./cmd/rat -run '^TestScanner'`.
 - Update Go goldens after intentional highlighting changes: `ACCEPT=1 go test ./...`
 - Rendering goldens update only with `ACCEPT=1`, never from Git status. When only internal source text changes, update `TestRenderInternalSources` separately from fixed fixtures.
 - Build CLI: `go build ./cmd/rat`

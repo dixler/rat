@@ -200,10 +200,8 @@ cannot mix versions. Incomplete source produces partial results; source without
 a package clause produces an empty result. Workspace startup/synchronization
 failures return an error.
 
-The frozen contract suite was captured from the pre-rewrite scanner. It compares
-structured records and concrete node types, retaining order and linkage while
-normalizing repository/toolchain/temporary paths and opaque IDs. Fixed rendering
-fixtures independently verify final highlighting.
+Scanner tests cover concurrent overlays, workspace failures, and package-result
+isolation. Fixed rendering fixtures verify final highlighting.
 
 Some record names describe highlighting policy rather than Go reachability:
 
@@ -232,12 +230,6 @@ internal-source goldens separately:
 ```bash
 ACCEPT=1 go test ./cmd/rat -run '^TestRenderInternalSources$'
 ```
-
-`ACCEPT` never updates scanner contracts. `CAPTURE_SCANNER_CONTRACT=1` captures
-only missing snapshots and refuses to overwrite an existing one. During oracle
-work, `TestScannerOracle` accepts `SCANNER_ORACLE_PATH` and
-`SCANNER_ORACLE_GOLDEN`; set `SCANNER_ACTUAL_DIR` to an existing directory to
-retain mismatching actual results for comparison.
 
 ## Requirements
 
