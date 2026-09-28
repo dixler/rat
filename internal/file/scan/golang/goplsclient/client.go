@@ -116,30 +116,19 @@ func (c *Client) SyncDocumentContent(file, content string) error {
 	defer c.mu.Unlock()
 
 	opened, ok := c.opened[abs]
-	if !ok {
-		if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didOpen", "params": map[string]any{
-			"textDocument": map[string]any{
-				"uri":        fileURI(abs),
-				"languageId": "go",
-				"version":    1,
-				"text":       content,
-			},
-		}}); err != nil {
-			return err
-		}
-		c.opened[abs] = openDocument{version: 1, refs: 1}
-		return nil
-	}
-
 	opened.refs++
 	opened.version++
-	if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didChange", "params": map[string]any{
-		"textDocument": map[string]any{
-			"uri":     fileURI(abs),
-			"version": opened.version,
-		},
-		"contentChanges": []map[string]any{{"text": content}},
-	}}); err != nil {
+	document := map[string]any{"uri": fileURI(abs), "version": opened.version}
+	params := map[string]any{"textDocument": document}
+	method := "textDocument/didOpen"
+	if ok {
+		method = "textDocument/didChange"
+		params["contentChanges"] = []map[string]any{{"text": content}}
+	} else {
+		document["languageId"] = "go"
+		document["text"] = content
+	}
+	if err := c.notifyLocked(method, params); err != nil {
 		return err
 	}
 	c.opened[abs] = opened
@@ -164,9 +153,9 @@ func (c *Client) CloseDocument(file string) error {
 		c.opened[abs] = opened
 		return nil
 	}
-	if err := writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didClose", "params": map[string]any{
+	if err := c.notifyLocked("textDocument/didClose", map[string]any{
 		"textDocument": map[string]any{"uri": fileURI(abs)},
-	}}); err != nil {
+	}); err != nil {
 		return err
 	}
 	delete(c.opened, abs)
@@ -174,13 +163,7 @@ func (c *Client) CloseDocument(file string) error {
 }
 
 func (c *Client) HoverForPosition(pos token.Position) (string, error) {
-	if pos.Filename == "" || pos.Line < 1 || pos.Column < 1 {
-		return "", nil
-	}
-	result, err := c.request("textDocument/hover", map[string]any{
-		"textDocument": map[string]any{"uri": fileURI(pos.Filename)},
-		"position":     map[string]any{"line": pos.Line - 1, "character": pos.Column - 1},
-	})
+	result, err := c.requestPosition("hover", pos)
 	if err != nil {
 		return "", err
 	}
@@ -188,17 +171,21 @@ func (c *Client) HoverForPosition(pos token.Position) (string, error) {
 }
 
 func (c *Client) DefinitionForPosition(pos token.Position) (Location, bool, error) {
-	if pos.Filename == "" || pos.Line < 1 || pos.Column < 1 {
-		return Location{}, false, nil
-	}
-	result, err := c.request("textDocument/definition", map[string]any{
-		"textDocument": map[string]any{"uri": fileURI(pos.Filename)},
-		"position":     map[string]any{"line": pos.Line - 1, "character": pos.Column - 1},
-	})
+	result, err := c.requestPosition("definition", pos)
 	if err != nil {
 		return Location{}, false, err
 	}
 	return parseDefinition(result)
+}
+
+func (c *Client) requestPosition(method string, pos token.Position) (json.RawMessage, error) {
+	if pos.Filename == "" || pos.Line < 1 || pos.Column < 1 {
+		return nil, nil
+	}
+	return c.request("textDocument/"+method, map[string]any{
+		"textDocument": map[string]any{"uri": fileURI(pos.Filename)},
+		"position":     map[string]any{"line": pos.Line - 1, "character": pos.Column - 1},
+	})
 }
 
 func (c *Client) initialize() error {
@@ -295,6 +282,10 @@ func (c *Client) requestBlocking(method string, params any) (json.RawMessage, er
 func (c *Client) notify(method string, params any) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	return c.notifyLocked(method, params)
+}
+
+func (c *Client) notifyLocked(method string, params any) error {
 	return writeMessage(c.stdin, map[string]any{"jsonrpc": "2.0", "method": method, "params": params})
 }
 

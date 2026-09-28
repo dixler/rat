@@ -141,30 +141,18 @@ func applyCode(st *state, code string) {
 		switch {
 		case v == 0:
 			*st = state{}
-		case v == 1:
-			st.bold = true
-		case v == 4:
-			st.underline = true
-		case v == 5:
-			st.blink = true
-		case v == 7:
-			st.invert = true
-		case v == 9:
-			st.strike = true
-		case v == 53:
-			st.overline = true
-		case v == 22:
-			st.bold = false
-		case v == 24:
-			st.underline = false
-		case v == 25:
-			st.blink = false
-		case v == 27:
-			st.invert = false
-		case v == 29:
-			st.strike = false
-		case v == 55:
-			st.overline = false
+		case v == 1 || v == 22:
+			st.bold = v == 1
+		case v == 4 || v == 24:
+			st.underline = v == 4
+		case v == 5 || v == 25:
+			st.blink = v == 5
+		case v == 7 || v == 27:
+			st.invert = v == 7
+		case v == 9 || v == 29:
+			st.strike = v == 9
+		case v == 53 || v == 55:
+			st.overline = v == 53
 		case v == 39:
 			st.fg = ""
 		case v == 49:
@@ -211,12 +199,7 @@ func ansiBrightColor(i int) string {
 }
 
 func xterm256(idx int) string {
-	if idx < 0 {
-		idx = 0
-	}
-	if idx > 255 {
-		idx = 255
-	}
+	idx = min(255, max(0, idx))
 	if idx < 16 {
 		return []string{
 			"#000000", "#800000", "#008000", "#808000", "#000080", "#800080", "#008080", "#c0c0c0",

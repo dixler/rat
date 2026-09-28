@@ -34,6 +34,12 @@ type ParseResult struct {
 	SourceSpans map[int][]Span
 }
 
+type spanCollector struct {
+	root  string
+	lines []string
+	spans map[int][]Span
+}
+
 type controlFlowMark struct {
 	span      scan.Span
 	textStyle display.BasicStyle
@@ -41,13 +47,7 @@ type controlFlowMark struct {
 
 func declarationStyle(d file.Declaration) display.BasicStyle {
 	switch {
-	case d == nil:
-		return sameFileStyle.Invert()
-	case usesTopLevelSameFileStyle(d):
-		return sameFileStyle.Invert()
-	case isTopLevelDeclaration(d):
-		return sameFileStyle.Invert()
-	case d.Kind() == file.KindFunction:
+	case d == nil || usesTopLevelSameFileStyle(d) || isTopLevelDeclaration(d) || d.Kind() == file.KindFunction:
 		return sameFileStyle.Invert()
 	case enclosingFunction(d) != nil && d.Kind() == file.KindVariable:
 		return sameFunctionStyle.Invert()
@@ -57,17 +57,11 @@ func declarationStyle(d file.Declaration) display.BasicStyle {
 }
 
 func isTopLevelDeclaration(d file.Declaration) bool {
-	if d == nil || d.Parent() == nil {
-		return false
-	}
-	return d.Parent().Kind() == file.KindFile
+	return d != nil && d.Parent() != nil && d.Parent().Kind() == file.KindFile
 }
 
 func usesTopLevelSameFileStyle(d file.Declaration) bool {
-	if d == nil {
-		return false
-	}
-	if d.Kind() == file.KindParameter {
+	if d == nil || d.Kind() == file.KindParameter {
 		return false
 	}
 	if d.Kind() == file.KindFunction && isTopLevelDeclaration(d) {
@@ -98,30 +92,25 @@ func sortSpans(spans []Span) {
 	})
 }
 
-func collectDeclarationSpans(root string, out map[int][]Span, sourceLines []string, decl file.Declaration) {
+func (c *spanCollector) declaration(decl file.Declaration) {
 	declStyle := declarationStyle(decl)
 	if decl.ReferenceType() {
-		declStyle = frameStyle(declStyle)
+		declStyle = declStyle.Frame()
 	}
-	addSpan(out, sourceLines, decl.Location(), decl.Name(), Span{Style: declStyle, Priority: 1})
+	c.add(decl.Location(), decl.Name(), Span{Style: declStyle, Priority: 1})
 	for _, ref := range decl.References() {
-		ref := reference{Reference: ref}
-		span := ref.relationshipStyle(root)
+		span := relationshipStyle(c.root, ref)
 		if ref.ReferenceType() {
-			span.Style = frameStyle(span.Style)
+			span.Style = span.Style.Frame()
 		}
-		addSpan(out, sourceLines, ref.Location(), ref.Text(), span)
+		c.add(ref.Location(), ref.Text(), span)
 	}
 	for _, child := range decl.Declarations() {
-		collectDeclarationSpans(root, out, sourceLines, child)
+		c.declaration(child)
 	}
 }
 
-func frameStyle(style display.BasicStyle) display.BasicStyle {
-	return style.Frame()
-}
-
-func addSpan(out map[int][]Span, sourceLines []string, loc file.Location, text string, span Span) {
+func (c *spanCollector) add(loc file.Location, text string, span Span) {
 	if loc == nil || text == "" {
 		return
 	}
@@ -131,14 +120,9 @@ func addSpan(out map[int][]Span, sourceLines []string, loc file.Location, text s
 		return
 	}
 	start := col - 1
-	if line <= len(sourceLines) {
-		lineText := sourceLines[line-1]
-		if start < 0 {
-			start = 0
-		}
-		if start > len(lineText) {
-			start = len(lineText)
-		}
+	if line <= len(c.lines) {
+		lineText := c.lines[line-1]
+		start = min(start, len(lineText))
 		if !strings.HasPrefix(lineText[start:], text) {
 			if idx := closestOccurrenceIndex(lineText, text, start); idx >= 0 {
 				start = idx
@@ -147,31 +131,22 @@ func addSpan(out map[int][]Span, sourceLines []string, loc file.Location, text s
 	}
 	span.Start = start
 	span.End = start + len(text)
-	out[line] = append(out[line], span)
+	c.spans[line] = append(c.spans[line], span)
 }
 
-func addScanSpan(out map[int][]Span, sourceLines []string, src scan.Span, span Span) {
-	if src.Line < 1 || src.Line > len(sourceLines) || src.Column < 1 || src.Length < 1 {
+func (c *spanCollector) addScan(src scan.Span, span Span) {
+	if src.Line < 1 || src.Line > len(c.lines) || src.Column < 1 || src.Length < 1 {
 		return
 	}
-	line := sourceLines[src.Line-1]
-	start := src.Column - 1
-	if start < 0 {
-		start = 0
-	}
-	if start > len(line) {
-		start = len(line)
-	}
-	end := start + src.Length
-	if end > len(line) {
-		end = len(line)
-	}
+	line := c.lines[src.Line-1]
+	start := min(src.Column-1, len(line))
+	end := min(start+src.Length, len(line))
 	if end <= start {
 		return
 	}
 	span.Start = start
 	span.End = end
-	out[src.Line] = append(out[src.Line], span)
+	c.spans[src.Line] = append(c.spans[src.Line], span)
 }
 
 func closestOccurrenceIndex(line, text string, anchor int) int {
@@ -210,11 +185,7 @@ func kindStyle(kind file.Kind) display.BasicStyle {
 	panic(fmt.Sprintf("kind %s has no style", kind))
 }
 
-type reference struct {
-	file.Reference
-}
-
-func (r *reference) relationshipStyle(root string) Span {
+func relationshipStyle(root string, r file.Reference) Span {
 	switch r.Kind() {
 	case file.KindParameter:
 		return Span{Style: kindStyle(file.KindParameter)}
@@ -222,7 +193,6 @@ func (r *reference) relationshipStyle(root string) Span {
 		return Span{Style: packageDeclarationStyle(root, declarationLocation(r.Declaration()))}
 	default:
 		targetLoc := declarationLocation(r.Declaration())
-		parentLoc := declarationLocation(r.Parent())
 		switch {
 		case targetLoc == nil:
 			return Span{Style: unknownStyle}
@@ -230,14 +200,8 @@ func (r *reference) relationshipStyle(root string) Span {
 			return Span{Style: builtinStyle}
 		case sameFunction(r.Parent(), r.Declaration()):
 			return Span{Style: sameFunctionStyle, Priority: 3}
-		case sameFileLocation(parentLoc, targetLoc):
-			return Span{Style: sameFileStyle}
-		case samePackageLocation(parentLoc, targetLoc):
-			return Span{Style: samePackageStyle}
-		case sameProjectLocation(root, parentLoc, targetLoc):
-			return Span{Style: sameProjectStyle}
 		default:
-			return Span{Style: externalStyle}
+			return Span{Style: distanceStyle(fieldTypeDistanceRank(root, declarationLocation(r.Parent()), targetLoc))}
 		}
 	}
 }
@@ -283,8 +247,7 @@ func Analyze(path string) (ParseResult, error) {
 	if err != nil {
 		return ParseResult{}, err
 	}
-	res := ParseFormats(f)
-	return res, nil
+	return ParseFormats(f), nil
 }
 
 func AnalyzeContent(path string, src []byte) (ParseResult, error) {
@@ -292,8 +255,7 @@ func AnalyzeContent(path string, src []byte) (ParseResult, error) {
 	if err != nil {
 		return ParseResult{}, err
 	}
-	res := ParseFormats(f)
-	return res, nil
+	return ParseFormats(f), nil
 }
 
 func flattenSpans(line string, spans []Span) []Span {
@@ -306,9 +268,7 @@ func flattenSpans(line string, spans []Span) []Span {
 		if s.Start < idx || s.Start >= len(line) {
 			continue
 		}
-		if s.End > len(line) {
-			s.End = len(line)
-		}
+		s.End = min(s.End, len(line))
 		if s.End <= s.Start {
 			continue
 		}
@@ -319,37 +279,37 @@ func flattenSpans(line string, spans []Span) []Span {
 }
 
 func ParseFormats(f file.File) ParseResult {
-	result := ParseResult{
-		Source:      f.Source(),
-		SourceSpans: map[int][]Span{},
-	}
-	sourceLines := f.SourceLines()
-	root := f.ProjectRoot()
+	c := spanCollector{root: f.ProjectRoot(), lines: f.SourceLines(), spans: map[int][]Span{}}
 	controlFlowMarks := collectNodeControlFlowMarks(f.Nodes())
-	collectLexicalNodeSpans(result.SourceSpans, sourceLines, f.Nodes(), loopStyleByLocation(controlFlowMarks))
-	addTopLevelStructFieldDeclarationSpans(root, result.SourceSpans, sourceLines, f)
-	collectPackageReferenceSpans(root, result.SourceSpans, sourceLines, f)
+	c.lexicalNodes(f.Nodes(), loopStyleByLocation(controlFlowMarks))
+	for _, named := range f.TopLevelNamedFields() {
+		style := fieldTypeDistanceStyle(c.root, named)
+		if named.ReferenceType() {
+			style = style.Frame()
+		}
+		c.add(named.Location(), named.Text(), Span{Style: style, Priority: 2})
+	}
+	for _, ref := range f.PackageReferences() {
+		c.add(ref.Location(), ref.Text(), Span{Style: packageDeclarationStyle(c.root, ref.Package().Location()).Invert()})
+	}
 
 	for _, decl := range f.Declarations() {
-		collectDeclarationSpans(root, result.SourceSpans, sourceLines, decl)
+		c.declaration(decl)
 	}
 
 	for _, mark := range controlFlowMarks {
-		if mark.span.Line < 1 {
-			continue
-		}
-		addScanSpan(result.SourceSpans, sourceLines, mark.span, Span{Style: mark.textStyle, Priority: 2})
+		c.addScan(mark.span, Span{Style: mark.textStyle, Priority: 2})
 	}
 
-	for line := range result.SourceSpans {
-		sortSpans(result.SourceSpans[line])
-		if line < 1 || line > len(sourceLines) {
-			delete(result.SourceSpans, line)
+	for line, spans := range c.spans {
+		sortSpans(spans)
+		if line < 1 || line > len(c.lines) {
+			delete(c.spans, line)
 			continue
 		}
-		result.SourceSpans[line] = flattenSpans(sourceLines[line-1], result.SourceSpans[line])
+		c.spans[line] = flattenSpans(c.lines[line-1], spans)
 	}
-	return result
+	return ParseResult{Source: f.Source(), SourceSpans: c.spans}
 }
 
 func loopStyleByLocation(marks []controlFlowMark) map[string]display.BasicStyle {
@@ -358,12 +318,6 @@ func loopStyleByLocation(marks []controlFlowMark) map[string]display.BasicStyle 
 		out[locationMapKey(mark.span.Line, mark.span.Column)] = mark.textStyle
 	}
 	return out
-}
-
-func collectPackageReferenceSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
-	for _, ref := range f.PackageReferences() {
-		addSpan(out, sourceLines, ref.Location(), ref.Text(), Span{Style: packageDeclarationStyle(root, ref.Package().Location()).Invert()})
-	}
 }
 
 func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
@@ -388,18 +342,12 @@ func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
 			}
 		case scan.JumpNode:
 			switch n.Kind {
-			case scan.JumpKindExit:
+			case scan.JumpKindExit, scan.JumpKindContinue, scan.JumpKindFallthrough:
 				style = blue
-			case scan.JumpKindErrorExit:
-				style = incomplete
-			case scan.JumpKindContinue:
-				style = blue
-			case scan.JumpKindBreak:
+			case scan.JumpKindErrorExit, scan.JumpKindBreak:
 				style = incomplete
 			case scan.JumpKindEscape:
 				style = display.LightRed
-			case scan.JumpKindFallthrough:
-				style = blue
 			}
 		default:
 			continue
@@ -423,23 +371,11 @@ func collectNodeControlFlowMarks(nodes []scan.Node) []controlFlowMark {
 	return marks
 }
 
-func addTopLevelStructFieldDeclarationSpans(root string, out map[int][]Span, sourceLines []string, f file.File) {
-	for _, named := range f.TopLevelNamedFields() {
-		style := fieldTypeDistanceStyle(root, named)
-		if named.ReferenceType() {
-			style = frameStyle(style)
-		}
-		addSpan(out, sourceLines, named.Location(), named.Text(), Span{Style: style, Priority: 2})
-	}
-}
-
 func fieldTypeDistanceStyle(root string, field file.NamedLocation) display.BasicStyle {
 	distanceLoc := field.DistanceLocation()
-	//externalStructInstantiation := !samePackageLocation(field.Location(), distanceLoc)
 	if distanceLoc == nil {
 		distanceLoc = field.Location()
 	}
-	invert := !field.Inline()
 
 	var target file.Location
 	if distanceLoc != nil {
@@ -453,34 +389,33 @@ func fieldTypeDistanceStyle(root string, field file.NamedLocation) display.Basic
 		}
 	}
 
-	if isBuiltinLocation(target) {
-		return fieldStyle(builtinStyle, invert)
-	}
-
+	style := externalStyle
 	switch {
+	case isBuiltinLocation(target):
+		style = builtinStyle
 	case samePackageLocation(field.Location(), target) && sameFileLocation(distanceLoc, target):
-		return fieldStyle(sameFileStyle, invert)
+		style = sameFileStyle
 	case samePackageLocation(field.Location(), target) && samePackageLocation(distanceLoc, target):
-		return fieldStyle(samePackageStyle, invert)
-	}
-	switch {
+		style = samePackageStyle
 	case sameProjectLocation(root, distanceLoc, target):
-		return fieldStyle(sameProjectStyle, invert)
+		style = sameProjectStyle
 	case target == nil:
-		return fieldStyle(unknownStyle, invert)
-	default:
-		return fieldStyle(externalStyle, invert)
+		style = unknownStyle
 	}
+	if !field.Inline() {
+		style = style.Invert()
+	}
+	return style
 }
 
-func collectLexicalNodeSpans(out map[int][]Span, sourceLines []string, nodes []scan.Node, loopStyles map[string]display.BasicStyle) {
+func (c *spanCollector) lexicalNodes(nodes []scan.Node, loopStyles map[string]display.BasicStyle) {
 	for _, node := range nodes {
 		style := lexicalNodeStyle(node, loopStyles)
 		if style == "" {
 			continue
 		}
 		for _, span := range node.Spans() {
-			addScanSpan(out, sourceLines, span, Span{Style: style, Priority: lexicalNodePriority(node)})
+			c.addScan(span, Span{Style: style, Priority: lexicalNodePriority(node)})
 		}
 	}
 }
@@ -546,13 +481,6 @@ func locationMapKey(line, col int) string {
 	return fmt.Sprintf("%d:%d", line, col)
 }
 
-func fieldStyle(style display.BasicStyle, invert bool) display.BasicStyle {
-	if invert {
-		return style.Invert()
-	}
-	return style
-}
-
 type fieldTypeDistance int
 
 const (
@@ -563,6 +491,10 @@ const (
 	fieldTypeDistanceSameProject
 	fieldTypeDistanceExternal
 )
+
+func distanceStyle(distance fieldTypeDistance) display.BasicStyle {
+	return [...]display.BasicStyle{unknownStyle, builtinStyle, sameFileStyle, samePackageStyle, sameProjectStyle, externalStyle}[distance]
+}
 
 func fieldTypeDistanceRank(root string, source, target file.Location) fieldTypeDistance {
 	switch {
@@ -582,30 +514,18 @@ func fieldTypeDistanceRank(root string, source, target file.Location) fieldTypeD
 }
 
 func isBuiltinLocation(loc file.Location) bool {
-	if loc == nil {
-		return false
-	}
-	return scan.IsBuiltinFile(loc.File())
+	return loc != nil && scan.IsBuiltinFile(loc.File())
 }
 
 func sameFileLocation(left, right file.Location) bool {
-	if left == nil || right == nil {
-		return false
-	}
-	return filepath.Clean(left.File()) == filepath.Clean(right.File())
+	return left != nil && right != nil && filepath.Clean(left.File()) == filepath.Clean(right.File())
 }
 
 func samePackageLocation(left, right file.Location) bool {
-	if left == nil || right == nil {
-		return false
-	}
-	return filepath.Dir(filepath.Clean(left.File())) == filepath.Dir(filepath.Clean(right.File()))
+	return left != nil && right != nil && filepath.Dir(filepath.Clean(left.File())) == filepath.Dir(filepath.Clean(right.File()))
 }
 
 func sameProjectLocation(root string, left, right file.Location) bool {
-	if left == nil || right == nil {
-		return false
-	}
 	return inProject(root, left) && inProject(root, right)
 }
 

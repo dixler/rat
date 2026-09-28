@@ -89,34 +89,23 @@ type file struct {
 	root          *declaration
 	nodes         []scan.Node
 	packageRefs   []PackageReference
-	decls         []Declaration
 	namedFields   []NamedLocation
 	indirectCalls []IndirectCall
 }
 
-type location struct {
-	file   string
-	line   int
-	column int
-}
+type location struct{ scan.Location }
 
 type declaration struct {
-	name          string
-	kind          Kind
-	location      location
-	referenceType bool
-	references    []Reference
-	declarations  []Declaration
-	parent        Declaration
+	raw          scan.Declaration
+	references   []Reference
+	declarations []Declaration
+	parent       Declaration
 }
 
 type reference struct {
-	parent        Declaration
-	declaration   Declaration
-	location      location
-	text          string
-	kind          Kind
-	referenceType bool
+	raw         scan.Reference
+	parent      Declaration
+	declaration Declaration
 }
 
 type packageReference struct {
@@ -125,17 +114,12 @@ type packageReference struct {
 }
 
 type packageDeclaration struct {
-	name     string
-	location location
-	files    []Declaration
+	raw   scan.Package
+	files []Declaration
 }
 
 type namedLocation struct {
-	location             location
-	text                 string
-	inline               bool
-	referenceType        bool
-	distanceLocation     *location
+	raw                  scan.NamedField
 	declarationLocations []Location
 }
 
@@ -160,7 +144,7 @@ func NewContent(name string, src []byte) (File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return buildTree(abs, string(src), raw)
+	return buildTree(abs, string(src), raw), nil
 }
 
 func (f *file) Name() string   { return f.name }
@@ -174,60 +158,57 @@ func (f *file) Nodes() []scan.Node  { return clone(f.nodes) }
 func (f *file) PackageReferences() []PackageReference {
 	return clone(f.packageRefs)
 }
-func (f *file) Declarations() []Declaration { return clone(f.decls) }
+func (f *file) Declarations() []Declaration { return f.root.Declarations() }
 func (f *file) TopLevelNamedFields() []NamedLocation {
 	return clone(f.namedFields)
 }
 func (f *file) IndirectCalls() []IndirectCall { return clone(f.indirectCalls) }
 
-func (l location) File() string { return l.file }
-func (l location) Line() int    { return l.line }
-func (l location) Column() int  { return l.column }
+func (l location) File() string { return l.Location.File }
+func (l location) Line() int    { return l.Location.Line }
+func (l location) Column() int  { return l.Location.Column }
 
-func (d *declaration) Name() string            { return d.name }
-func (d *declaration) Kind() Kind              { return d.kind }
-func (d *declaration) Location() Location      { return d.location }
+func (d *declaration) Name() string            { return d.raw.Name }
+func (d *declaration) Kind() Kind              { return Kind(d.raw.Kind) }
+func (d *declaration) Location() Location      { return location{d.raw.Location} }
 func (d *declaration) References() []Reference { return clone(d.references) }
 func (d *declaration) Declarations() []Declaration {
 	return clone(d.declarations)
 }
 func (d *declaration) Parent() Declaration { return d.parent }
-func (d *declaration) ReferenceType() bool { return d.referenceType }
+func (d *declaration) ReferenceType() bool { return d.raw.ReferenceType }
 
 func (r *reference) Parent() Declaration      { return r.parent }
 func (r *reference) Declaration() Declaration { return r.declaration }
-func (r *reference) Location() Location       { return r.location }
-func (r *reference) Text() string             { return r.text }
-func (r *reference) Kind() Kind               { return r.kind }
-func (r *reference) ReferenceType() bool      { return r.referenceType }
+func (r *reference) Location() Location       { return location{r.raw.Location} }
+func (r *reference) Text() string             { return r.raw.Text }
+func (r *reference) Kind() Kind               { return Kind(r.raw.Kind) }
+func (r *reference) ReferenceType() bool      { return r.raw.ReferenceType }
 
 func (r *packageReference) Package() PackageDeclaration { return r.pkg }
 
-func (p *packageDeclaration) Name() string         { return p.name }
-func (p *packageDeclaration) Location() Location   { return p.location }
+func (p *packageDeclaration) Name() string         { return p.raw.Name }
+func (p *packageDeclaration) Location() Location   { return location{p.raw.Location} }
 func (p *packageDeclaration) Files() []Declaration { return clone(p.files) }
 
-func (n namedLocation) Location() Location  { return n.location }
-func (n namedLocation) Text() string        { return n.text }
-func (n namedLocation) ReferenceType() bool { return n.referenceType }
+func (n namedLocation) Location() Location  { return location{n.raw.Location} }
+func (n namedLocation) Text() string        { return n.raw.Text }
+func (n namedLocation) ReferenceType() bool { return n.raw.ReferenceType }
 func (n namedLocation) DeclarationLocations() []Location {
 	return clone(n.declarationLocations)
 }
 func (n namedLocation) DistanceLocation() Location {
-	if n.distanceLocation == nil {
-		return nil
+	if loc, ok := optionalLocation(n.raw.StructDecl); ok {
+		return loc
 	}
-	return *n.distanceLocation
+	return nil
 }
-func (n namedLocation) Inline() bool { return n.inline }
+func (n namedLocation) Inline() bool { return n.raw.Inline }
 
 func buildNamedFields(fields []scan.NamedField) []NamedLocation {
 	out := make([]NamedLocation, 0, len(fields))
 	for _, field := range fields {
-		named := namedLocation{location: fromScanLocation(field.Location), text: field.Text, inline: field.Inline, referenceType: field.ReferenceType}
-		if loc, ok := optionalLocation(field.StructDecl); ok {
-			named.distanceLocation = &loc
-		}
+		named := namedLocation{raw: field}
 		for _, decl := range field.TypeDeclarations {
 			if loc, ok := optionalLocation(decl.Location); ok {
 				named.declarationLocations = append(named.declarationLocations, loc)
@@ -243,25 +224,18 @@ func buildNamedFields(fields []scan.NamedField) []NamedLocation {
 	return out
 }
 
-type indirectCall struct {
-	location location
-	text     string
-}
+type indirectCall struct{ raw scan.IndirectCall }
 
-func (c *indirectCall) Location() Location { return c.location }
-func (c *indirectCall) Text() string       { return c.text }
+func (c *indirectCall) Location() Location { return location{c.raw.Location} }
+func (c *indirectCall) Text() string       { return c.raw.Text }
 
 func clone[T any](in []T) []T { return append([]T(nil), in...) }
-
-func fromScanLocation(loc scan.Location) location {
-	return location{file: loc.File, line: loc.Line, column: loc.Column}
-}
 
 func optionalLocation(loc scan.Location) (location, bool) {
 	if loc.Line < 1 || loc.Column < 1 {
 		return location{}, false
 	}
-	return fromScanLocation(loc), true
+	return location{loc}, true
 }
 
 func projectRoot(path string) string {
@@ -274,10 +248,11 @@ func projectRoot(path string) string {
 	if filepath.Ext(dir) != "" {
 		dir = filepath.Dir(dir)
 	}
-	markers := [...]string{".git", "go.mod", "package.json"}
 	for {
-		if hasMarker(dir, markers[:]...) {
-			return dir
+		for _, marker := range []string{".git", "go.mod", "package.json"} {
+			if _, err := os.Stat(filepath.Join(dir, marker)); err == nil {
+				return dir
+			}
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {
@@ -285,21 +260,4 @@ func projectRoot(path string) string {
 		}
 		dir = parent
 	}
-}
-
-func pathExists(path string) bool {
-	if path == "" {
-		return false
-	}
-	_, err := os.Stat(path)
-	return err == nil
-}
-
-func hasMarker(dir string, names ...string) bool {
-	for _, name := range names {
-		if pathExists(filepath.Join(dir, name)) {
-			return true
-		}
-	}
-	return false
 }

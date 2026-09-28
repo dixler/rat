@@ -175,6 +175,62 @@ When multiple spans could apply to the same text, `rat` keeps one. Spans are sor
 
 When a resolved location does not exactly match the token text in the source line, `rat` searches for the closest occurrence of that text on the line. Unhighlighted text stays white in terminal output. In VS Code, only spans returned by `rat` are decorated, so editor syntax colors do not cover `rat` span colors.
 
+## Scanner Architecture And Verification
+
+The Go scanner parses the supplied source once and shares its AST and `go/types`
+information across four files:
+
+| File under `internal/file/scan/golang` | Responsibility |
+|---|---|
+| `build.go` | Registration, build context, positions, workspace lookups |
+| `symbols.go` | Declaration indexing, references, packages, fields, call classification |
+| `syntax.go` | Lexical and AST-dependent highlighting nodes |
+| `flow.go` | Control-flow records and explicit branch/loop targets |
+
+The scanner emits shared `scan.Result` records. `scan.Build` derives control-flow
+nodes, and `internal/file/build.go` resolves declaration IDs into parent/reference
+links. Rendering consumes these shared types. `goplsclient` supplies workspace
+definitions when single-file type information is insufficient. Project syntax
+and definition caches live for one build; standard-library package summaries
+are cached for the running toolchain and copied into each result.
+
+In-memory source takes precedence over disk. Builds for the same path serialize
+overlay synchronization and workspace queries, so concurrent editor requests
+cannot mix versions. Incomplete source produces partial results; source without
+a package clause produces an empty result. Workspace startup/synchronization
+failures return an error.
+
+Scanner tests cover concurrent overlays, workspace failures, and package-result
+isolation. Fixed rendering fixtures verify final highlighting.
+
+Some record names describe highlighting policy rather than Go reachability:
+
+- `ReferenceType` marks reference-like types recursively: `[]int` and a struct
+  containing `[]int` are true; `[4]int` is false.
+- `HasAbort` on an `if` describes direct terminal statements in that branch.
+  `if ok { return }` is true; `if ok { if other { return } }` is false. Loops
+  and switches also inspect nested records. It does not mean every path exits.
+- Statement `IsAbort` selects continue-like coloring: `continue` and a
+  switch/select-targeting `break` are true; a loop-targeting `break` is false.
+  Loop `MayBreak` and `MayReturn` separately track exits, including labeled ones.
+- Case records retain their direct statements as well as nested statement
+  blocks. Parenthesized/indexed indirect calls may use `x` placeholders whose length
+  records the call-target span. These are preserved boundary conventions.
+
+```bash
+go test ./cmd/rat -run '^TestScanner'
+go test -race ./cmd/rat -run '^TestScanner'
+go test ./...
+go test ./internal/file ./internal/highlight -run '^$' -bench . -benchmem
+```
+
+Rendering goldens change only with `ACCEPT=1`. For source-only edits, update
+internal-source goldens separately:
+
+```bash
+ACCEPT=1 go test ./cmd/rat -run '^TestRenderInternalSources$'
+```
+
 ## Requirements
 
 - Go 1.26 or newer, matching this repo's `go.mod`.
