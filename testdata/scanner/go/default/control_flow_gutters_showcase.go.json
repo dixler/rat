@@ -1,0 +1,2269 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "function-1",
+        "Name": "controlFlowGuttersShowcase",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 3,
+            "Column": 35,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 3,
+            "Column": 50,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 3,
+            "Column": 55,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 4,
+            "Column": 5,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 5,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 6,
+            "Column": 12,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 7,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 9,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 12,
+            "Column": 5,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 13,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 16,
+            "Column": 14,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 16,
+            "Column": 18,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 16,
+            "Column": 21,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 17,
+            "Column": 6,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 22,
+            "Column": 14,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "j",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 22,
+            "Column": 18,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 22,
+            "Column": 21,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "j",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 23,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 23,
+            "Column": 8,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "j",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 26,
+            "Column": 9,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 28,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 30,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 32,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 36,
+            "Column": 14,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "ch",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 37,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 37,
+            "Column": 8,
+            "DeclarationID": "variable-6",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 38,
+            "Column": 9,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "ch",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 39,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 41,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 44,
+            "Column": 9,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 46,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 48,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 50,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 54,
+            "Column": 14,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "ch",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 55,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 55,
+            "Column": 8,
+            "DeclarationID": "variable-7",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 56,
+            "Column": 9,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "ch",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 57,
+            "Column": 3,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 60,
+            "Column": 5,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 61,
+            "Column": 10,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 63,
+            "Column": 9,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 3,
+            "Column": 33,
+            "ID": "parameter-2",
+            "Name": "a",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 3,
+            "Column": 40,
+            "ID": "parameter-3",
+            "Name": "ch",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 16,
+            "Column": 6,
+            "ID": "variable-4",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 22,
+            "Column": 6,
+            "ID": "variable-5",
+            "Name": "j",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 36,
+            "Column": 7,
+            "ID": "variable-6",
+            "Name": "v",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 54,
+            "Column": 7,
+            "ID": "variable-7",
+            "Name": "v",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 4,
+            "Column": 2,
+            "Kind": "if",
+            "OpenBraceLine": 4,
+            "OpenBraceColumn": 12,
+            "CloseBraceLine": 6,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 5,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 6,
+                "Column": 9,
+                "Kind": "elseif",
+                "OpenBraceLine": 6,
+                "OpenBraceColumn": 18,
+                "CloseBraceLine": 8,
+                "CloseBraceColumn": 2,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 7,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  },
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 8,
+                    "Column": 9,
+                    "Kind": "else",
+                    "OpenBraceLine": 8,
+                    "OpenBraceColumn": 9,
+                    "CloseBraceLine": 10,
+                    "CloseBraceColumn": 2,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                        "Line": 9,
+                        "Column": 3,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 12,
+            "Column": 2,
+            "Kind": "if",
+            "OpenBraceLine": 12,
+            "OpenBraceColumn": 13,
+            "CloseBraceLine": 14,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 13,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 16,
+            "Column": 2,
+            "Kind": "for",
+            "OpenBraceLine": 16,
+            "OpenBraceColumn": 25,
+            "CloseBraceLine": 20,
+            "CloseBraceColumn": 2,
+            "HasAbort": true,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 17,
+                "Column": 3,
+                "Kind": "if",
+                "OpenBraceLine": 17,
+                "OpenBraceColumn": 12,
+                "CloseBraceLine": 19,
+                "CloseBraceColumn": 3,
+                "HasAbort": true,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 18,
+                    "Column": 4,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": true,
+                    "Statements": [
+                      {
+                        "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                        "Line": 18,
+                        "Column": 4,
+                        "Kind": "break",
+                        "ReturnsError": false,
+                        "IsAbort": false
+                      }
+                    ],
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": true,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 22,
+            "Column": 2,
+            "Kind": "for",
+            "OpenBraceLine": 22,
+            "OpenBraceColumn": 25,
+            "CloseBraceLine": 24,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 23,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 26,
+            "Column": 2,
+            "Kind": "switch",
+            "OpenBraceLine": 26,
+            "OpenBraceColumn": 15,
+            "CloseBraceLine": 33,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 27,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 28,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 29,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 30,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 31,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 32,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": true,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": true,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 35,
+            "Column": 2,
+            "Kind": "select",
+            "OpenBraceLine": 35,
+            "OpenBraceColumn": 9,
+            "CloseBraceLine": 42,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 36,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 37,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 38,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 39,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 40,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 41,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": true,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": true,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 44,
+            "Column": 2,
+            "Kind": "switch",
+            "OpenBraceLine": 44,
+            "OpenBraceColumn": 15,
+            "CloseBraceLine": 51,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 45,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 46,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 47,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 48,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 49,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 50,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 53,
+            "Column": 2,
+            "Kind": "select",
+            "OpenBraceLine": 53,
+            "OpenBraceColumn": 9,
+            "CloseBraceLine": 58,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 54,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 55,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 56,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 57,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 60,
+            "Column": 2,
+            "Kind": "if",
+            "OpenBraceLine": 60,
+            "OpenBraceColumn": 14,
+            "CloseBraceLine": 62,
+            "CloseBraceColumn": 2,
+            "HasAbort": true,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 61,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": true,
+                "Statements": [
+                  {
+                    "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                    "Line": 61,
+                    "Column": 3,
+                    "Kind": "return",
+                    "ReturnsError": false,
+                    "IsAbort": false
+                  }
+                ],
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+            "Line": 63,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/control_flow_gutters_showcase.go",
+                "Line": 63,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 45,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 9,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 8,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 16,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 7,
+            "Column": 8,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 9,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 12,
+            "Column": 10,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 13,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 16,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 17,
+            "Column": 10,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 22,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 26,
+            "Column": 13,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 27,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 8,
+            "Length": 3
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 29,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 30,
+            "Column": 8,
+            "Length": 3
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 32,
+            "Column": 8,
+            "Length": 3
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 39,
+            "Column": 8,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 41,
+            "Column": 8,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 44,
+            "Column": 13,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 45,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 46,
+            "Column": 8,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 47,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 48,
+            "Column": 8,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 49,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 50,
+            "Column": 8,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 55,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 57,
+            "Column": 8,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 60,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 60,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 63,
+            "Column": 13,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 3,
+            "Column": 59,
+            "Length": 1
+          },
+          {
+            "Line": 64,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 2,
+            "Length": 2
+          },
+          {
+            "Line": 4,
+            "Column": 12,
+            "Length": 1
+          },
+          {
+            "Line": 6,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 4,
+            "Length": 7
+          },
+          {
+            "Line": 6,
+            "Column": 18,
+            "Length": 1
+          },
+          {
+            "Line": 8,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 8,
+            "Column": 4,
+            "Length": 4
+          },
+          {
+            "Line": 8,
+            "Column": 9,
+            "Length": 1
+          },
+          {
+            "Line": 10,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 12,
+            "Column": 2,
+            "Length": 2
+          },
+          {
+            "Line": 12,
+            "Column": 13,
+            "Length": 1
+          },
+          {
+            "Line": 14,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 16,
+            "Column": 2,
+            "Length": 3
+          },
+          {
+            "Line": 16,
+            "Column": 25,
+            "Length": 1
+          },
+          {
+            "Line": 20,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "HasExit": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 17,
+            "Column": 3,
+            "Length": 2
+          },
+          {
+            "Line": 17,
+            "Column": 12,
+            "Length": 1
+          },
+          {
+            "Line": 19,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 18,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 4
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 22,
+            "Column": 2,
+            "Length": 3
+          },
+          {
+            "Line": 22,
+            "Column": 25,
+            "Length": 1
+          },
+          {
+            "Line": 24,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "HasExit": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 26,
+            "Column": 2,
+            "Length": 6
+          },
+          {
+            "Line": 26,
+            "Column": 15,
+            "Length": 1
+          },
+          {
+            "Line": 33,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 27,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 29,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 31,
+            "Column": 2,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 35,
+            "Column": 2,
+            "Length": 6
+          },
+          {
+            "Line": 35,
+            "Column": 9,
+            "Length": 1
+          },
+          {
+            "Line": 42,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 36,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 38,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 40,
+            "Column": 2,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 44,
+            "Column": 2,
+            "Length": 6
+          },
+          {
+            "Line": 44,
+            "Column": 15,
+            "Length": 1
+          },
+          {
+            "Line": 51,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsComplete": false
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 45,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 47,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 49,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 53,
+            "Column": 2,
+            "Length": 6
+          },
+          {
+            "Line": 53,
+            "Column": 9,
+            "Length": 1
+          },
+          {
+            "Line": 58,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsComplete": false
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 54,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 56,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 60,
+            "Column": 2,
+            "Length": 2
+          },
+          {
+            "Line": 60,
+            "Column": 14,
+            "Length": 1
+          },
+          {
+            "Line": 62,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 61,
+          "Column": 3,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 63,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

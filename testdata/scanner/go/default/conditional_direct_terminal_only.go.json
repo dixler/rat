@@ -1,0 +1,777 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "function-1",
+        "Name": "conditionalDirectTerminalOnly",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 3,
+            "Column": 41,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 16,
+              "Column": 6
+            },
+            "Text": "bool",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 3,
+            "Column": 56,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 3,
+            "Column": 61,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 4,
+            "Column": 5,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "flag",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 10,
+            "Column": 5,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 179,
+              "Column": 6
+            },
+            "Text": "len",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 10,
+            "Column": 9,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "values",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 11,
+            "Column": 21,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "values",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 12,
+            "Column": 7,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 13,
+            "Column": 12,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 18,
+            "Column": 5,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 179,
+              "Column": 6
+            },
+            "Text": "len",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 18,
+            "Column": 9,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "values",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 19,
+            "Column": 10,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "values",
+            "Kind": "parameter",
+            "ReferenceType": true
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 3,
+            "Column": 36,
+            "ID": "parameter-2",
+            "Name": "flag",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 3,
+            "Column": 47,
+            "ID": "parameter-3",
+            "Name": "values",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 11,
+            "Column": 10,
+            "ID": "variable-4",
+            "Name": "v",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 4,
+            "Column": 2,
+            "Kind": "if",
+            "OpenBraceLine": 4,
+            "OpenBraceColumn": 10,
+            "CloseBraceLine": 8,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                "Line": 5,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": true,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                    "Line": 6,
+                    "Column": 4,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": true,
+                    "Statements": [
+                      {
+                        "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                        "Line": 6,
+                        "Column": 4,
+                        "Kind": "return",
+                        "ReturnsError": false,
+                        "IsAbort": false
+                      }
+                    ],
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 10,
+            "Column": 2,
+            "Kind": "if",
+            "OpenBraceLine": 10,
+            "OpenBraceColumn": 21,
+            "CloseBraceLine": 16,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                "Line": 11,
+                "Column": 3,
+                "Kind": "for",
+                "OpenBraceLine": 11,
+                "OpenBraceColumn": 28,
+                "CloseBraceLine": 15,
+                "CloseBraceColumn": 3,
+                "HasAbort": true,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                    "Line": 12,
+                    "Column": 4,
+                    "Kind": "if",
+                    "OpenBraceLine": 12,
+                    "OpenBraceColumn": 14,
+                    "CloseBraceLine": 14,
+                    "CloseBraceColumn": 4,
+                    "HasAbort": true,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                        "Line": 13,
+                        "Column": 5,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": true,
+                        "Statements": [
+                          {
+                            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                            "Line": 13,
+                            "Column": 5,
+                            "Kind": "return",
+                            "ReturnsError": false,
+                            "IsAbort": false
+                          }
+                        ],
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": true
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 18,
+            "Column": 2,
+            "Kind": "if",
+            "OpenBraceLine": 18,
+            "OpenBraceColumn": 22,
+            "CloseBraceLine": 20,
+            "CloseBraceColumn": 2,
+            "HasAbort": true,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                "Line": 19,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": true,
+                "Statements": [
+                  {
+                    "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                    "Line": 19,
+                    "Column": 3,
+                    "Kind": "return",
+                    "ReturnsError": false,
+                    "IsAbort": false
+                  }
+                ],
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+            "Line": 22,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/conditional_direct_terminal_only.go",
+                "Line": 22,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 19,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LoopOperatorNode",
+      "Value": {
+        "Span": {
+          "Line": 11,
+          "Column": 15,
+          "Length": 5
+        },
+        "Anchor": {
+          "Line": 11,
+          "Column": 3,
+          "Length": 3
+        }
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 12,
+            "Column": 11,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 20,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 19,
+            "Column": 17,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 22,
+            "Column": 9,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 3,
+            "Column": 65,
+            "Length": 1
+          },
+          {
+            "Line": 23,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 54,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 8,
+            "Length": 1
+          },
+          {
+            "Line": 10,
+            "Column": 15,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 8,
+            "Length": 1
+          },
+          {
+            "Line": 18,
+            "Column": 15,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 2,
+            "Length": 2
+          },
+          {
+            "Line": 4,
+            "Column": 10,
+            "Length": 1
+          },
+          {
+            "Line": 8,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 6,
+          "Column": 4,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 2,
+            "Length": 2
+          },
+          {
+            "Line": 10,
+            "Column": 21,
+            "Length": 1
+          },
+          {
+            "Line": 16,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 11,
+            "Column": 3,
+            "Length": 3
+          },
+          {
+            "Line": 11,
+            "Column": 28,
+            "Length": 1
+          },
+          {
+            "Line": 15,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "HasExit": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 12,
+            "Column": 4,
+            "Length": 2
+          },
+          {
+            "Line": 12,
+            "Column": 14,
+            "Length": 1
+          },
+          {
+            "Line": 14,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 13,
+          "Column": 5,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 2,
+            "Length": 2
+          },
+          {
+            "Line": 18,
+            "Column": 22,
+            "Length": 1
+          },
+          {
+            "Line": 20,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 19,
+          "Column": 3,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 22,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

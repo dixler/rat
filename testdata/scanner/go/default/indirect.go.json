@@ -1,0 +1,221 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/indirect.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/indirect.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "type-1",
+        "Name": "I",
+        "Kind": "type",
+        "ReferenceType": true,
+        "References": null,
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/indirect.go",
+            "Line": 3,
+            "Column": 19,
+            "ID": "function-2",
+            "Name": "M",
+            "Kind": "function",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": null
+      },
+      {
+        "File": "$REPO/testdata/go/default/indirect.go",
+        "Line": 5,
+        "Column": 6,
+        "ID": "function-3",
+        "Name": "test",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/indirect.go",
+            "Line": 5,
+            "Column": 13,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "I",
+            "Kind": "type",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/indirect.go",
+            "Line": 6,
+            "Column": 2,
+            "DeclarationID": "parameter-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/indirect.go",
+            "Line": 6,
+            "Column": 4,
+            "DeclarationID": "function-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "M",
+            "Kind": "function",
+            "ReferenceType": true
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/indirect.go",
+            "Line": 5,
+            "Column": 11,
+            "ID": "parameter-4",
+            "Name": "i",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/indirect.go",
+            "Line": 6,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": [
+      {
+        "File": "$REPO/testdata/go/default/indirect.go",
+        "Line": 6,
+        "Column": 4,
+        "Text": "M"
+      }
+    ]
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 8,
+            "Length": 9
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 5,
+            "Column": 16,
+            "Length": 1
+          },
+          {
+            "Line": 7,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 5,
+            "Length": 1
+          },
+          {
+            "Line": 6,
+            "Column": 6,
+            "Length": 1
+          }
+        ],
+        "Indirect": true
+      }
+    }
+  ],
+  "Error": ""
+}

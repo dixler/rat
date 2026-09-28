@@ -1,0 +1,138 @@
+{
+  "Result": {
+    "File": "$TEMP/probe.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$TEMP/probe.go",
+        "Line": 2,
+        "Column": 6,
+        "ID": "function-1",
+        "Name": "unresolved",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 2,
+            "Column": 21,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "missing",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 2,
+            "Column": 29,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "unknown",
+            "Kind": "variable",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": null,
+        "ControlFlow": [
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 2,
+            "Column": 21,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 5
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 2,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 2,
+            "Column": 19,
+            "Length": 1
+          },
+          {
+            "Line": 2,
+            "Column": 38,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 2,
+            "Column": 28,
+            "Length": 1
+          },
+          {
+            "Line": 2,
+            "Column": 36,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    }
+  ],
+  "Error": ""
+}

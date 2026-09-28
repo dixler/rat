@@ -1,0 +1,391 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/same_file_refs.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/same_file_refs.go",
+        "Line": 3,
+        "Column": 5,
+        "ID": "variable-1",
+        "Name": "packageValue",
+        "Kind": "variable",
+        "ReferenceType": false,
+        "References": null,
+        "Declarations": null,
+        "ControlFlow": null
+      },
+      {
+        "File": "$REPO/testdata/go/default/same_file_refs.go",
+        "Line": 5,
+        "Column": 6,
+        "ID": "function-2",
+        "Name": "plusOne",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 5,
+            "Column": 16,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 5,
+            "Column": 21,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 6,
+            "Column": 9,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 5,
+            "Column": 14,
+            "ID": "parameter-3",
+            "Name": "v",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 6,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/same_file_refs.go",
+                "Line": 6,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/same_file_refs.go",
+        "Line": 9,
+        "Column": 6,
+        "ID": "function-4",
+        "Name": "useSameFileRefs",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 9,
+            "Column": 24,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 10,
+            "Column": 11,
+            "DeclarationID": "function-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "plusOne",
+            "Kind": "function",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 10,
+            "Column": 19,
+            "DeclarationID": "variable-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "packageValue",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 11,
+            "Column": 9,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "local",
+            "Kind": "variable",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 10,
+            "Column": 2,
+            "ID": "variable-5",
+            "Name": "local",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 10,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/same_file_refs.go",
+            "Line": 11,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/same_file_refs.go",
+                "Line": 11,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 3
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 20,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 13,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 5,
+            "Column": 25,
+            "Length": 1
+          },
+          {
+            "Line": 7,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 9,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 9,
+            "Column": 28,
+            "Length": 1
+          },
+          {
+            "Line": 12,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 18,
+            "Length": 1
+          },
+          {
+            "Line": 10,
+            "Column": 31,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 6,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 11,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

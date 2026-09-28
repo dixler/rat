@@ -1,0 +1,1878 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "type-1",
+        "Name": "Config",
+        "Kind": "type",
+        "ReferenceType": false,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 4,
+            "Column": 7,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 73,
+              "Column": 6
+            },
+            "Text": "string",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 5,
+            "Column": 7,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": null,
+        "ControlFlow": null
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 8,
+        "Column": 6,
+        "ID": "function-2",
+        "Name": "buildConfigs",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 8,
+            "Column": 24,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 8,
+            "Column": 31,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "Config",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 9,
+            "Column": 16,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "Config",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 10,
+            "Column": 4,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 4,
+              "Column": 2
+            },
+            "Text": "Name",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 10,
+            "Column": 17,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 5,
+              "Column": 2
+            },
+            "Text": "Port",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 10,
+            "Column": 23,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "port",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 11,
+            "Column": 4,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 4,
+              "Column": 2
+            },
+            "Text": "Name",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 14,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 73,
+              "Column": 6
+            },
+            "Text": "string",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 15,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 16,
+            "Column": 4,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 14,
+              "Column": 3
+            },
+            "Text": "Label",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 16,
+            "Column": 19,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 15,
+              "Column": 3
+            },
+            "Text": "Port",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 16,
+            "Column": 25,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "port",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 18,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 73,
+              "Column": 6
+            },
+            "Text": "string",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 19,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 20,
+            "Column": 4,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 18,
+              "Column": 3
+            },
+            "Text": "Label",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 22,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 73,
+              "Column": 6
+            },
+            "Text": "string",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 23,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 24,
+            "Column": 4,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 22,
+              "Column": 3
+            },
+            "Text": "Label",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 24,
+            "Column": 11,
+            "DeclarationID": "variable-6",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "anonPartial",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 24,
+            "Column": 23,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 18,
+              "Column": 3
+            },
+            "Text": "Label",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 26,
+            "Column": 11,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "Config",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 28,
+            "Column": 4,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 26,
+              "Column": 3
+            },
+            "Text": "Primary",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 28,
+            "Column": 13,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "Config",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 28,
+            "Column": 20,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 4,
+              "Column": 2
+            },
+            "Text": "Name",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 28,
+            "Column": 26,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "defaults",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 28,
+            "Column": 38,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 4,
+              "Column": 2
+            },
+            "Text": "Name",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 28,
+            "Column": 44,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 5,
+              "Column": 2
+            },
+            "Text": "Port",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 28,
+            "Column": 50,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "defaults",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 28,
+            "Column": 62,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 5,
+              "Column": 2
+            },
+            "Text": "Port",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 29,
+            "Column": 4,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 26,
+              "Column": 3
+            },
+            "Text": "Primary",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 29,
+            "Column": 13,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "Config",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 29,
+            "Column": 20,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 4,
+              "Column": 2
+            },
+            "Text": "Name",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 29,
+            "Column": 26,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "defaults",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 29,
+            "Column": 38,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 4,
+              "Column": 2
+            },
+            "Text": "Name",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 31,
+            "Column": 6,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "anon",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 32,
+            "Column": 6,
+            "DeclarationID": "variable-7",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "anonPtr",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 33,
+            "Column": 11,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "Config",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 33,
+            "Column": 18,
+            "DeclarationID": "variable-8",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "typed",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 33,
+            "Column": 27,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 26,
+              "Column": 3
+            },
+            "Text": "Primary",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 33,
+            "Column": 36,
+            "DeclarationID": "variable-8",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "typed",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 33,
+            "Column": 45,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+              "Line": 26,
+              "Column": 3
+            },
+            "Text": "Primary",
+            "Kind": "variable",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 8,
+            "Column": 19,
+            "ID": "parameter-3",
+            "Name": "port",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 9,
+            "Column": 2,
+            "ID": "variable-4",
+            "Name": "defaults",
+            "Kind": "variable",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 13,
+            "Column": 2,
+            "ID": "variable-5",
+            "Name": "anon",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 17,
+            "Column": 2,
+            "ID": "variable-6",
+            "Name": "anonPartial",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 21,
+            "Column": 2,
+            "ID": "variable-7",
+            "Name": "anonPtr",
+            "Kind": "variable",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 25,
+            "Column": 2,
+            "ID": "variable-8",
+            "Name": "typed",
+            "Kind": "variable",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 9,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 13,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 17,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 21,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 25,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 31,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 32,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 33,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+                "Line": 33,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": [
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 4,
+        "Column": 2,
+        "Text": "Name",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 73,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 5,
+        "Column": 2,
+        "Text": "Port",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 10,
+        "Column": 4,
+        "Text": "Name",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+          "Line": 3,
+          "Column": 6
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 10,
+        "Column": 17,
+        "Text": "Port",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+          "Line": 3,
+          "Column": 6
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 11,
+        "Column": 4,
+        "Text": "Name",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+          "Line": 3,
+          "Column": 6
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 16,
+        "Column": 4,
+        "Text": "Label",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 16,
+        "Column": 19,
+        "Text": "Port",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 14,
+        "Column": 3,
+        "Text": "Label",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 73,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 15,
+        "Column": 3,
+        "Text": "Port",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 20,
+        "Column": 4,
+        "Text": "Label",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 18,
+        "Column": 3,
+        "Text": "Label",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 73,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 19,
+        "Column": 3,
+        "Text": "Port",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 24,
+        "Column": 4,
+        "Text": "Label",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 22,
+        "Column": 3,
+        "Text": "Label",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 73,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 23,
+        "Column": 3,
+        "Text": "Port",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 28,
+        "Column": 4,
+        "Text": "Primary",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 3,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 29,
+        "Column": 4,
+        "Text": "Primary",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 3,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 26,
+        "Column": 3,
+        "Text": "Primary",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+          "Line": 3,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 3,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 28,
+        "Column": 4,
+        "Text": "Primary",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 3,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 28,
+        "Column": 20,
+        "Text": "Name",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 28,
+        "Column": 44,
+        "Text": "Port",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 29,
+        "Column": 4,
+        "Text": "Primary",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+            "Line": 3,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/struct_literal_expression_edges.go",
+        "Line": 29,
+        "Column": 20,
+        "Text": "Name",
+        "Inline": true,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      }
+    ],
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 13,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 10,
+            "Length": 5
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 11,
+            "Column": 10,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 13,
+            "Column": 10,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 16,
+            "Column": 11,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 17,
+            "Column": 17,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 20,
+            "Column": 11,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 21,
+            "Column": 14,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 25,
+            "Column": 13,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 35,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 59,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 29,
+            "Column": 35,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 33,
+            "Column": 24,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 33,
+            "Column": 42,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 8,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 8,
+            "Column": 38,
+            "Length": 1
+          },
+          {
+            "Line": 34,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 8,
+            "Column": 29,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 9,
+            "Column": 14,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 3,
+            "Length": 1
+          },
+          {
+            "Line": 10,
+            "Column": 27,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 11,
+            "Column": 3,
+            "Length": 1
+          },
+          {
+            "Line": 11,
+            "Column": 17,
+            "Length": 1
+          }
+        ],
+        "IsComplete": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 16,
+            "Column": 3,
+            "Length": 1
+          },
+          {
+            "Line": 16,
+            "Column": 29,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 20,
+            "Column": 3,
+            "Length": 1
+          },
+          {
+            "Line": 20,
+            "Column": 17,
+            "Length": 1
+          }
+        ],
+        "IsComplete": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 24,
+            "Column": 3,
+            "Length": 1
+          },
+          {
+            "Line": 24,
+            "Column": 28,
+            "Length": 1
+          }
+        ],
+        "IsComplete": false
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 25,
+            "Column": 11,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 3,
+            "Length": 1
+          },
+          {
+            "Line": 28,
+            "Column": 67,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 19,
+            "Length": 1
+          },
+          {
+            "Line": 28,
+            "Column": 66,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 29,
+            "Column": 3,
+            "Length": 1
+          },
+          {
+            "Line": 29,
+            "Column": 43,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 29,
+            "Column": 19,
+            "Length": 1
+          },
+          {
+            "Line": 29,
+            "Column": 42,
+            "Length": 1
+          }
+        ],
+        "IsComplete": false
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 33,
+            "Column": 9,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 33,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

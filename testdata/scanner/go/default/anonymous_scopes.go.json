@@ -1,0 +1,418 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "function-1",
+        "Name": "anonymousScopes",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 3,
+            "Column": 27,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 16,
+              "Column": 6
+            },
+            "Text": "bool",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 3,
+            "Column": 33,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 7,
+            "Column": 7,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "count",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 9,
+            "Column": 5,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "flag",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 11,
+            "Column": 7,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "count",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 13,
+            "Column": 9,
+            "DeclarationID": "variable-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "count",
+            "Kind": "variable",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 3,
+            "Column": 22,
+            "ID": "parameter-2",
+            "Name": "flag",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 4,
+            "Column": 2,
+            "ID": "variable-3",
+            "Name": "count",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 6,
+            "Column": 3,
+            "ID": "variable-4",
+            "Name": "count",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 10,
+            "Column": 3,
+            "ID": "variable-5",
+            "Name": "count",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 4,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 5,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+                "Line": 6,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+                "Line": 7,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 9,
+            "Column": 2,
+            "Kind": "if",
+            "OpenBraceLine": 9,
+            "OpenBraceColumn": 10,
+            "CloseBraceLine": 12,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+                "Line": 10,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+                "Line": 11,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+            "Line": 13,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/anonymous_scopes.go",
+                "Line": 13,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 3,
+            "Column": 37,
+            "Length": 1
+          },
+          {
+            "Line": 14,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 9,
+            "Column": 2,
+            "Length": 2
+          },
+          {
+            "Line": 9,
+            "Column": 10,
+            "Length": 1
+          },
+          {
+            "Line": 12,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 13,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

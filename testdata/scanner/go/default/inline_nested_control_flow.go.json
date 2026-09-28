@@ -1,0 +1,2590 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "function-1",
+        "Name": "inlineNestedControlFlow",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 39,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 57,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 76,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 85,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 317,
+              "Column": 6
+            },
+            "Text": "error",
+            "Kind": "type",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 92,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 317,
+              "Column": 6
+            },
+            "Text": "error",
+            "Kind": "type",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 28,
+            "Column": 9,
+            "DeclarationID": "variable-6",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "worker",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 28,
+            "Column": 16,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 179,
+              "Column": 6
+            },
+            "Text": "len",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 28,
+            "Column": 20,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "values",
+            "Kind": "parameter",
+            "ReferenceType": true
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 30,
+            "ID": "parameter-2",
+            "Name": "values",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 44,
+            "ID": "parameter-3",
+            "Name": "input",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 62,
+            "ID": "parameter-4",
+            "Name": "output",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 3,
+            "Column": 81,
+            "ID": "parameter-5",
+            "Name": "err",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 4,
+            "Column": 2,
+            "ID": "variable-6",
+            "Name": "worker",
+            "Kind": "variable",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 4,
+            "Column": 12,
+            "ID": "function-7",
+            "Name": "",
+            "Kind": "function",
+            "ReferenceType": false,
+            "References": [
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 4,
+                "Column": 23,
+                "DeclarationID": "",
+                "Declaration": {
+                  "File": "$GOROOT/src/builtin/builtin.go",
+                  "Line": 77,
+                  "Column": 6
+                },
+                "Text": "int",
+                "Kind": "type",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 4,
+                "Column": 28,
+                "DeclarationID": "",
+                "Declaration": {
+                  "File": "$GOROOT/src/builtin/builtin.go",
+                  "Line": 317,
+                  "Column": 6
+                },
+                "Text": "error",
+                "Kind": "type",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 5,
+                "Column": 6,
+                "DeclarationID": "parameter-8",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "limit",
+                "Kind": "parameter",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 6,
+                "Column": 16,
+                "DeclarationID": "variable-9",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "i",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 6,
+                "Column": 20,
+                "DeclarationID": "parameter-8",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "limit",
+                "Kind": "parameter",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 6,
+                "Column": 27,
+                "DeclarationID": "variable-9",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "i",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 7,
+                "Column": 21,
+                "DeclarationID": "parameter-2",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "values",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 7,
+                "Column": 28,
+                "DeclarationID": "variable-9",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "i",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 7,
+                "Column": 30,
+                "DeclarationID": "",
+                "Declaration": {
+                  "File": "$GOROOT/src/builtin/builtin.go",
+                  "Line": 179,
+                  "Column": 6
+                },
+                "Text": "len",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 7,
+                "Column": 34,
+                "DeclarationID": "parameter-2",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "values",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 8,
+                "Column": 10,
+                "DeclarationID": "variable-10",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "value",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 9,
+                "Column": 13,
+                "DeclarationID": "parameter-5",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "err",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 10,
+                "Column": 10,
+                "DeclarationID": "variable-10",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "value",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 12,
+                "Column": 11,
+                "DeclarationID": "parameter-4",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "output",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 12,
+                "Column": 21,
+                "DeclarationID": "variable-10",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "value",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 14,
+                "Column": 20,
+                "DeclarationID": "parameter-3",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "input",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 15,
+                "Column": 10,
+                "DeclarationID": "variable-11",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "got",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 16,
+                "Column": 15,
+                "DeclarationID": "parameter-5",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "err",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 19,
+                "Column": 14,
+                "DeclarationID": "",
+                "Declaration": {
+                  "File": "$GOROOT/src/builtin/builtin.go",
+                  "Line": 113,
+                  "Column": 5
+                },
+                "Text": "nil",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 22,
+                "Column": 6,
+                "DeclarationID": "parameter-4",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "output",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 22,
+                "Column": 16,
+                "DeclarationID": "variable-10",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "value",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 26,
+                "Column": 10,
+                "DeclarationID": "",
+                "Declaration": {
+                  "File": "$GOROOT/src/builtin/builtin.go",
+                  "Line": 113,
+                  "Column": 5
+                },
+                "Text": "nil",
+                "Kind": "variable",
+                "ReferenceType": false
+              }
+            ],
+            "Declarations": [
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 4,
+                "Column": 17,
+                "ID": "parameter-8",
+                "Name": "limit",
+                "Kind": "parameter",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 6,
+                "Column": 8,
+                "ID": "variable-9",
+                "Name": "i",
+                "Kind": "variable",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 7,
+                "Column": 12,
+                "ID": "variable-10",
+                "Name": "value",
+                "Kind": "variable",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 14,
+                "Column": 11,
+                "ID": "variable-11",
+                "Name": "got",
+                "Kind": "variable",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              }
+            ],
+            "ControlFlow": [
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 5,
+                "Column": 3,
+                "Kind": "if",
+                "OpenBraceLine": 5,
+                "OpenBraceColumn": 16,
+                "CloseBraceLine": 25,
+                "CloseBraceColumn": 3,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                    "Line": 6,
+                    "Column": 4,
+                    "Kind": "for",
+                    "OpenBraceLine": 6,
+                    "OpenBraceColumn": 31,
+                    "CloseBraceLine": 24,
+                    "CloseBraceColumn": 4,
+                    "HasAbort": true,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                        "Line": 7,
+                        "Column": 5,
+                        "Kind": "switch",
+                        "OpenBraceLine": 7,
+                        "OpenBraceColumn": 44,
+                        "CloseBraceLine": 23,
+                        "CloseBraceColumn": 5,
+                        "HasAbort": true,
+                        "Statements": null,
+                        "Blocks": [
+                          {
+                            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                            "Line": 8,
+                            "Column": 5,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": true,
+                            "Statements": [
+                              {
+                                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                "Line": 9,
+                                "Column": 6,
+                                "Kind": "return",
+                                "ReturnsError": true,
+                                "IsAbort": false
+                              }
+                            ],
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                "Line": 9,
+                                "Column": 6,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": true,
+                                "Statements": [
+                                  {
+                                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                    "Line": 9,
+                                    "Column": 6,
+                                    "Kind": "return",
+                                    "ReturnsError": true,
+                                    "IsAbort": false
+                                  }
+                                ],
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": false,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          },
+                          {
+                            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                            "Line": 10,
+                            "Column": 5,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": null,
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                "Line": 11,
+                                "Column": 6,
+                                "Kind": "select",
+                                "OpenBraceLine": 11,
+                                "OpenBraceColumn": 13,
+                                "CloseBraceLine": 20,
+                                "CloseBraceColumn": 6,
+                                "HasAbort": true,
+                                "Statements": null,
+                                "Blocks": [
+                                  {
+                                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                    "Line": 12,
+                                    "Column": 6,
+                                    "Kind": "case",
+                                    "OpenBraceLine": 0,
+                                    "OpenBraceColumn": 0,
+                                    "CloseBraceLine": 0,
+                                    "CloseBraceColumn": 0,
+                                    "HasAbort": true,
+                                    "Statements": [
+                                      {
+                                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                        "Line": 13,
+                                        "Column": 7,
+                                        "Kind": "continue",
+                                        "ReturnsError": false,
+                                        "IsAbort": true
+                                      }
+                                    ],
+                                    "Blocks": [
+                                      {
+                                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                        "Line": 13,
+                                        "Column": 7,
+                                        "Kind": "block",
+                                        "OpenBraceLine": 0,
+                                        "OpenBraceColumn": 0,
+                                        "CloseBraceLine": 0,
+                                        "CloseBraceColumn": 0,
+                                        "HasAbort": true,
+                                        "Statements": [
+                                          {
+                                            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                            "Line": 13,
+                                            "Column": 7,
+                                            "Kind": "continue",
+                                            "ReturnsError": false,
+                                            "IsAbort": true
+                                          }
+                                        ],
+                                        "Blocks": null,
+                                        "HasDefault": false,
+                                        "MayBreak": false,
+                                        "MayReturn": false
+                                      }
+                                    ],
+                                    "HasDefault": false,
+                                    "MayBreak": false,
+                                    "MayReturn": false
+                                  },
+                                  {
+                                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                    "Line": 14,
+                                    "Column": 6,
+                                    "Kind": "case",
+                                    "OpenBraceLine": 0,
+                                    "OpenBraceColumn": 0,
+                                    "CloseBraceLine": 0,
+                                    "CloseBraceColumn": 0,
+                                    "HasAbort": false,
+                                    "Statements": null,
+                                    "Blocks": [
+                                      {
+                                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                        "Line": 15,
+                                        "Column": 7,
+                                        "Kind": "if",
+                                        "OpenBraceLine": 15,
+                                        "OpenBraceColumn": 18,
+                                        "CloseBraceLine": 17,
+                                        "CloseBraceColumn": 7,
+                                        "HasAbort": true,
+                                        "Statements": null,
+                                        "Blocks": [
+                                          {
+                                            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                            "Line": 16,
+                                            "Column": 8,
+                                            "Kind": "block",
+                                            "OpenBraceLine": 0,
+                                            "OpenBraceColumn": 0,
+                                            "CloseBraceLine": 0,
+                                            "CloseBraceColumn": 0,
+                                            "HasAbort": true,
+                                            "Statements": [
+                                              {
+                                                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                                "Line": 16,
+                                                "Column": 8,
+                                                "Kind": "return",
+                                                "ReturnsError": true,
+                                                "IsAbort": false
+                                              }
+                                            ],
+                                            "Blocks": null,
+                                            "HasDefault": false,
+                                            "MayBreak": false,
+                                            "MayReturn": false
+                                          }
+                                        ],
+                                        "HasDefault": false,
+                                        "MayBreak": false,
+                                        "MayReturn": false
+                                      }
+                                    ],
+                                    "HasDefault": false,
+                                    "MayBreak": false,
+                                    "MayReturn": false
+                                  },
+                                  {
+                                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                    "Line": 18,
+                                    "Column": 6,
+                                    "Kind": "case",
+                                    "OpenBraceLine": 0,
+                                    "OpenBraceColumn": 0,
+                                    "CloseBraceLine": 0,
+                                    "CloseBraceColumn": 0,
+                                    "HasAbort": true,
+                                    "Statements": [
+                                      {
+                                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                        "Line": 19,
+                                        "Column": 7,
+                                        "Kind": "return",
+                                        "ReturnsError": false,
+                                        "IsAbort": false
+                                      }
+                                    ],
+                                    "Blocks": [
+                                      {
+                                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                        "Line": 19,
+                                        "Column": 7,
+                                        "Kind": "block",
+                                        "OpenBraceLine": 0,
+                                        "OpenBraceColumn": 0,
+                                        "CloseBraceLine": 0,
+                                        "CloseBraceColumn": 0,
+                                        "HasAbort": true,
+                                        "Statements": [
+                                          {
+                                            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                            "Line": 19,
+                                            "Column": 7,
+                                            "Kind": "return",
+                                            "ReturnsError": false,
+                                            "IsAbort": false
+                                          }
+                                        ],
+                                        "Blocks": null,
+                                        "HasDefault": false,
+                                        "MayBreak": false,
+                                        "MayReturn": false
+                                      }
+                                    ],
+                                    "HasDefault": true,
+                                    "MayBreak": false,
+                                    "MayReturn": false
+                                  }
+                                ],
+                                "HasDefault": true,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": false,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          },
+                          {
+                            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                            "Line": 21,
+                            "Column": 5,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": null,
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                "Line": 22,
+                                "Column": 6,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": null,
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": true,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          }
+                        ],
+                        "HasDefault": true,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": true
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 26,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": true,
+                "Statements": [
+                  {
+                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                    "Line": 26,
+                    "Column": 3,
+                    "Kind": "return",
+                    "ReturnsError": false,
+                    "IsAbort": false
+                  }
+                ],
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ]
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 4,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 28,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 28,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": true,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+        "Line": 31,
+        "Column": 6,
+        "ID": "function-12",
+        "Name": "inlineNestedDeclarationBlocks",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 31,
+            "Column": 41,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 16,
+              "Column": 6
+            },
+            "Text": "bool",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 31,
+            "Column": 56,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 31,
+            "Column": 74,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 31,
+            "Column": 79,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 31,
+            "Column": 36,
+            "ID": "parameter-13",
+            "Name": "flag",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 31,
+            "Column": 47,
+            "ID": "parameter-14",
+            "Name": "values",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 31,
+            "Column": 61,
+            "ID": "parameter-15",
+            "Name": "input",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 32,
+            "Column": 9,
+            "ID": "function-16",
+            "Name": "",
+            "Kind": "function",
+            "ReferenceType": false,
+            "References": [
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 32,
+                "Column": 16,
+                "DeclarationID": "",
+                "Declaration": {
+                  "File": "$GOROOT/src/builtin/builtin.go",
+                  "Line": 77,
+                  "Column": 6
+                },
+                "Text": "int",
+                "Kind": "type",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 34,
+                "Column": 6,
+                "DeclarationID": "parameter-13",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "flag",
+                "Kind": "parameter",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 35,
+                "Column": 30,
+                "DeclarationID": "parameter-14",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "values",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 36,
+                "Column": 12,
+                "DeclarationID": "variable-18",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "index",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 39,
+                "Column": 20,
+                "DeclarationID": "parameter-15",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "input",
+                "Kind": "parameter",
+                "ReferenceType": true
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 40,
+                "Column": 7,
+                "DeclarationID": "variable-17",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "result",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 40,
+                "Column": 17,
+                "DeclarationID": "variable-20",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "got",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 42,
+                "Column": 7,
+                "DeclarationID": "variable-17",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "result",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 42,
+                "Column": 17,
+                "DeclarationID": "variable-19",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "value",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 45,
+                "Column": 6,
+                "DeclarationID": "variable-17",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "result",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 45,
+                "Column": 16,
+                "DeclarationID": "variable-19",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "value",
+                "Kind": "variable",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 49,
+                "Column": 10,
+                "DeclarationID": "variable-17",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "result",
+                "Kind": "variable",
+                "ReferenceType": false
+              }
+            ],
+            "Declarations": [
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 33,
+                "Column": 3,
+                "ID": "variable-17",
+                "Name": "result",
+                "Kind": "variable",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 35,
+                "Column": 8,
+                "ID": "variable-18",
+                "Name": "index",
+                "Kind": "variable",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 35,
+                "Column": 15,
+                "ID": "variable-19",
+                "Name": "value",
+                "Kind": "variable",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 39,
+                "Column": 11,
+                "ID": "variable-20",
+                "Name": "got",
+                "Kind": "variable",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              }
+            ],
+            "ControlFlow": [
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 33,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 34,
+                "Column": 3,
+                "Kind": "if",
+                "OpenBraceLine": 34,
+                "OpenBraceColumn": 11,
+                "CloseBraceLine": 48,
+                "CloseBraceColumn": 3,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                    "Line": 35,
+                    "Column": 4,
+                    "Kind": "for",
+                    "OpenBraceLine": 35,
+                    "OpenBraceColumn": 37,
+                    "CloseBraceLine": 47,
+                    "CloseBraceColumn": 4,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                        "Line": 36,
+                        "Column": 5,
+                        "Kind": "switch",
+                        "OpenBraceLine": 36,
+                        "OpenBraceColumn": 22,
+                        "CloseBraceLine": 46,
+                        "CloseBraceColumn": 5,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": [
+                          {
+                            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                            "Line": 37,
+                            "Column": 5,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": null,
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                "Line": 38,
+                                "Column": 6,
+                                "Kind": "select",
+                                "OpenBraceLine": 38,
+                                "OpenBraceColumn": 13,
+                                "CloseBraceLine": 43,
+                                "CloseBraceColumn": 6,
+                                "HasAbort": false,
+                                "Statements": null,
+                                "Blocks": [
+                                  {
+                                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                    "Line": 39,
+                                    "Column": 6,
+                                    "Kind": "case",
+                                    "OpenBraceLine": 0,
+                                    "OpenBraceColumn": 0,
+                                    "CloseBraceLine": 0,
+                                    "CloseBraceColumn": 0,
+                                    "HasAbort": false,
+                                    "Statements": null,
+                                    "Blocks": [
+                                      {
+                                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                        "Line": 40,
+                                        "Column": 7,
+                                        "Kind": "block",
+                                        "OpenBraceLine": 0,
+                                        "OpenBraceColumn": 0,
+                                        "CloseBraceLine": 0,
+                                        "CloseBraceColumn": 0,
+                                        "HasAbort": false,
+                                        "Statements": null,
+                                        "Blocks": null,
+                                        "HasDefault": false,
+                                        "MayBreak": false,
+                                        "MayReturn": false
+                                      }
+                                    ],
+                                    "HasDefault": false,
+                                    "MayBreak": false,
+                                    "MayReturn": false
+                                  },
+                                  {
+                                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                    "Line": 41,
+                                    "Column": 6,
+                                    "Kind": "case",
+                                    "OpenBraceLine": 0,
+                                    "OpenBraceColumn": 0,
+                                    "CloseBraceLine": 0,
+                                    "CloseBraceColumn": 0,
+                                    "HasAbort": false,
+                                    "Statements": null,
+                                    "Blocks": [
+                                      {
+                                        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                        "Line": 42,
+                                        "Column": 7,
+                                        "Kind": "block",
+                                        "OpenBraceLine": 0,
+                                        "OpenBraceColumn": 0,
+                                        "CloseBraceLine": 0,
+                                        "CloseBraceColumn": 0,
+                                        "HasAbort": false,
+                                        "Statements": null,
+                                        "Blocks": null,
+                                        "HasDefault": false,
+                                        "MayBreak": false,
+                                        "MayReturn": false
+                                      }
+                                    ],
+                                    "HasDefault": true,
+                                    "MayBreak": false,
+                                    "MayReturn": false
+                                  }
+                                ],
+                                "HasDefault": true,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": false,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          },
+                          {
+                            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                            "Line": 44,
+                            "Column": 5,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": null,
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                                "Line": 45,
+                                "Column": 6,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": null,
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": true,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          }
+                        ],
+                        "HasDefault": true,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 49,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": true,
+                "Statements": [
+                  {
+                    "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                    "Line": 49,
+                    "Column": 3,
+                    "Kind": "return",
+                    "ReturnsError": false,
+                    "IsAbort": false
+                  }
+                ],
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ]
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+            "Line": 32,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+                "Line": 32,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": [
+      {
+        "File": "$REPO/testdata/go/default/inline_nested_control_flow.go",
+        "Line": 28,
+        "Column": 9,
+        "Text": "worker"
+      }
+    ]
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 52,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 69,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 14,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 13,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 8,
+            "Column": 18,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 19,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 15,
+            "Column": 16,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 31,
+            "Column": 69,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 33,
+            "Column": 13,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LoopOperatorNode",
+      "Value": {
+        "Span": {
+          "Line": 35,
+          "Column": 24,
+          "Length": 5
+        },
+        "Anchor": {
+          "Line": 35,
+          "Column": 4,
+          "Length": 3
+        }
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 36,
+            "Column": 20,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 37,
+            "Column": 10,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 3,
+            "Column": 98,
+            "Length": 1
+          },
+          {
+            "Line": 29,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": true
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 37,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 12,
+            "Length": 4
+          },
+          {
+            "Line": 4,
+            "Column": 34,
+            "Length": 1
+          },
+          {
+            "Line": 27,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": true
+      }
+    },
+    {
+      "Type": "scan.InlineFunctionIndentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 6,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 7,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 8,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 9,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 10,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 11,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 12,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 13,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 14,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 15,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 16,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 17,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 18,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 19,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 20,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 21,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 22,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 23,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 24,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 25,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 26,
+            "Column": 2,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 31,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 31,
+            "Column": 83,
+            "Length": 1
+          },
+          {
+            "Line": 51,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 31,
+            "Column": 54,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 32,
+            "Column": 9,
+            "Length": 4
+          },
+          {
+            "Line": 32,
+            "Column": 20,
+            "Length": 1
+          },
+          {
+            "Line": 50,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.InlineFunctionIndentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 33,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 34,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 35,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 36,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 37,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 38,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 39,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 40,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 41,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 42,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 43,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 44,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 45,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 46,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 47,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 48,
+            "Column": 2,
+            "Length": 1
+          },
+          {
+            "Line": 49,
+            "Column": 2,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 7,
+            "Column": 33,
+            "Length": 1
+          },
+          {
+            "Line": 7,
+            "Column": 40,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 15,
+            "Length": 1
+          },
+          {
+            "Line": 28,
+            "Column": 27,
+            "Length": 1
+          }
+        ],
+        "Indirect": true
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 19,
+            "Length": 1
+          },
+          {
+            "Line": 28,
+            "Column": 26,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 50,
+            "Column": 3,
+            "Length": 1
+          },
+          {
+            "Line": 50,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 28,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 2
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 3,
+            "Length": 2
+          },
+          {
+            "Line": 5,
+            "Column": 16,
+            "Length": 1
+          },
+          {
+            "Line": 25,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 4,
+            "Length": 3
+          },
+          {
+            "Line": 6,
+            "Column": 31,
+            "Length": 1
+          },
+          {
+            "Line": 24,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "HasExit": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 7,
+            "Column": 5,
+            "Length": 6
+          },
+          {
+            "Line": 7,
+            "Column": 44,
+            "Length": 1
+          },
+          {
+            "Line": 23,
+            "Column": 5,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 8,
+            "Column": 5,
+            "Length": 4
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 9,
+          "Column": 6,
+          "Length": 6
+        },
+        "Kind": 2
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 9,
+          "Column": 6,
+          "Length": 6
+        },
+        "Kind": 2
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 5,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 11,
+            "Column": 6,
+            "Length": 6
+          },
+          {
+            "Line": 11,
+            "Column": 13,
+            "Length": 1
+          },
+          {
+            "Line": 20,
+            "Column": 6,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 12,
+            "Column": 6,
+            "Length": 4
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 13,
+          "Column": 7,
+          "Length": 8
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 13,
+          "Column": 7,
+          "Length": 8
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 14,
+            "Column": 6,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 15,
+            "Column": 7,
+            "Length": 2
+          },
+          {
+            "Line": 15,
+            "Column": 18,
+            "Length": 1
+          },
+          {
+            "Line": 17,
+            "Column": 7,
+            "Length": 1
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 16,
+          "Column": 8,
+          "Length": 6
+        },
+        "Kind": 2
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 6,
+            "Length": 7
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 19,
+          "Column": 7,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 19,
+          "Column": 7,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 21,
+            "Column": 5,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 26,
+          "Column": 3,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 32,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 34,
+            "Column": 3,
+            "Length": 2
+          },
+          {
+            "Line": 34,
+            "Column": 11,
+            "Length": 1
+          },
+          {
+            "Line": 48,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 35,
+            "Column": 4,
+            "Length": 3
+          },
+          {
+            "Line": 35,
+            "Column": 37,
+            "Length": 1
+          },
+          {
+            "Line": 47,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "HasExit": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 36,
+            "Column": 5,
+            "Length": 6
+          },
+          {
+            "Line": 36,
+            "Column": 22,
+            "Length": 1
+          },
+          {
+            "Line": 46,
+            "Column": 5,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 37,
+            "Column": 5,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 38,
+            "Column": 6,
+            "Length": 6
+          },
+          {
+            "Line": 38,
+            "Column": 13,
+            "Length": 1
+          },
+          {
+            "Line": 43,
+            "Column": 6,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 39,
+            "Column": 6,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 41,
+            "Column": 6,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 44,
+            "Column": 5,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 49,
+          "Column": 3,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

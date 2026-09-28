@@ -47,6 +47,8 @@ Core behavior is semantic highlighting, not plain syntax highlighting. Preserve 
 - `cmd/rat/`: CLI, local server, and pipeline golden tests.
 - `internal/`: shared highlighting, file loading, rendering, generic LSP, `gopls`, and API logic.
 - File-tree adapters retain scanner records and resolve parent/reference links; highlighting collects spans with shared source/project context.
+- The Go scanner shares one AST/type context: `build.go` orchestrates parsing and workspace lookups, `symbols.go` indexes declarations and collects relationships, `syntax.go` emits lexical/AST nodes, and `flow.go` emits control-flow records. `scan.Build` alone derives control-flow nodes.
+- Same-path overlays are serialized through bounded document locks. Workspace ASTs and symbol locations are cached per build; standard-library package summaries are cached per process and copied into results.
 - `testdata/`: golden outputs used by tests.
 - `vscode-text-semantic/`: VS Code extension and extension tests.
 - `infra/`: Pulumi deployment code and static site assets.
@@ -71,7 +73,9 @@ It returns spans grouped by 1-based line number. Preserve this shape when editin
 ## Commands
 
 - Go tests: `go test ./...`
+- Frozen scanner contracts and probes: `go test ./cmd/rat -run '^TestScanner'`. Snapshots in `testdata/scanner` preserve record ordering, links, flags, concrete node types, and spans; comparisons normalize paths and opaque IDs. `ACCEPT` never changes them.
 - Update Go goldens after intentional highlighting changes: `ACCEPT=1 go test ./...`
+- Rendering goldens update only with `ACCEPT=1`, never from Git status. When only internal source text changes, update `TestRenderInternalSources` separately from fixed fixtures.
 - Build CLI: `go build ./cmd/rat`
 - Build embedded `gopls`: `go build -o internal/file/scan/golang/goplsclient/gopls golang.org/x/tools/gopls`
 - Build main targets: `make`

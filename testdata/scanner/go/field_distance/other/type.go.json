@@ -1,0 +1,75 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/field_distance/other/type.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/field_distance/other/type.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "type-1",
+        "Name": "ProjectType",
+        "Kind": "type",
+        "ReferenceType": false,
+        "References": null,
+        "Declarations": null,
+        "ControlFlow": null
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 5
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 18,
+            "Length": 6
+          }
+        ]
+      }
+    }
+  ],
+  "Error": ""
+}

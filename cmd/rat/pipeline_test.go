@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -58,10 +57,6 @@ func TestRenderInternalSources(t *testing.T) {
 	require.True(t, len(sources) > 0, "no internal source files found")
 
 	accept := os.Getenv("ACCEPT") == "1"
-	changed := map[string]bool{}
-	if !accept {
-		changed = gitChangedFiles(t, root)
-	}
 
 	for _, sourcePath := range sources {
 		rel, err := filepath.Rel(internalRoot, sourcePath)
@@ -77,12 +72,10 @@ func TestRenderInternalSources(t *testing.T) {
 
 			normalized := normalizeOutput(out, testSourcePath, filepath.ToSlash(filepath.Join("internal", testRel)), false)
 			expectedPath := filepath.Join(goldenRoot, testRel+".out")
-			if accept || changed[filepath.ToSlash(testSourcePath)] {
+			if accept {
 				require.NoError(t, os.MkdirAll(filepath.Dir(expectedPath), 0o755))
 				require.NoError(t, os.WriteFile(expectedPath, []byte(normalized), 0o644))
-				if accept {
-					return
-				}
+				return
 			}
 
 			expected, err := os.ReadFile(expectedPath)
@@ -167,28 +160,6 @@ func walkInternalSources(t *testing.T, dir string, entries []os.DirEntry, out *[
 			*out = append(*out, path)
 		}
 	}
-}
-
-func gitChangedFiles(t *testing.T, root string) map[string]bool {
-	t.Helper()
-	cmd := exec.Command("git", "status", "--porcelain", "--untracked-files=no", "--", "internal")
-	cmd.Dir = root
-	out, err := cmd.Output()
-	require.NoError(t, err)
-
-	changed := map[string]bool{}
-	for _, line := range strings.Split(string(out), "\n") {
-		if len(line) < 4 {
-			continue
-		}
-		path := strings.TrimSpace(line[3:])
-		if strings.Contains(path, " -> ") {
-			parts := strings.Split(path, " -> ")
-			path = parts[len(parts)-1]
-		}
-		changed[filepath.ToSlash(filepath.Join(root, filepath.FromSlash(path)))] = true
-	}
-	return changed
 }
 
 func normalizeOutput(output, sourcePath, rel string, testdata bool) string {

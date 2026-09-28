@@ -1,0 +1,851 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "type-1",
+        "Name": "absurd",
+        "Kind": "type",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 4,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 6,
+            "Column": 10,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 8,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 11,
+            "Column": 18,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 12,
+            "Column": 10,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": null,
+        "ControlFlow": null
+      },
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 16,
+        "Column": 6,
+        "ID": "function-2",
+        "Name": "absurdNestedStructFields",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 16,
+            "Column": 33,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "absurd",
+            "Kind": "type",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 16,
+            "Column": 41,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 17,
+            "Column": 7,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 17,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+              "Line": 5,
+              "Column": 2
+            },
+            "Text": "nested",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 17,
+            "Column": 16,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+              "Line": 7,
+              "Column": 3
+            },
+            "Text": "deeper",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 17,
+            "Column": 23,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+              "Line": 8,
+              "Column": 4
+            },
+            "Text": "core",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 18,
+            "Column": 5,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 19,
+            "Column": 8,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 19,
+            "Column": 10,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+              "Line": 4,
+              "Column": 2
+            },
+            "Text": "outer",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 19,
+            "Column": 18,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 19,
+            "Column": 20,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+              "Line": 11,
+              "Column": 2
+            },
+            "Text": "build",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 19,
+            "Column": 26,
+            "DeclarationID": "variable-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 19,
+            "Column": 29,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+              "Line": 12,
+              "Column": 3
+            },
+            "Text": "result",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 20,
+            "Column": 10,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 22,
+            "Column": 9,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "a",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 22,
+            "Column": 11,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+              "Line": 5,
+              "Column": 2
+            },
+            "Text": "nested",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 22,
+            "Column": 18,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+              "Line": 6,
+              "Column": 3
+            },
+            "Text": "inner",
+            "Kind": "variable",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 16,
+            "Column": 31,
+            "ID": "parameter-3",
+            "Name": "a",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 17,
+            "Column": 2,
+            "ID": "variable-4",
+            "Name": "v",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 19,
+            "Column": 3,
+            "ID": "variable-5",
+            "Name": "v",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 17,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 18,
+            "Column": 2,
+            "Kind": "if",
+            "OpenBraceLine": 18,
+            "OpenBraceColumn": 11,
+            "CloseBraceLine": 21,
+            "CloseBraceColumn": 2,
+            "HasAbort": true,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+                "Line": 19,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+                "Line": 20,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": true,
+                "Statements": [
+                  {
+                    "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+                    "Line": 20,
+                    "Column": 3,
+                    "Kind": "return",
+                    "ReturnsError": false,
+                    "IsAbort": false
+                  }
+                ],
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+            "Line": 22,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+                "Line": 22,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": [
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 4,
+        "Column": 2,
+        "Text": "outer",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 5,
+        "Column": 2,
+        "Text": "nested",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 11,
+        "Column": 2,
+        "Text": "build",
+        "Inline": false,
+        "ReferenceType": true,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 6,
+        "Column": 3,
+        "Text": "inner",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 7,
+        "Column": 3,
+        "Text": "deeper",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 8,
+        "Column": 4,
+        "Text": "core",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 12,
+        "Column": 3,
+        "Text": "result",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      }
+    ],
+    "IndirectCalls": [
+      {
+        "File": "$REPO/testdata/go/default/absurd_nested_struct_fields.go",
+        "Line": 19,
+        "Column": 20,
+        "Text": "build"
+      }
+    ]
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 13,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 7,
+            "Column": 10,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 11,
+            "Column": 23,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 9,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 16,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 16,
+            "Column": 45,
+            "Length": 1
+          },
+          {
+            "Line": 23,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 19,
+            "Column": 25,
+            "Length": 1
+          },
+          {
+            "Line": 19,
+            "Column": 27,
+            "Length": 1
+          }
+        ],
+        "Indirect": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 2,
+            "Length": 2
+          },
+          {
+            "Line": 18,
+            "Column": 11,
+            "Length": 1
+          },
+          {
+            "Line": 21,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 20,
+          "Column": 3,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 22,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

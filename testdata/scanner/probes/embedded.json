@@ -1,0 +1,434 @@
+{
+  "Result": {
+    "File": "$TEMP/probe.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$TEMP/probe.go",
+        "Line": 2,
+        "Column": 6,
+        "ID": "type-1",
+        "Name": "Base",
+        "Kind": "type",
+        "ReferenceType": false,
+        "References": [
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 2,
+            "Column": 26,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": null,
+        "ControlFlow": null
+      },
+      {
+        "File": "$TEMP/probe.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "type-2",
+        "Name": "Wrapper",
+        "Kind": "type",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 3,
+            "Column": 41,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 73,
+              "Column": 6
+            },
+            "Text": "string",
+            "Kind": "type",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": null,
+        "ControlFlow": null
+      },
+      {
+        "File": "$TEMP/probe.go",
+        "Line": 4,
+        "Column": 6,
+        "ID": "type-3",
+        "Name": "Other",
+        "Kind": "type",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 4,
+            "Column": 28,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 90,
+              "Column": 6
+            },
+            "Text": "byte",
+            "Kind": "type",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": null,
+        "ControlFlow": null
+      },
+      {
+        "File": "$TEMP/probe.go",
+        "Line": 5,
+        "Column": 6,
+        "ID": "function-4",
+        "Name": "embedded",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 5,
+            "Column": 17,
+            "DeclarationID": "type-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "Wrapper",
+            "Kind": "type",
+            "ReferenceType": true
+          },
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 5,
+            "Column": 26,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 5,
+            "Column": 39,
+            "DeclarationID": "parameter-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "w",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 5,
+            "Column": 41,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$TEMP/probe.go",
+              "Line": 2,
+              "Column": 20
+            },
+            "Text": "Value",
+            "Kind": "variable",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 5,
+            "Column": 15,
+            "ID": "parameter-5",
+            "Name": "w",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$TEMP/probe.go",
+            "Line": 5,
+            "Column": 32,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$TEMP/probe.go",
+                "Line": 5,
+                "Column": 32,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": [
+      {
+        "File": "$TEMP/probe.go",
+        "Line": 2,
+        "Column": 20,
+        "Text": "Value",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 77,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 77,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$TEMP/probe.go",
+        "Line": 3,
+        "Column": 37,
+        "Text": "Tag",
+        "Inline": false,
+        "ReferenceType": false,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 73,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 73,
+            "Column": 6
+          }
+        ]
+      },
+      {
+        "File": "$TEMP/probe.go",
+        "Line": 4,
+        "Column": 21,
+        "Text": "Data",
+        "Inline": false,
+        "ReferenceType": true,
+        "StructDecl": {
+          "File": "",
+          "Line": 0,
+          "Column": 0
+        },
+        "Declaration": {
+          "File": "$GOROOT/src/builtin/builtin.go",
+          "Line": 90,
+          "Column": 6
+        },
+        "TypeDeclarations": [
+          {
+            "File": "$GOROOT/src/builtin/builtin.go",
+            "Line": 90,
+            "Column": 6
+          }
+        ]
+      }
+    ],
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 5
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 2,
+            "Column": 1,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 2,
+            "Column": 11,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 14,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 48,
+            "Length": 12
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 1,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 12,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 26,
+            "Length": 2
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 5,
+            "Column": 30,
+            "Length": 1
+          },
+          {
+            "Line": 5,
+            "Column": 47,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 5,
+          "Column": 32,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

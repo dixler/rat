@@ -1,0 +1,844 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "type-1",
+        "Name": "runner",
+        "Kind": "type",
+        "ReferenceType": false,
+        "References": null,
+        "Declarations": null,
+        "ControlFlow": null
+      },
+      {
+        "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+        "Line": 5,
+        "Column": 6,
+        "ID": "function-2",
+        "Name": "runValue",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 5,
+            "Column": 17,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 5,
+            "Column": 22,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 6,
+            "Column": 9,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 5,
+            "Column": 15,
+            "ID": "parameter-3",
+            "Name": "v",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 6,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                "Line": 6,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+        "Line": 9,
+        "Column": 18,
+        "ID": "function-4",
+        "Name": "runValue",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 9,
+            "Column": 10,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "runner",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 9,
+            "Column": 29,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 9,
+            "Column": 34,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 10,
+            "Column": 6,
+            "DeclarationID": "parameter-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "r",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 11,
+            "Column": 9,
+            "DeclarationID": "parameter-6",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 9,
+            "Column": 7,
+            "ID": "parameter-5",
+            "Name": "r",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 9,
+            "Column": 27,
+            "ID": "parameter-6",
+            "Name": "v",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 10,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 11,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                "Line": 11,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      },
+      {
+        "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+        "Line": 14,
+        "Column": 6,
+        "ID": "function-7",
+        "Name": "useRunValue",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 14,
+            "Column": 21,
+            "DeclarationID": "type-1",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "runner",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 14,
+            "Column": 38,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 14,
+            "Column": 43,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 18,
+            "Column": 9,
+            "DeclarationID": "parameter-8",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "r",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 18,
+            "Column": 11,
+            "DeclarationID": "function-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "runValue",
+            "Kind": "function",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 18,
+            "Column": 20,
+            "DeclarationID": "parameter-9",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "runValue",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 18,
+            "Column": 32,
+            "DeclarationID": "variable-10",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "local",
+            "Kind": "variable",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 18,
+            "Column": 38,
+            "DeclarationID": "parameter-9",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "runValue",
+            "Kind": "parameter",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 14,
+            "Column": 18,
+            "ID": "parameter-8",
+            "Name": "r",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 14,
+            "Column": 29,
+            "ID": "parameter-9",
+            "Name": "runValue",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 15,
+            "Column": 2,
+            "ID": "variable-10",
+            "Name": "local",
+            "Kind": "variable",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 15,
+            "Column": 11,
+            "ID": "function-11",
+            "Name": "",
+            "Kind": "function",
+            "ReferenceType": false,
+            "References": [
+              {
+                "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                "Line": 15,
+                "Column": 25,
+                "DeclarationID": "",
+                "Declaration": {
+                  "File": "$GOROOT/src/builtin/builtin.go",
+                  "Line": 77,
+                  "Column": 6
+                },
+                "Text": "int",
+                "Kind": "type",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                "Line": 15,
+                "Column": 30,
+                "DeclarationID": "",
+                "Declaration": {
+                  "File": "$GOROOT/src/builtin/builtin.go",
+                  "Line": 77,
+                  "Column": 6
+                },
+                "Text": "int",
+                "Kind": "type",
+                "ReferenceType": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                "Line": 16,
+                "Column": 10,
+                "DeclarationID": "parameter-12",
+                "Declaration": {
+                  "File": "",
+                  "Line": 0,
+                  "Column": 0
+                },
+                "Text": "runValue",
+                "Kind": "parameter",
+                "ReferenceType": false
+              }
+            ],
+            "Declarations": [
+              {
+                "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                "Line": 15,
+                "Column": 16,
+                "ID": "parameter-12",
+                "Name": "runValue",
+                "Kind": "parameter",
+                "ReferenceType": false,
+                "References": null,
+                "Declarations": null,
+                "ControlFlow": null
+              }
+            ],
+            "ControlFlow": [
+              {
+                "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                "Line": 16,
+                "Column": 3,
+                "Kind": "block",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": true,
+                "Statements": [
+                  {
+                    "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                    "Line": 16,
+                    "Column": 3,
+                    "Kind": "return",
+                    "ReturnsError": false,
+                    "IsAbort": false
+                  }
+                ],
+                "Blocks": null,
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ]
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 15,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+            "Line": 18,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+                "Line": 18,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": [
+      {
+        "File": "$REPO/testdata/go/default/method_function_shadowing.go",
+        "Line": 18,
+        "Column": 32,
+        "Text": "local"
+      }
+    ]
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 13,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 13,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 11,
+            "Column": 13,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 16,
+            "Column": 21,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 5,
+            "Column": 26,
+            "Length": 1
+          },
+          {
+            "Line": 7,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 9,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 9,
+            "Column": 38,
+            "Length": 1
+          },
+          {
+            "Line": 12,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 14,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 14,
+            "Column": 47,
+            "Length": 1
+          },
+          {
+            "Line": 19,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 15,
+            "Column": 11,
+            "Length": 4
+          },
+          {
+            "Line": 15,
+            "Column": 34,
+            "Length": 1
+          },
+          {
+            "Line": 17,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.InlineFunctionIndentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 16,
+            "Column": 2,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 19,
+            "Length": 1
+          },
+          {
+            "Line": 18,
+            "Column": 28,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 37,
+            "Length": 1
+          },
+          {
+            "Line": 18,
+            "Column": 46,
+            "Length": 1
+          }
+        ],
+        "Indirect": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 6,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 11,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 18,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 16,
+          "Column": 3,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

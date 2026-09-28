@@ -1,0 +1,3683 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/switch_case_break.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/switch_case_break.go",
+        "Line": 3,
+        "Column": 6,
+        "ID": "function-1",
+        "Name": "switchCaseBreak",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 3,
+            "Column": 24,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 3,
+            "Column": 31,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 97,
+              "Column": 6
+            },
+            "Text": "any",
+            "Kind": "type",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 3,
+            "Column": 46,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 3,
+            "Column": 51,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 5,
+            "Column": 9,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 7,
+            "Column": 15,
+            "DeclarationID": "variable-6",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 7,
+            "Column": 19,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 7,
+            "Column": 22,
+            "DeclarationID": "variable-6",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 8,
+            "Column": 7,
+            "DeclarationID": "variable-6",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 11,
+            "Column": 4,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 11,
+            "Column": 13,
+            "DeclarationID": "variable-6",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 13,
+            "Column": 3,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 16,
+            "Column": 10,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 18,
+            "Column": 15,
+            "DeclarationID": "variable-7",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 18,
+            "Column": 19,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 18,
+            "Column": 22,
+            "DeclarationID": "variable-7",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 19,
+            "Column": 11,
+            "DeclarationID": "variable-7",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 23,
+            "Column": 5,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 23,
+            "Column": 14,
+            "DeclarationID": "variable-7",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 25,
+            "Column": 4,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 28,
+            "Column": 15,
+            "DeclarationID": "variable-8",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 28,
+            "Column": 19,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 28,
+            "Column": 22,
+            "DeclarationID": "variable-8",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 29,
+            "Column": 7,
+            "DeclarationID": "variable-8",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 34,
+            "Column": 15,
+            "DeclarationID": "variable-9",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 34,
+            "Column": 19,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 34,
+            "Column": 22,
+            "DeclarationID": "variable-9",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 35,
+            "Column": 11,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/switch_case_break.go",
+              "Line": 35,
+              "Column": 11
+            },
+            "Text": "value",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 35,
+            "Column": 20,
+            "DeclarationID": "parameter-3",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "x",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 36,
+            "Column": 9,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/builtin/builtin.go",
+              "Line": 77,
+              "Column": 6
+            },
+            "Text": "int",
+            "Kind": "type",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 37,
+            "Column": 5,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 37,
+            "Column": 14,
+            "DeclarationID": "variable-10",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "value",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 40,
+            "Column": 5,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 40,
+            "Column": 14,
+            "DeclarationID": "variable-9",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 42,
+            "Column": 4,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 45,
+            "Column": 15,
+            "DeclarationID": "variable-12",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 45,
+            "Column": 19,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 45,
+            "Column": 22,
+            "DeclarationID": "variable-12",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 47,
+            "Column": 18,
+            "DeclarationID": "parameter-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "ch",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 48,
+            "Column": 5,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 48,
+            "Column": 14,
+            "DeclarationID": "variable-13",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "got",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 51,
+            "Column": 5,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 51,
+            "Column": 14,
+            "DeclarationID": "variable-12",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 53,
+            "Column": 4,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 56,
+            "Column": 3,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 59,
+            "Column": 14,
+            "DeclarationID": "variable-14",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 59,
+            "Column": 18,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 59,
+            "Column": 21,
+            "DeclarationID": "variable-14",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 61,
+            "Column": 10,
+            "DeclarationID": "variable-14",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 63,
+            "Column": 10,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/switch_case_break.go",
+              "Line": 60,
+              "Column": 2
+            },
+            "Text": "switchLabel",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 65,
+            "Column": 4,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 65,
+            "Column": 13,
+            "DeclarationID": "variable-14",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 69,
+            "Column": 14,
+            "DeclarationID": "variable-15",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 69,
+            "Column": 18,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 69,
+            "Column": 21,
+            "DeclarationID": "variable-15",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 72,
+            "Column": 17,
+            "DeclarationID": "parameter-4",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "ch",
+            "Kind": "parameter",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 73,
+            "Column": 4,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 73,
+            "Column": 13,
+            "DeclarationID": "variable-16",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "got",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 74,
+            "Column": 10,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/switch_case_break.go",
+              "Line": 70,
+              "Column": 2
+            },
+            "Text": "selectLabel",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 76,
+            "Column": 4,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 76,
+            "Column": 13,
+            "DeclarationID": "variable-15",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 81,
+            "Column": 14,
+            "DeclarationID": "variable-17",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 81,
+            "Column": 18,
+            "DeclarationID": "parameter-2",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "v",
+            "Kind": "parameter",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 81,
+            "Column": 21,
+            "DeclarationID": "variable-17",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 82,
+            "Column": 10,
+            "DeclarationID": "variable-17",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 86,
+            "Column": 10,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/testdata/go/default/switch_case_break.go",
+              "Line": 80,
+              "Column": 1
+            },
+            "Text": "outer",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 88,
+            "Column": 4,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 88,
+            "Column": 13,
+            "DeclarationID": "variable-17",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "i",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 91,
+            "Column": 9,
+            "DeclarationID": "variable-5",
+            "Declaration": {
+              "File": "",
+              "Line": 0,
+              "Column": 0
+            },
+            "Text": "total",
+            "Kind": "variable",
+            "ReferenceType": false
+          }
+        ],
+        "Declarations": [
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 3,
+            "Column": 22,
+            "ID": "parameter-2",
+            "Name": "v",
+            "Kind": "parameter",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 3,
+            "Column": 29,
+            "ID": "parameter-3",
+            "Name": "x",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 3,
+            "Column": 36,
+            "ID": "parameter-4",
+            "Name": "ch",
+            "Kind": "parameter",
+            "ReferenceType": true,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 4,
+            "Column": 2,
+            "ID": "variable-5",
+            "Name": "total",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 7,
+            "Column": 7,
+            "ID": "variable-6",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 18,
+            "Column": 7,
+            "ID": "variable-7",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 28,
+            "Column": 7,
+            "ID": "variable-8",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 34,
+            "Column": 7,
+            "ID": "variable-9",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 35,
+            "Column": 11,
+            "ID": "variable-10",
+            "Name": "value",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 35,
+            "Column": 11,
+            "ID": "variable-11",
+            "Name": "value",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 45,
+            "Column": 7,
+            "ID": "variable-12",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 47,
+            "Column": 9,
+            "ID": "variable-13",
+            "Name": "got",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 59,
+            "Column": 6,
+            "ID": "variable-14",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 69,
+            "Column": 6,
+            "ID": "variable-15",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 72,
+            "Column": 8,
+            "ID": "variable-16",
+            "Name": "got",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 81,
+            "Column": 6,
+            "ID": "variable-17",
+            "Name": "i",
+            "Kind": "variable",
+            "ReferenceType": false,
+            "References": null,
+            "Declarations": null,
+            "ControlFlow": null
+          }
+        ],
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 4,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 5,
+            "Column": 2,
+            "Kind": "switch",
+            "OpenBraceLine": 5,
+            "OpenBraceColumn": 11,
+            "CloseBraceLine": 57,
+            "CloseBraceColumn": 2,
+            "HasAbort": true,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 6,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 14,
+                    "Column": 3,
+                    "Kind": "break",
+                    "ReturnsError": false,
+                    "IsAbort": true
+                  }
+                ],
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 7,
+                    "Column": 3,
+                    "Kind": "for",
+                    "OpenBraceLine": 7,
+                    "OpenBraceColumn": 26,
+                    "CloseBraceLine": 12,
+                    "CloseBraceColumn": 3,
+                    "HasAbort": true,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 8,
+                        "Column": 4,
+                        "Kind": "if",
+                        "OpenBraceLine": 8,
+                        "OpenBraceColumn": 13,
+                        "CloseBraceLine": 10,
+                        "CloseBraceColumn": 4,
+                        "HasAbort": true,
+                        "Statements": null,
+                        "Blocks": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 9,
+                            "Column": 5,
+                            "Kind": "block",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": true,
+                            "Statements": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 9,
+                                "Column": 5,
+                                "Kind": "break",
+                                "ReturnsError": false,
+                                "IsAbort": false
+                              }
+                            ],
+                            "Blocks": null,
+                            "HasDefault": false,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          }
+                        ],
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      },
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 11,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": true,
+                    "MayReturn": false
+                  },
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 13,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  },
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 14,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 14,
+                        "Column": 3,
+                        "Kind": "break",
+                        "ReturnsError": false,
+                        "IsAbort": true
+                      }
+                    ],
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 15,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": true,
+                "Statements": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 16,
+                    "Column": 3,
+                    "Kind": "return",
+                    "ReturnsError": false,
+                    "IsAbort": false
+                  }
+                ],
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 16,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": true,
+                    "Statements": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 16,
+                        "Column": 3,
+                        "Kind": "return",
+                        "ReturnsError": false,
+                        "IsAbort": false
+                      }
+                    ],
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 17,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 18,
+                    "Column": 3,
+                    "Kind": "for",
+                    "OpenBraceLine": 18,
+                    "OpenBraceColumn": 26,
+                    "CloseBraceLine": 26,
+                    "CloseBraceColumn": 3,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 19,
+                        "Column": 4,
+                        "Kind": "switch",
+                        "OpenBraceLine": 19,
+                        "OpenBraceColumn": 13,
+                        "CloseBraceLine": 24,
+                        "CloseBraceColumn": 4,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 20,
+                            "Column": 4,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 21,
+                                "Column": 5,
+                                "Kind": "break",
+                                "ReturnsError": false,
+                                "IsAbort": true
+                              }
+                            ],
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 21,
+                                "Column": 5,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": [
+                                  {
+                                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                    "Line": 21,
+                                    "Column": 5,
+                                    "Kind": "break",
+                                    "ReturnsError": false,
+                                    "IsAbort": true
+                                  }
+                                ],
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": false,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          },
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 22,
+                            "Column": 4,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": null,
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 23,
+                                "Column": 5,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": null,
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": true,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          }
+                        ],
+                        "HasDefault": true,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      },
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 25,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 27,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 28,
+                    "Column": 3,
+                    "Kind": "for",
+                    "OpenBraceLine": 28,
+                    "OpenBraceColumn": 26,
+                    "CloseBraceLine": 32,
+                    "CloseBraceColumn": 3,
+                    "HasAbort": true,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 29,
+                        "Column": 4,
+                        "Kind": "if",
+                        "OpenBraceLine": 29,
+                        "OpenBraceColumn": 13,
+                        "CloseBraceLine": 31,
+                        "CloseBraceColumn": 4,
+                        "HasAbort": true,
+                        "Statements": null,
+                        "Blocks": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 30,
+                            "Column": 5,
+                            "Kind": "block",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": true,
+                            "Statements": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 30,
+                                "Column": 5,
+                                "Kind": "break",
+                                "ReturnsError": false,
+                                "IsAbort": false
+                              }
+                            ],
+                            "Blocks": null,
+                            "HasDefault": false,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          }
+                        ],
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": true,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 33,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 34,
+                    "Column": 3,
+                    "Kind": "for",
+                    "OpenBraceLine": 34,
+                    "OpenBraceColumn": 26,
+                    "CloseBraceLine": 43,
+                    "CloseBraceColumn": 3,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 35,
+                        "Column": 4,
+                        "Kind": "switch",
+                        "OpenBraceLine": 35,
+                        "OpenBraceColumn": 29,
+                        "CloseBraceLine": 41,
+                        "CloseBraceColumn": 4,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 36,
+                            "Column": 4,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 38,
+                                "Column": 5,
+                                "Kind": "break",
+                                "ReturnsError": false,
+                                "IsAbort": true
+                              }
+                            ],
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 37,
+                                "Column": 5,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": null,
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              },
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 38,
+                                "Column": 5,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": [
+                                  {
+                                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                    "Line": 38,
+                                    "Column": 5,
+                                    "Kind": "break",
+                                    "ReturnsError": false,
+                                    "IsAbort": true
+                                  }
+                                ],
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": false,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          },
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 39,
+                            "Column": 4,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": null,
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 40,
+                                "Column": 5,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": null,
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": true,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          }
+                        ],
+                        "HasDefault": true,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      },
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 42,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 44,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 45,
+                    "Column": 3,
+                    "Kind": "for",
+                    "OpenBraceLine": 45,
+                    "OpenBraceColumn": 26,
+                    "CloseBraceLine": 54,
+                    "CloseBraceColumn": 3,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 46,
+                        "Column": 4,
+                        "Kind": "select",
+                        "OpenBraceLine": 46,
+                        "OpenBraceColumn": 11,
+                        "CloseBraceLine": 52,
+                        "CloseBraceColumn": 4,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 47,
+                            "Column": 4,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 49,
+                                "Column": 5,
+                                "Kind": "break",
+                                "ReturnsError": false,
+                                "IsAbort": true
+                              }
+                            ],
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 48,
+                                "Column": 5,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": null,
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              },
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 49,
+                                "Column": 5,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": [
+                                  {
+                                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                    "Line": 49,
+                                    "Column": 5,
+                                    "Kind": "break",
+                                    "ReturnsError": false,
+                                    "IsAbort": true
+                                  }
+                                ],
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": false,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          },
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 50,
+                            "Column": 4,
+                            "Kind": "case",
+                            "OpenBraceLine": 0,
+                            "OpenBraceColumn": 0,
+                            "CloseBraceLine": 0,
+                            "CloseBraceColumn": 0,
+                            "HasAbort": false,
+                            "Statements": null,
+                            "Blocks": [
+                              {
+                                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                                "Line": 51,
+                                "Column": 5,
+                                "Kind": "block",
+                                "OpenBraceLine": 0,
+                                "OpenBraceColumn": 0,
+                                "CloseBraceLine": 0,
+                                "CloseBraceColumn": 0,
+                                "HasAbort": false,
+                                "Statements": null,
+                                "Blocks": null,
+                                "HasDefault": false,
+                                "MayBreak": false,
+                                "MayReturn": false
+                              }
+                            ],
+                            "HasDefault": true,
+                            "MayBreak": false,
+                            "MayReturn": false
+                          }
+                        ],
+                        "HasDefault": true,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      },
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 53,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": false,
+                "MayBreak": false,
+                "MayReturn": false
+              },
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 55,
+                "Column": 2,
+                "Kind": "case",
+                "OpenBraceLine": 0,
+                "OpenBraceColumn": 0,
+                "CloseBraceLine": 0,
+                "CloseBraceColumn": 0,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 56,
+                    "Column": 3,
+                    "Kind": "block",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": null,
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": true,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": true,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 59,
+            "Column": 2,
+            "Kind": "for",
+            "OpenBraceLine": 59,
+            "OpenBraceColumn": 25,
+            "CloseBraceLine": 67,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 61,
+                "Column": 3,
+                "Kind": "switch",
+                "OpenBraceLine": 61,
+                "OpenBraceColumn": 12,
+                "CloseBraceLine": 66,
+                "CloseBraceColumn": 3,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 62,
+                    "Column": 3,
+                    "Kind": "case",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 63,
+                        "Column": 4,
+                        "Kind": "break",
+                        "ReturnsError": false,
+                        "IsAbort": true
+                      }
+                    ],
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 63,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 63,
+                            "Column": 4,
+                            "Kind": "break",
+                            "ReturnsError": false,
+                            "IsAbort": true
+                          }
+                        ],
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  },
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 64,
+                    "Column": 3,
+                    "Kind": "case",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 65,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": true,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": true,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 69,
+            "Column": 2,
+            "Kind": "for",
+            "OpenBraceLine": 69,
+            "OpenBraceColumn": 25,
+            "CloseBraceLine": 78,
+            "CloseBraceColumn": 2,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 71,
+                "Column": 3,
+                "Kind": "select",
+                "OpenBraceLine": 71,
+                "OpenBraceColumn": 10,
+                "CloseBraceLine": 77,
+                "CloseBraceColumn": 3,
+                "HasAbort": false,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 72,
+                    "Column": 3,
+                    "Kind": "case",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 74,
+                        "Column": 4,
+                        "Kind": "break",
+                        "ReturnsError": false,
+                        "IsAbort": true
+                      }
+                    ],
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 73,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      },
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 74,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 74,
+                            "Column": 4,
+                            "Kind": "break",
+                            "ReturnsError": false,
+                            "IsAbort": true
+                          }
+                        ],
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  },
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 75,
+                    "Column": 3,
+                    "Kind": "case",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 76,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": true,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": true,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 81,
+            "Column": 2,
+            "Kind": "for",
+            "OpenBraceLine": 81,
+            "OpenBraceColumn": 25,
+            "CloseBraceLine": 90,
+            "CloseBraceColumn": 2,
+            "HasAbort": true,
+            "Statements": null,
+            "Blocks": [
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 82,
+                "Column": 3,
+                "Kind": "switch",
+                "OpenBraceLine": 82,
+                "OpenBraceColumn": 12,
+                "CloseBraceLine": 89,
+                "CloseBraceColumn": 3,
+                "HasAbort": true,
+                "Statements": null,
+                "Blocks": [
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 83,
+                    "Column": 3,
+                    "Kind": "case",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 84,
+                        "Column": 4,
+                        "Kind": "break",
+                        "ReturnsError": false,
+                        "IsAbort": true
+                      }
+                    ],
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 84,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 84,
+                            "Column": 4,
+                            "Kind": "break",
+                            "ReturnsError": false,
+                            "IsAbort": true
+                          }
+                        ],
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  },
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 85,
+                    "Column": 3,
+                    "Kind": "case",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": true,
+                    "Statements": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 86,
+                        "Column": 4,
+                        "Kind": "break",
+                        "ReturnsError": false,
+                        "IsAbort": false
+                      }
+                    ],
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 86,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": true,
+                        "Statements": [
+                          {
+                            "File": "$REPO/testdata/go/default/switch_case_break.go",
+                            "Line": 86,
+                            "Column": 4,
+                            "Kind": "break",
+                            "ReturnsError": false,
+                            "IsAbort": false
+                          }
+                        ],
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": false,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  },
+                  {
+                    "File": "$REPO/testdata/go/default/switch_case_break.go",
+                    "Line": 87,
+                    "Column": 3,
+                    "Kind": "case",
+                    "OpenBraceLine": 0,
+                    "OpenBraceColumn": 0,
+                    "CloseBraceLine": 0,
+                    "CloseBraceColumn": 0,
+                    "HasAbort": false,
+                    "Statements": null,
+                    "Blocks": [
+                      {
+                        "File": "$REPO/testdata/go/default/switch_case_break.go",
+                        "Line": 88,
+                        "Column": 4,
+                        "Kind": "block",
+                        "OpenBraceLine": 0,
+                        "OpenBraceColumn": 0,
+                        "CloseBraceLine": 0,
+                        "CloseBraceColumn": 0,
+                        "HasAbort": false,
+                        "Statements": null,
+                        "Blocks": null,
+                        "HasDefault": false,
+                        "MayBreak": false,
+                        "MayReturn": false
+                      }
+                    ],
+                    "HasDefault": true,
+                    "MayBreak": false,
+                    "MayReturn": false
+                  }
+                ],
+                "HasDefault": true,
+                "MayBreak": false,
+                "MayReturn": false
+              }
+            ],
+            "HasDefault": false,
+            "MayBreak": true,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/switch_case_break.go",
+            "Line": 91,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": true,
+            "Statements": [
+              {
+                "File": "$REPO/testdata/go/default/switch_case_break.go",
+                "Line": 91,
+                "Column": 2,
+                "Kind": "return",
+                "ReturnsError": false,
+                "IsAbort": false
+              }
+            ],
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": null,
+    "Packages": null,
+    "NamedFields": null,
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.MutableTypeSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 41,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 7,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 8,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 15,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 16,
+            "Column": 18,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 17,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 20,
+            "Column": 9,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 27,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 29,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 33,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 34,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 35,
+            "Column": 23,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 44,
+            "Column": 7,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 45,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 56,
+            "Column": 12,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 59,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 62,
+            "Column": 8,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 69,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 81,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 83,
+            "Column": 8,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 85,
+            "Column": 8,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 3,
+            "Column": 55,
+            "Length": 1
+          },
+          {
+            "Line": 92,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 2,
+            "Length": 6
+          },
+          {
+            "Line": 5,
+            "Column": 11,
+            "Length": 1
+          },
+          {
+            "Line": 57,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 14,
+          "Column": 3,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 7,
+            "Column": 3,
+            "Length": 3
+          },
+          {
+            "Line": 7,
+            "Column": 26,
+            "Length": 1
+          },
+          {
+            "Line": 12,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "HasExit": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 8,
+            "Column": 4,
+            "Length": 2
+          },
+          {
+            "Line": 8,
+            "Column": 13,
+            "Length": 1
+          },
+          {
+            "Line": 10,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 9,
+          "Column": 5,
+          "Length": 5
+        },
+        "Kind": 4
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 14,
+          "Column": 3,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 15,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 16,
+          "Column": 3,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 16,
+          "Column": 3,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 17,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 18,
+            "Column": 3,
+            "Length": 3
+          },
+          {
+            "Line": 18,
+            "Column": 26,
+            "Length": 1
+          },
+          {
+            "Line": 26,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "HasExit": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 19,
+            "Column": 4,
+            "Length": 6
+          },
+          {
+            "Line": 19,
+            "Column": 13,
+            "Length": 1
+          },
+          {
+            "Line": 24,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 20,
+            "Column": 4,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 21,
+          "Column": 5,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 21,
+          "Column": 5,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 22,
+            "Column": 4,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 27,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 28,
+            "Column": 3,
+            "Length": 3
+          },
+          {
+            "Line": 28,
+            "Column": 26,
+            "Length": 1
+          },
+          {
+            "Line": 32,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "HasExit": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 29,
+            "Column": 4,
+            "Length": 2
+          },
+          {
+            "Line": 29,
+            "Column": 13,
+            "Length": 1
+          },
+          {
+            "Line": 31,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 30,
+          "Column": 5,
+          "Length": 5
+        },
+        "Kind": 4
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 33,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 34,
+            "Column": 3,
+            "Length": 3
+          },
+          {
+            "Line": 34,
+            "Column": 26,
+            "Length": 1
+          },
+          {
+            "Line": 43,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "HasExit": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 35,
+            "Column": 4,
+            "Length": 6
+          },
+          {
+            "Line": 35,
+            "Column": 29,
+            "Length": 1
+          },
+          {
+            "Line": 41,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 36,
+            "Column": 4,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 38,
+          "Column": 5,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 38,
+          "Column": 5,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 39,
+            "Column": 4,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 44,
+            "Column": 2,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 45,
+            "Column": 3,
+            "Length": 3
+          },
+          {
+            "Line": 45,
+            "Column": 26,
+            "Length": 1
+          },
+          {
+            "Line": 54,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "HasExit": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 46,
+            "Column": 4,
+            "Length": 6
+          },
+          {
+            "Line": 46,
+            "Column": 11,
+            "Length": 1
+          },
+          {
+            "Line": 52,
+            "Column": 4,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 47,
+            "Column": 4,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 49,
+          "Column": 5,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 49,
+          "Column": 5,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 50,
+            "Column": 4,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 55,
+            "Column": 2,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 59,
+            "Column": 2,
+            "Length": 3
+          },
+          {
+            "Line": 59,
+            "Column": 25,
+            "Length": 1
+          },
+          {
+            "Line": 67,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "HasExit": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 61,
+            "Column": 3,
+            "Length": 6
+          },
+          {
+            "Line": 61,
+            "Column": 12,
+            "Length": 1
+          },
+          {
+            "Line": 66,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 62,
+            "Column": 3,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 63,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 63,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 64,
+            "Column": 3,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 69,
+            "Column": 2,
+            "Length": 3
+          },
+          {
+            "Line": 69,
+            "Column": 25,
+            "Length": 1
+          },
+          {
+            "Line": 78,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "HasExit": false
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 71,
+            "Column": 3,
+            "Length": 6
+          },
+          {
+            "Line": 71,
+            "Column": 10,
+            "Length": 1
+          },
+          {
+            "Line": 77,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 72,
+            "Column": 3,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 74,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 74,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 75,
+            "Column": 3,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.LoopNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 81,
+            "Column": 2,
+            "Length": 3
+          },
+          {
+            "Line": 81,
+            "Column": 25,
+            "Length": 1
+          },
+          {
+            "Line": 90,
+            "Column": 2,
+            "Length": 1
+          }
+        ],
+        "HasExit": true
+      }
+    },
+    {
+      "Type": "scan.PartialNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 82,
+            "Column": 3,
+            "Length": 6
+          },
+          {
+            "Line": 82,
+            "Column": 12,
+            "Length": 1
+          },
+          {
+            "Line": 89,
+            "Column": 3,
+            "Length": 1
+          }
+        ],
+        "IsComplete": true
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 83,
+            "Column": 3,
+            "Length": 4
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 84,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 84,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 3
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 85,
+            "Column": 3,
+            "Length": 4
+          }
+        ],
+        "IsGuard": false
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 86,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 4
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 86,
+          "Column": 4,
+          "Length": 5
+        },
+        "Kind": 4
+      }
+    },
+    {
+      "Type": "scan.CondNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 87,
+            "Column": 3,
+            "Length": 7
+          }
+        ],
+        "IsGuard": true
+      }
+    },
+    {
+      "Type": "scan.JumpNode",
+      "Value": {
+        "Span": {
+          "Line": 91,
+          "Column": 2,
+          "Length": 6
+        },
+        "Kind": 1
+      }
+    }
+  ],
+  "Error": ""
+}

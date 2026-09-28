@@ -1,0 +1,3013 @@
+{
+  "Result": {
+    "File": "$REPO/testdata/go/default/import_strings.go",
+    "Nodes": null,
+    "Declarations": [
+      {
+        "File": "$REPO/testdata/go/default/import_strings.go",
+        "Line": 10,
+        "Column": 6,
+        "ID": "function-5",
+        "Name": "importStrings",
+        "Kind": "function",
+        "ReferenceType": true,
+        "References": [
+          {
+            "File": "$REPO/testdata/go/default/import_strings.go",
+            "Line": 11,
+            "Column": 6,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/internal/display/style.go",
+              "Line": 1,
+              "Column": 1
+            },
+            "Text": "alias",
+            "Kind": "package",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/import_strings.go",
+            "Line": 11,
+            "Column": 12,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$REPO/internal/display/style.go",
+              "Line": 14,
+              "Column": 2
+            },
+            "Text": "Blue",
+            "Kind": "variable",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/import_strings.go",
+            "Line": 12,
+            "Column": 2,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/fmt/print.go",
+              "Line": 314,
+              "Column": 6
+            },
+            "Text": "Println",
+            "Kind": "function",
+            "ReferenceType": true
+          },
+          {
+            "File": "$REPO/testdata/go/default/import_strings.go",
+            "Line": 13,
+            "Column": 6,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/strings/builder.go",
+              "Line": 1,
+              "Column": 1
+            },
+            "Text": "strings",
+            "Kind": "package",
+            "ReferenceType": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/import_strings.go",
+            "Line": 13,
+            "Column": 14,
+            "DeclarationID": "",
+            "Declaration": {
+              "File": "$GOROOT/src/strings/builder.go",
+              "Line": 17,
+              "Column": 6
+            },
+            "Text": "Builder",
+            "Kind": "type",
+            "ReferenceType": true
+          }
+        ],
+        "Declarations": null,
+        "ControlFlow": [
+          {
+            "File": "$REPO/testdata/go/default/import_strings.go",
+            "Line": 11,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/import_strings.go",
+            "Line": 12,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          },
+          {
+            "File": "$REPO/testdata/go/default/import_strings.go",
+            "Line": 13,
+            "Column": 2,
+            "Kind": "block",
+            "OpenBraceLine": 0,
+            "OpenBraceColumn": 0,
+            "CloseBraceLine": 0,
+            "CloseBraceColumn": 0,
+            "HasAbort": false,
+            "Statements": null,
+            "Blocks": null,
+            "HasDefault": false,
+            "MayBreak": false,
+            "MayReturn": false
+          }
+        ]
+      }
+    ],
+    "PackageReferences": [
+      {
+        "File": "$REPO/testdata/go/default/import_strings.go",
+        "Line": 6,
+        "Column": 2,
+        "PackageID": "pkg-3",
+        "ParentID": "file",
+        "Text": "alias"
+      },
+      {
+        "File": "$REPO/testdata/go/default/import_strings.go",
+        "Line": 6,
+        "Column": 22,
+        "PackageID": "pkg-3",
+        "ParentID": "file",
+        "Text": "display"
+      },
+      {
+        "File": "$REPO/testdata/go/default/import_strings.go",
+        "Line": 4,
+        "Column": 5,
+        "PackageID": "pkg-1",
+        "ParentID": "file",
+        "Text": "errors"
+      },
+      {
+        "File": "$REPO/testdata/go/default/import_strings.go",
+        "Line": 5,
+        "Column": 5,
+        "PackageID": "pkg-2",
+        "ParentID": "file",
+        "Text": "fmt"
+      },
+      {
+        "File": "$REPO/testdata/go/default/import_strings.go",
+        "Line": 7,
+        "Column": 3,
+        "PackageID": "pkg-4",
+        "ParentID": "file",
+        "Text": "strings"
+      }
+    ],
+    "Packages": [
+      {
+        "File": "$GOROOT/src/errors/errors.go",
+        "Line": 1,
+        "Column": 1,
+        "ID": "pkg-1",
+        "Name": "errors",
+        "Files": [
+          {
+            "File": "$GOROOT/src/errors/errors.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/errors/errors.go",
+                "Line": 64,
+                "Column": 6,
+                "Name": "New",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/errors.go",
+                "Line": 69,
+                "Column": 6,
+                "Name": "errorString",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/errors/errors.go",
+                "Line": 73,
+                "Column": 23,
+                "Name": "Error",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/errors.go",
+                "Line": 90,
+                "Column": 5,
+                "Name": "ErrUnsupported",
+                "Kind": "variable"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/errors/join.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/errors/join.go",
+                "Line": 20,
+                "Column": 6,
+                "Name": "Join",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/join.go",
+                "Line": 41,
+                "Column": 6,
+                "Name": "joinError",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/errors/join.go",
+                "Line": 45,
+                "Column": 21,
+                "Name": "Error",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/join.go",
+                "Line": 61,
+                "Column": 21,
+                "Name": "Unwrap",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/errors/wrap.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/errors/wrap.go",
+                "Line": 17,
+                "Column": 6,
+                "Name": "Unwrap",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/wrap.go",
+                "Line": 45,
+                "Column": 6,
+                "Name": "Is",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/wrap.go",
+                "Line": 54,
+                "Column": 6,
+                "Name": "is",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/wrap.go",
+                "Line": 102,
+                "Column": 6,
+                "Name": "As",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/wrap.go",
+                "Line": 121,
+                "Column": 6,
+                "Name": "as",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/wrap.go",
+                "Line": 152,
+                "Column": 5,
+                "Name": "errorType",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/errors/wrap.go",
+                "Line": 167,
+                "Column": 6,
+                "Name": "AsType",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/errors/wrap.go",
+                "Line": 176,
+                "Column": 6,
+                "Name": "asType",
+                "Kind": "function"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "File": "$GOROOT/src/fmt/doc.go",
+        "Line": 1,
+        "Column": 1,
+        "ID": "pkg-2",
+        "Name": "fmt",
+        "Files": [
+          {
+            "File": "$GOROOT/src/fmt/doc.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": null
+          },
+          {
+            "File": "$GOROOT/src/fmt/errors.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/fmt/errors.go",
+                "Line": 23,
+                "Column": 6,
+                "Name": "Errorf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/errors.go",
+                "Line": 35,
+                "Column": 6,
+                "Name": "errorf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/errors.go",
+                "Line": 70,
+                "Column": 6,
+                "Name": "wrapError",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/errors.go",
+                "Line": 75,
+                "Column": 21,
+                "Name": "Error",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/errors.go",
+                "Line": 79,
+                "Column": 21,
+                "Name": "Unwrap",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/errors.go",
+                "Line": 83,
+                "Column": 6,
+                "Name": "wrapErrors",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/errors.go",
+                "Line": 88,
+                "Column": 22,
+                "Name": "Error",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/errors.go",
+                "Line": 92,
+                "Column": 22,
+                "Name": "Unwrap",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/fmt/format.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 13,
+                "Column": 2,
+                "Name": "ldigits",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 14,
+                "Column": 2,
+                "Name": "udigits",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 18,
+                "Column": 2,
+                "Name": "signed",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 19,
+                "Column": 2,
+                "Name": "unsigned",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 23,
+                "Column": 6,
+                "Name": "fmtFlags",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 41,
+                "Column": 6,
+                "Name": "fmt",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 54,
+                "Column": 15,
+                "Name": "clearflags",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 60,
+                "Column": 15,
+                "Name": "init",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 66,
+                "Column": 15,
+                "Name": "writePadding",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 93,
+                "Column": 15,
+                "Name": "pad",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 111,
+                "Column": 15,
+                "Name": "padString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 129,
+                "Column": 15,
+                "Name": "fmtBoolean",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 138,
+                "Column": 15,
+                "Name": "fmtUnicode",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 197,
+                "Column": 15,
+                "Name": "fmtInteger",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 327,
+                "Column": 15,
+                "Name": "truncateString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 341,
+                "Column": 15,
+                "Name": "truncate",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 357,
+                "Column": 15,
+                "Name": "fmtS",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 363,
+                "Column": 15,
+                "Name": "fmtBs",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 369,
+                "Column": 15,
+                "Name": "fmtSbx",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 435,
+                "Column": 15,
+                "Name": "fmtSx",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 440,
+                "Column": 15,
+                "Name": "fmtBx",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 447,
+                "Column": 15,
+                "Name": "fmtQ",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 463,
+                "Column": 15,
+                "Name": "fmtC",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 476,
+                "Column": 15,
+                "Name": "fmtQc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/format.go",
+                "Line": 491,
+                "Column": 15,
+                "Name": "fmtFloat",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/fmt/print.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 20,
+                "Column": 2,
+                "Name": "commaSpaceString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 21,
+                "Column": 2,
+                "Name": "nilAngleString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 22,
+                "Column": 2,
+                "Name": "nilParenString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 23,
+                "Column": 2,
+                "Name": "nilString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 24,
+                "Column": 2,
+                "Name": "mapString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 25,
+                "Column": 2,
+                "Name": "percentBangString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 26,
+                "Column": 2,
+                "Name": "missingString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 27,
+                "Column": 2,
+                "Name": "badIndexString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 28,
+                "Column": 2,
+                "Name": "panicString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 29,
+                "Column": 2,
+                "Name": "extraString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 30,
+                "Column": 2,
+                "Name": "badWidthString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 31,
+                "Column": 2,
+                "Name": "badPrecString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 32,
+                "Column": 2,
+                "Name": "noVerbString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 33,
+                "Column": 2,
+                "Name": "invReflectString",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 39,
+                "Column": 6,
+                "Name": "State",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 54,
+                "Column": 6,
+                "Name": "Formatter",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 63,
+                "Column": 6,
+                "Name": "Stringer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 71,
+                "Column": 6,
+                "Name": "GoStringer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 81,
+                "Column": 6,
+                "Name": "FormatString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 101,
+                "Column": 6,
+                "Name": "buffer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 103,
+                "Column": 18,
+                "Name": "write",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 107,
+                "Column": 18,
+                "Name": "writeString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 111,
+                "Column": 18,
+                "Name": "writeByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 115,
+                "Column": 18,
+                "Name": "writeRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 120,
+                "Column": 6,
+                "Name": "pp",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 146,
+                "Column": 5,
+                "Name": "ppFree",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 151,
+                "Column": 6,
+                "Name": "newPrinter",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 161,
+                "Column": 14,
+                "Name": "free",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 184,
+                "Column": 14,
+                "Name": "Width",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 186,
+                "Column": 14,
+                "Name": "Precision",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 188,
+                "Column": 14,
+                "Name": "Flag",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 206,
+                "Column": 14,
+                "Name": "Write",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 213,
+                "Column": 14,
+                "Name": "WriteString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 222,
+                "Column": 6,
+                "Name": "Fprintf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 232,
+                "Column": 6,
+                "Name": "Printf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 237,
+                "Column": 6,
+                "Name": "Sprintf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 247,
+                "Column": 6,
+                "Name": "Appendf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 260,
+                "Column": 6,
+                "Name": "Fprint",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 271,
+                "Column": 6,
+                "Name": "Print",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 277,
+                "Column": 6,
+                "Name": "Sprint",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 288,
+                "Column": 6,
+                "Name": "Append",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 303,
+                "Column": 6,
+                "Name": "Fprintln",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 314,
+                "Column": 6,
+                "Name": "Println",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 320,
+                "Column": 6,
+                "Name": "Sprintln",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 331,
+                "Column": 6,
+                "Name": "Appendln",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 342,
+                "Column": 6,
+                "Name": "getField",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 352,
+                "Column": 6,
+                "Name": "tooLarge",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 358,
+                "Column": 6,
+                "Name": "parsenum",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 372,
+                "Column": 14,
+                "Name": "unknownType",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 382,
+                "Column": 14,
+                "Name": "badVerb",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 403,
+                "Column": 14,
+                "Name": "fmtBool",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 414,
+                "Column": 14,
+                "Name": "fmt0x64",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 422,
+                "Column": 14,
+                "Name": "fmtInteger",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 453,
+                "Column": 14,
+                "Name": "fmtFloat",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 471,
+                "Column": 14,
+                "Name": "fmtComplex",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 489,
+                "Column": 14,
+                "Name": "fmtString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 510,
+                "Column": 14,
+                "Name": "fmtBytes",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 550,
+                "Column": 14,
+                "Name": "fmtPointer",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 588,
+                "Column": 14,
+                "Name": "catchPanic",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 622,
+                "Column": 14,
+                "Name": "handleMethods",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 682,
+                "Column": 14,
+                "Name": "printArg",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 767,
+                "Column": 14,
+                "Name": "printValue",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 935,
+                "Column": 6,
+                "Name": "intFromArg",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 973,
+                "Column": 6,
+                "Name": "parseArgNumber",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 995,
+                "Column": 14,
+                "Name": "argNumber",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 1008,
+                "Column": 14,
+                "Name": "badArgNum",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 1014,
+                "Column": 14,
+                "Name": "missingArg",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 1020,
+                "Column": 14,
+                "Name": "doPrintf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 1198,
+                "Column": 14,
+                "Name": "doPrint",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/print.go",
+                "Line": 1213,
+                "Column": 14,
+                "Name": "doPrintln",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/fmt/scan.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 21,
+                "Column": 6,
+                "Name": "ScanState",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 55,
+                "Column": 6,
+                "Name": "Scanner",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 63,
+                "Column": 6,
+                "Name": "Scan",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 69,
+                "Column": 6,
+                "Name": "Scanln",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 80,
+                "Column": 6,
+                "Name": "Scanf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 84,
+                "Column": 6,
+                "Name": "stringReader",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 86,
+                "Column": 24,
+                "Name": "Read",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 99,
+                "Column": 6,
+                "Name": "Sscan",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 105,
+                "Column": 6,
+                "Name": "Sscanln",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 113,
+                "Column": 6,
+                "Name": "Sscanf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 121,
+                "Column": 6,
+                "Name": "Fscan",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 130,
+                "Column": 6,
+                "Name": "Fscanln",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 141,
+                "Column": 6,
+                "Name": "Fscanf",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 150,
+                "Column": 6,
+                "Name": "scanError",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 154,
+                "Column": 7,
+                "Name": "eof",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 157,
+                "Column": 6,
+                "Name": "ss",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 167,
+                "Column": 6,
+                "Name": "ssave",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 179,
+                "Column": 14,
+                "Name": "Read",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 183,
+                "Column": 14,
+                "Name": "ReadRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 201,
+                "Column": 14,
+                "Name": "Width",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 210,
+                "Column": 14,
+                "Name": "getRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 224,
+                "Column": 14,
+                "Name": "mustReadRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 232,
+                "Column": 14,
+                "Name": "UnreadRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 239,
+                "Column": 14,
+                "Name": "error",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 243,
+                "Column": 14,
+                "Name": "errorString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 247,
+                "Column": 14,
+                "Name": "Token",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 267,
+                "Column": 5,
+                "Name": "space",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 280,
+                "Column": 6,
+                "Name": "isSpace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 297,
+                "Column": 6,
+                "Name": "notSpace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 304,
+                "Column": 6,
+                "Name": "readRune",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 314,
+                "Column": 20,
+                "Name": "readByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 330,
+                "Column": 20,
+                "Name": "ReadRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 369,
+                "Column": 20,
+                "Name": "UnreadRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 378,
+                "Column": 5,
+                "Name": "ssFree",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 383,
+                "Column": 6,
+                "Name": "newScanState",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 402,
+                "Column": 14,
+                "Name": "free",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 420,
+                "Column": 14,
+                "Name": "SkipSpace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 446,
+                "Column": 14,
+                "Name": "token",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 465,
+                "Column": 5,
+                "Name": "errComplex",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 466,
+                "Column": 5,
+                "Name": "errBool",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 468,
+                "Column": 6,
+                "Name": "indexRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 479,
+                "Column": 14,
+                "Name": "consume",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 497,
+                "Column": 14,
+                "Name": "peek",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 505,
+                "Column": 14,
+                "Name": "notEOF",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 515,
+                "Column": 14,
+                "Name": "accept",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 520,
+                "Column": 14,
+                "Name": "okVerb",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 531,
+                "Column": 14,
+                "Name": "scanBool",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 559,
+                "Column": 2,
+                "Name": "binaryDigits",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 560,
+                "Column": 2,
+                "Name": "octalDigits",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 561,
+                "Column": 2,
+                "Name": "decimalDigits",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 562,
+                "Column": 2,
+                "Name": "hexadecimalDigits",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 563,
+                "Column": 2,
+                "Name": "sign",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 564,
+                "Column": 2,
+                "Name": "period",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 565,
+                "Column": 2,
+                "Name": "exponent",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 569,
+                "Column": 14,
+                "Name": "getBase",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 588,
+                "Column": 14,
+                "Name": "scanNumber",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 601,
+                "Column": 14,
+                "Name": "scanRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 615,
+                "Column": 14,
+                "Name": "scanBasePrefix",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 638,
+                "Column": 14,
+                "Name": "scanInt",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 671,
+                "Column": 14,
+                "Name": "scanUint",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 702,
+                "Column": 14,
+                "Name": "floatToken",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 743,
+                "Column": 14,
+                "Name": "complexTokens",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 764,
+                "Column": 6,
+                "Name": "hasX",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 774,
+                "Column": 14,
+                "Name": "convertFloat",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 810,
+                "Column": 14,
+                "Name": "scanComplex",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 824,
+                "Column": 14,
+                "Name": "convertString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 842,
+                "Column": 14,
+                "Name": "quotedString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 883,
+                "Column": 6,
+                "Name": "hexDigit",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 899,
+                "Column": 14,
+                "Name": "hexByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 918,
+                "Column": 14,
+                "Name": "hexString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 935,
+                "Column": 2,
+                "Name": "floatVerbs",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 937,
+                "Column": 2,
+                "Name": "hugeWid",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 939,
+                "Column": 2,
+                "Name": "intBits",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 940,
+                "Column": 2,
+                "Name": "uintptrBits",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 944,
+                "Column": 14,
+                "Name": "scanPercent",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 953,
+                "Column": 14,
+                "Name": "scanOne",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 1057,
+                "Column": 6,
+                "Name": "errorHandler",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 1070,
+                "Column": 14,
+                "Name": "doScan",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 1100,
+                "Column": 14,
+                "Name": "advance",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/fmt/scan.go",
+                "Line": 1181,
+                "Column": 14,
+                "Name": "doScanf",
+                "Kind": "function"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "File": "$REPO/internal/display/style.go",
+        "Line": 1,
+        "Column": 1,
+        "ID": "pkg-3",
+        "Name": "rat/internal/display",
+        "Files": [
+          {
+            "File": "$REPO/internal/display/style.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 4,
+                "Column": 2,
+                "Name": "Reset",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 5,
+                "Column": 2,
+                "Name": "Invert",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 6,
+                "Column": 2,
+                "Name": "Underline",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 7,
+                "Column": 2,
+                "Name": "Gray",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 8,
+                "Column": 2,
+                "Name": "LightRed",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 9,
+                "Column": 2,
+                "Name": "MutedOrange",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 10,
+                "Column": 2,
+                "Name": "VibrantOrange",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 11,
+                "Column": 2,
+                "Name": "Yellow",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 12,
+                "Column": 2,
+                "Name": "LightGreen",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 13,
+                "Column": 2,
+                "Name": "Green",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 14,
+                "Column": 2,
+                "Name": "Blue",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 15,
+                "Column": 2,
+                "Name": "Purple",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 16,
+                "Column": 2,
+                "Name": "White",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 17,
+                "Column": 2,
+                "Name": "LightPink",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 18,
+                "Column": 2,
+                "Name": "HotMagenta",
+                "Kind": "variable"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 21,
+                "Column": 6,
+                "Name": "BasicStyle",
+                "Kind": "type"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 23,
+                "Column": 21,
+                "Name": "Format",
+                "Kind": "function"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 27,
+                "Column": 21,
+                "Name": "Invert",
+                "Kind": "function"
+              },
+              {
+                "File": "$REPO/internal/display/style.go",
+                "Line": 31,
+                "Column": 21,
+                "Name": "Frame",
+                "Kind": "function"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "File": "$GOROOT/src/strings/builder.go",
+        "Line": 1,
+        "Column": 1,
+        "ID": "pkg-4",
+        "Name": "strings",
+        "Files": [
+          {
+            "File": "$GOROOT/src/strings/builder.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 17,
+                "Column": 6,
+                "Name": "Builder",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 32,
+                "Column": 19,
+                "Name": "copyCheck",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 46,
+                "Column": 19,
+                "Name": "String",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 51,
+                "Column": 19,
+                "Name": "Len",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 56,
+                "Column": 19,
+                "Name": "Cap",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 59,
+                "Column": 19,
+                "Name": "Reset",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 66,
+                "Column": 19,
+                "Name": "grow",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 75,
+                "Column": 19,
+                "Name": "Grow",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 87,
+                "Column": 19,
+                "Name": "Write",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 95,
+                "Column": 19,
+                "Name": "WriteByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 103,
+                "Column": 19,
+                "Name": "WriteRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/builder.go",
+                "Line": 112,
+                "Column": 19,
+                "Name": "WriteString",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/strings/clone.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/strings/clone.go",
+                "Line": 21,
+                "Column": 6,
+                "Name": "Clone",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/strings/compare.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/strings/compare.go",
+                "Line": 15,
+                "Column": 6,
+                "Name": "Compare",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/strings/iter.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/strings/iter.go",
+                "Line": 18,
+                "Column": 6,
+                "Name": "Lines",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/iter.go",
+                "Line": 36,
+                "Column": 6,
+                "Name": "splitSeq",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/iter.go",
+                "Line": 67,
+                "Column": 6,
+                "Name": "SplitSeq",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/iter.go",
+                "Line": 75,
+                "Column": 6,
+                "Name": "SplitAfterSeq",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/iter.go",
+                "Line": 83,
+                "Column": 6,
+                "Name": "FieldsSeq",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/iter.go",
+                "Line": 116,
+                "Column": 6,
+                "Name": "FieldsFuncSeq",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/strings/reader.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 17,
+                "Column": 6,
+                "Name": "Reader",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 25,
+                "Column": 18,
+                "Name": "Len",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 36,
+                "Column": 18,
+                "Name": "Size",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 39,
+                "Column": 18,
+                "Name": "Read",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 50,
+                "Column": 18,
+                "Name": "ReadAt",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 66,
+                "Column": 18,
+                "Name": "ReadByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 77,
+                "Column": 18,
+                "Name": "UnreadByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 87,
+                "Column": 18,
+                "Name": "ReadRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 99,
+                "Column": 18,
+                "Name": "UnreadRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 112,
+                "Column": 18,
+                "Name": "Seek",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 133,
+                "Column": 18,
+                "Name": "WriteTo",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 152,
+                "Column": 18,
+                "Name": "Reset",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/reader.go",
+                "Line": 156,
+                "Column": 6,
+                "Name": "NewReader",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/strings/replace.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 14,
+                "Column": 6,
+                "Name": "Replacer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 21,
+                "Column": 6,
+                "Name": "replacer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 32,
+                "Column": 6,
+                "Name": "NewReplacer",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 39,
+                "Column": 20,
+                "Name": "buildOnce",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 44,
+                "Column": 20,
+                "Name": "build",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 95,
+                "Column": 20,
+                "Name": "Replace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 101,
+                "Column": 20,
+                "Name": "WriteString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 123,
+                "Column": 6,
+                "Name": "trieNode",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 158,
+                "Column": 20,
+                "Name": "add",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 221,
+                "Column": 27,
+                "Name": "lookup",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 259,
+                "Column": 6,
+                "Name": "genericReplacer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 268,
+                "Column": 6,
+                "Name": "makeGenericReplacer",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 300,
+                "Column": 6,
+                "Name": "appendSliceWriter",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 303,
+                "Column": 29,
+                "Name": "Write",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 309,
+                "Column": 29,
+                "Name": "WriteString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 314,
+                "Column": 6,
+                "Name": "stringWriter",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 318,
+                "Column": 23,
+                "Name": "WriteString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 322,
+                "Column": 6,
+                "Name": "getStringWriter",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 330,
+                "Column": 27,
+                "Name": "Replace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 336,
+                "Column": 27,
+                "Name": "WriteString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 379,
+                "Column": 6,
+                "Name": "singleStringReplacer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 385,
+                "Column": 6,
+                "Name": "makeSingleStringReplacer",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 389,
+                "Column": 32,
+                "Name": "Replace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 410,
+                "Column": 32,
+                "Name": "WriteString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 438,
+                "Column": 6,
+                "Name": "byteReplacer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 440,
+                "Column": 24,
+                "Name": "Replace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 457,
+                "Column": 24,
+                "Name": "WriteString",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 491,
+                "Column": 6,
+                "Name": "byteStringReplacer",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 508,
+                "Column": 7,
+                "Name": "countCutOff",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 510,
+                "Column": 30,
+                "Name": "Replace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/replace.go",
+                "Line": 550,
+                "Column": 30,
+                "Name": "WriteString",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/strings/search.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/strings/search.go",
+                "Line": 12,
+                "Column": 6,
+                "Name": "stringFinder",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/search.go",
+                "Line": 48,
+                "Column": 6,
+                "Name": "makeStringFinder",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/search.go",
+                "Line": 91,
+                "Column": 6,
+                "Name": "longestCommonSuffix",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/search.go",
+                "Line": 102,
+                "Column": 24,
+                "Name": "next",
+                "Kind": "function"
+              }
+            ]
+          },
+          {
+            "File": "$GOROOT/src/strings/strings.go",
+            "Line": 1,
+            "Column": 1,
+            "Declarations": [
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 18,
+                "Column": 7,
+                "Name": "maxInt",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 23,
+                "Column": 6,
+                "Name": "explode",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 42,
+                "Column": 6,
+                "Name": "Count",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 62,
+                "Column": 6,
+                "Name": "Contains",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 67,
+                "Column": 6,
+                "Name": "ContainsAny",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 72,
+                "Column": 6,
+                "Name": "ContainsRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 77,
+                "Column": 6,
+                "Name": "ContainsFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 82,
+                "Column": 6,
+                "Name": "LastIndex",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 119,
+                "Column": 6,
+                "Name": "IndexByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 127,
+                "Column": 6,
+                "Name": "IndexRune",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 201,
+                "Column": 6,
+                "Name": "IndexAny",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 235,
+                "Column": 6,
+                "Name": "LastIndexAny",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 285,
+                "Column": 6,
+                "Name": "LastIndexByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 291,
+                "Column": 6,
+                "Name": "genSplit",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 333,
+                "Column": 6,
+                "Name": "SplitN",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 345,
+                "Column": 6,
+                "Name": "SplitAfterN",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 361,
+                "Column": 6,
+                "Name": "Split",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 373,
+                "Column": 6,
+                "Name": "SplitAfter",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 377,
+                "Column": 5,
+                "Name": "asciiSpace",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 384,
+                "Column": 6,
+                "Name": "Fields",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 441,
+                "Column": 6,
+                "Name": "FieldsFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 487,
+                "Column": 6,
+                "Name": "Join",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 520,
+                "Column": 6,
+                "Name": "HasPrefix",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 525,
+                "Column": 6,
+                "Name": "HasSuffix",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 532,
+                "Column": 6,
+                "Name": "Map",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 596,
+                "Column": 2,
+                "Name": "repeatedSpaces",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 599,
+                "Column": 2,
+                "Name": "repeatedDashes",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 602,
+                "Column": 2,
+                "Name": "repeatedZeroes",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 604,
+                "Column": 2,
+                "Name": "repeatedEquals",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 607,
+                "Column": 2,
+                "Name": "repeatedTabs",
+                "Kind": "variable"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 616,
+                "Column": 6,
+                "Name": "Repeat",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 687,
+                "Column": 6,
+                "Name": "ToUpper",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 727,
+                "Column": 6,
+                "Name": "ToLower",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 768,
+                "Column": 6,
+                "Name": "ToTitle",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 772,
+                "Column": 6,
+                "Name": "ToUpperSpecial",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 778,
+                "Column": 6,
+                "Name": "ToLowerSpecial",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 784,
+                "Column": 6,
+                "Name": "ToTitleSpecial",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 790,
+                "Column": 6,
+                "Name": "ToValidUTF8",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 840,
+                "Column": 6,
+                "Name": "isSeparator",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 868,
+                "Column": 6,
+                "Name": "Title",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 887,
+                "Column": 6,
+                "Name": "TrimLeftFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 897,
+                "Column": 6,
+                "Name": "TrimRightFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 910,
+                "Column": 6,
+                "Name": "TrimFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 916,
+                "Column": 6,
+                "Name": "IndexFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 922,
+                "Column": 6,
+                "Name": "LastIndexFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 929,
+                "Column": 6,
+                "Name": "indexFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 941,
+                "Column": 6,
+                "Name": "lastIndexFunc",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 960,
+                "Column": 6,
+                "Name": "asciiSet",
+                "Kind": "type"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 964,
+                "Column": 6,
+                "Name": "makeASCIISet",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 976,
+                "Column": 21,
+                "Name": "contains",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 982,
+                "Column": 6,
+                "Name": "Trim",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 999,
+                "Column": 6,
+                "Name": "TrimLeft",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1012,
+                "Column": 6,
+                "Name": "trimLeftByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1019,
+                "Column": 6,
+                "Name": "trimLeftASCII",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1029,
+                "Column": 6,
+                "Name": "trimLeftUnicode",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1044,
+                "Column": 6,
+                "Name": "TrimRight",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1057,
+                "Column": 6,
+                "Name": "trimRightByte",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1064,
+                "Column": 6,
+                "Name": "trimRightASCII",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1074,
+                "Column": 6,
+                "Name": "trimRightUnicode",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1091,
+                "Column": 6,
+                "Name": "TrimSpace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1122,
+                "Column": 6,
+                "Name": "TrimPrefix",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1128,
+                "Column": 6,
+                "Name": "TrimSuffix",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1138,
+                "Column": 6,
+                "Name": "Replace",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1180,
+                "Column": 6,
+                "Name": "ReplaceAll",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1187,
+                "Column": 6,
+                "Name": "EqualFold",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1265,
+                "Column": 6,
+                "Name": "Index",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1273,
+                "Column": 6,
+                "Name": "Cut",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1281,
+                "Column": 6,
+                "Name": "CutPrefix",
+                "Kind": "function"
+              },
+              {
+                "File": "$GOROOT/src/strings/strings.go",
+                "Line": 1289,
+                "Column": 6,
+                "Name": "CutSuffix",
+                "Kind": "function"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "NamedFields": null,
+    "IndirectCalls": null
+  },
+  "Nodes": [
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 1,
+            "Length": 7
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.PackageNameNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 1,
+            "Column": 9,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.DeclarationSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 3,
+            "Column": 1,
+            "Length": 6
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.LiteralNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 12,
+            "Column": 10,
+            "Length": 4
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.FunctionSyntaxNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 10,
+            "Column": 1,
+            "Length": 4
+          },
+          {
+            "Line": 10,
+            "Column": 22,
+            "Length": 1
+          },
+          {
+            "Line": 14,
+            "Column": 1,
+            "Length": 1
+          }
+        ],
+        "ReturnsError": false
+      }
+    },
+    {
+      "Type": "scan.CommentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 4,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CommentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 4,
+            "Column": 11,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CommentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 4,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CommentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 5,
+            "Column": 8,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CommentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 8,
+            "Length": 14
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CommentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 6,
+            "Column": 29,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CommentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 7,
+            "Column": 2,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CommentNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 7,
+            "Column": 10,
+            "Length": 1
+          }
+        ]
+      }
+    },
+    {
+      "Type": "scan.CallParenNode",
+      "Value": {
+        "NodeSpans": [
+          {
+            "Line": 12,
+            "Column": 9,
+            "Length": 1
+          },
+          {
+            "Line": 12,
+            "Column": 14,
+            "Length": 1
+          }
+        ],
+        "Indirect": false
+      }
+    }
+  ],
+  "Error": ""
+}
