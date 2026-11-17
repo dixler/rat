@@ -31,7 +31,7 @@
  [0m 31 [97m    [0m[38;5;130m}[0m[97m[0m
  [0m 32 [97m    [0m[38;5;215m[7m[4mresult[0m[97m, [0m[38;5;215m[7m[4merr[0m[97m := [0m[38;5;215m[4mscanner[0m[97m.[0m[38;5;120m[4mBuild[0m[97m[0m[38;5;198m([0m[97m[0m[38;5;198mfile[0m[97m, [0m[38;5;198m[4msource[0m[97m[0m[38;5;198m)[0m[97m[0m
  [0m 33 [97m    [0m[94mif[0m[97m [0m[38;5;215m[4mresult[0m[97m != [0m[38;5;130mnil[0m[97m [0m[94m{[0m[97m[0m
- [0m 34 [97m        [0m[38;5;215m[4mresult[0m[97m.[0m[38;5;120m[4mNodes[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mresult[0m[97m.[0m[38;5;120m[4mNodes[0m[97m, [0m[32mBuildNodes[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mresult[0m[97m, [0m[38;5;198m[4msource[0m[97m[0m[38;5;215m)[0m[97m...[0m[38;5;215m)[0m[97m[0m
+ [0m 34 [97m        [0m[38;5;215m[4mresult[0m[97m.[0m[38;5;120m[4mNodes[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mresult[0m[97m.[0m[38;5;120m[4mNodes[0m[97m, [0m[32mbuildNodes[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mresult[0m[97m, [0m[38;5;198m[4msource[0m[97m[0m[38;5;215m)[0m[97m...[0m[38;5;215m)[0m[97m[0m
  [0m 35 [97m    [0m[94m}[0m[97m[0m
  [0m 36 [97m    [0m[38;5;130mreturn[0m[97m [0m[38;5;215m[4mresult[0m[97m, [0m[38;5;215m[4merr[0m[97m[0m
  [0m 37 [97m[0m[38;5;130m}[0m[97m[0m
@@ -133,207 +133,167 @@
  [0m133 [97m    [0m[94mreturn[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mSpan[0m[97m{[0m[38;5;198mspan[0m[97m}[0m
  [0m134 [97m[0m[94m}[0m[97m[0m
  [0m135 [97m[0m
- [0m136 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mSpansForText[0m[97m([0m[38;5;198m[7mline[0m[97m, [0m[38;5;198m[7mcolumn[0m[97m [0m[38;5;130mint[0m[97m, [0m[38;5;198m[7mtext[0m[97m [0m[38;5;130mstring[0m[97m) [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mSpan[0m[97m [0m[94m{[0m[97m[0m
- [0m137 [97m    [0m[38;5;130mif[0m[97m [0m[38;5;198mline[0m[97m < [0m[38;5;218m1[0m[97m || [0m[38;5;198mcolumn[0m[97m < [0m[38;5;218m1[0m[97m || [0m[38;5;198mtext[0m[97m == [0m[38;5;218m""[0m[97m [0m[38;5;130m{[0m[97m[0m
- [0m138 [97m        [0m[94mreturn[0m[97m [0m[38;5;130mnil[0m[97m[0m
- [0m139 [97m    [0m[38;5;130m}[0m[97m[0m
- [0m140 [97m    [0m[38;5;215m[7m[4mparts[0m[97m := [0m[35mstrings[0m[97m.[0m[35m[4mSplit[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mtext[0m[97m, [0m[38;5;218m"\n"[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m141 [97m    [0m[38;5;215m[7m[4mspans[0m[97m := [0m[38;5;130mmake[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;130m[4m[][0m[97m[0m[38;5;120mSpan[0m[97m, [0m[38;5;218m0[0m[97m, [0m[38;5;130mlen[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mparts[0m[97m[0m[38;5;215m)[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m142 [97m    [0m[94mfor[0m[97m [0m[38;5;215m[7mi[0m[97m, [0m[38;5;215m[7mpart[0m[97m := [0m[94mrange[0m[97m [0m[38;5;215m[4mparts[0m[97m [0m[94m{[0m[97m[0m
- [0m143 [97m        [0m[38;5;130mif[0m[97m [0m[38;5;215mpart[0m[97m == [0m[38;5;218m""[0m[97m [0m[38;5;130m{[0m[97m[0m
- [0m144 [97m            [0m[94mcontinue[0m[97m[0m
- [0m145 [97m        [0m[38;5;130m}[0m[97m[0m
- [0m146 [97m        [0m[38;5;215m[7mcol[0m[97m := [0m[38;5;218m1[0m[97m[0m
- [0m147 [97m        [0m[94mif[0m[97m [0m[38;5;215mi[0m[97m == [0m[38;5;218m0[0m[97m [0m[94m{[0m[97m[0m
- [0m148 [97m            [0m[38;5;215mcol[0m[97m = [0m[38;5;198mcolumn[0m[97m[0m
- [0m149 [97m        [0m[94m}[0m[97m[0m
- [0m150 [97m        [0m[38;5;215m[4mspans[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215m[4mspans[0m[97m, [0m[38;5;120mSpan[0m[97m[0m[32m{[0m[97m[0m[38;5;130mLine[0m[97m: [0m[38;5;198mline[0m[97m + [0m[38;5;215mi[0m[97m, [0m[38;5;130mColumn[0m[97m: [0m[38;5;215mcol[0m[97m, [0m[38;5;130mLength[0m[97m: [0m[38;5;130mlen[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mpart[0m[97m[0m[38;5;215m)[0m[97m[0m[32m}[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m151 [97m    [0m[94m}[0m[97m[0m
- [0m152 [97m    [0m[94mreturn[0m[97m [0m[38;5;215m[4mspans[0m[97m[0m
- [0m153 [97m[0m[94m}[0m[97m[0m
- [0m154 [97m[0m
- [0m155 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mLocation[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m156 [97m    [0m[38;5;130m[7mFile[0m[97m   [0m[38;5;130mstring[0m[97m[0m
- [0m157 [97m    [0m[38;5;130m[7mLine[0m[97m   [0m[38;5;130mint[0m[97m[0m
- [0m158 [97m    [0m[38;5;130m[7mColumn[0m[97m [0m[38;5;130mint[0m[97m[0m
- [0m159 [97m}[0m
- [0m160 [97m[0m
- [0m161 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mIndirectCall[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m162 [97m    Location[0m
- [0m163 [97m    [0m[38;5;130m[7mText[0m[97m [0m[38;5;130mstring[0m[97m[0m
- [0m164 [97m}[0m
- [0m165 [97m[0m
- [0m166 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mDeclaration[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m167 [97m    Location[0m
- [0m168 [97m    [0m[38;5;130m[7mID[0m[97m            [0m[38;5;130mstring[0m[97m[0m
- [0m169 [97m    [0m[38;5;130m[7mName[0m[97m          [0m[38;5;130mstring[0m[97m[0m
- [0m170 [97m    [0m[38;5;130m[7mKind[0m[97m          [0m[38;5;130mstring[0m[97m[0m
- [0m171 [97m    [0m[38;5;130m[7mReferenceType[0m[97m [0m[38;5;130mbool[0m[97m[0m
- [0m172 [97m    [0m[38;5;120m[7m[4mReferences[0m[97m    [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mReference[0m[97m[0m
- [0m173 [97m    [0m[38;5;120m[7m[4mDeclarations[0m[97m  [0m[38;5;130m[4m[][0m[97m[0m[38;5;120m[4mDeclaration[0m[97m[0m
- [0m174 [97m    [0m[38;5;120m[7m[4mControlFlow[0m[97m   [0m[38;5;130m[4m[][0m[97m[0m[38;5;120m[4mControlFlowBlock[0m[97m[0m
- [0m175 [97m}[0m
- [0m176 [97m[0m
- [0m177 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mControlFlowStatement[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m178 [97m    Location[0m
- [0m179 [97m    [0m[38;5;130m[7mKind[0m[97m         [0m[38;5;130mstring[0m[97m[0m
- [0m180 [97m    [0m[38;5;130m[7mReturnsError[0m[97m [0m[38;5;130mbool[0m[97m[0m
- [0m181 [97m    [0m[38;5;130m[7mIsAbort[0m[97m      [0m[38;5;130mbool[0m[97m[0m
- [0m182 [97m}[0m
- [0m183 [97m[0m
- [0m184 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mControlFlowBlock[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m185 [97m    Location[0m
- [0m186 [97m    [0m[38;5;130m[7mKind[0m[97m             [0m[38;5;130mstring[0m[97m[0m
- [0m187 [97m    [0m[38;5;130m[7mOpenBraceLine[0m[97m    [0m[38;5;130mint[0m[97m[0m
- [0m188 [97m    [0m[38;5;130m[7mOpenBraceColumn[0m[97m  [0m[38;5;130mint[0m[97m[0m
- [0m189 [97m    [0m[38;5;130m[7mCloseBraceLine[0m[97m   [0m[38;5;130mint[0m[97m[0m
- [0m190 [97m    [0m[38;5;130m[7mCloseBraceColumn[0m[97m [0m[38;5;130mint[0m[97m[0m
- [0m191 [97m    [0m[38;5;130m[7mHasAbort[0m[97m         [0m[38;5;130mbool[0m[97m[0m
- [0m192 [97m    [0m[38;5;120m[7m[4mStatements[0m[97m       [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mControlFlowStatement[0m[97m[0m
- [0m193 [97m    [0m[38;5;120m[7m[4mBlocks[0m[97m           [0m[38;5;130m[4m[][0m[97m[0m[38;5;120m[4mControlFlowBlock[0m[97m[0m
- [0m194 [97m    [0m[38;5;130m[7mHasDefault[0m[97m       [0m[38;5;130mbool[0m[97m[0m
- [0m195 [97m    [0m[38;5;130m[7mMayBreak[0m[97m         [0m[38;5;130mbool[0m[97m[0m
- [0m196 [97m    [0m[38;5;130m[7mMayReturn[0m[97m        [0m[38;5;130mbool[0m[97m[0m
- [0m197 [97m}[0m
- [0m198 [97m[0m
- [0m199 [97m[0m[94mfunc[0m[97m ([0m[38;5;198m[7m[4mb[0m[97m [0m[38;5;120m[4mControlFlowBlock[0m[97m) [0m[38;5;120m[7m[4mHasAbortStmt[0m[97m([0m[38;5;198m[7mrecursive[0m[97m [0m[38;5;130mbool[0m[97m) [0m[38;5;130mbool[0m[97m [0m[94m{[0m[97m[0m
- [0m200 [97m    [0m[38;5;130mfor[0m[97m _, [0m[38;5;215m[7mstmt[0m[97m := [0m[38;5;130mrange[0m[97m [0m[38;5;198m[4mb[0m[97m.[0m[38;5;120m[4mStatements[0m[97m [0m[38;5;130m{[0m[97m[0m
- [0m201 [97m        [0m[38;5;130mswitch[0m[97m [0m[38;5;215mstmt[0m[97m.[0m[38;5;120mKind[0m[97m [0m[38;5;130m{[0m[97m[0m
- [0m202 [97m        [0m[38;5;130mcase[0m[97m [0m[38;5;218m"return"[0m[97m, [0m[38;5;218m"throw"[0m[97m, [0m[38;5;218m"continue"[0m[97m, [0m[38;5;218m"goto"[0m[97m, [0m[38;5;120mStatementKindPanic[0m[97m:[0m
- [0m203 [97m            [0m[94mreturn[0m[97m [0m[38;5;130mtrue[0m[97m[0m
- [0m204 [97m        [0m[94mcase[0m[97m [0m[38;5;218m"break"[0m[97m:[0m
- [0m205 [97m            [0m[38;5;130mif[0m[97m ![0m[38;5;215mstmt[0m[97m.[0m[38;5;120mIsAbort[0m[97m [0m[38;5;130m{[0m[97m[0m
- [0m206 [97m                [0m[94mreturn[0m[97m [0m[38;5;130mtrue[0m[97m[0m
- [0m207 [97m            [0m[38;5;130m}[0m[97m[0m
- [0m208 [97m        [0m[38;5;130m}[0m[97m[0m
- [0m209 [97m    [0m[38;5;130m}[0m[97m[0m
- [0m210 [97m    [0m[94mif[0m[97m [0m[38;5;198mrecursive[0m[97m [0m[94m{[0m[97m[0m
- [0m211 [97m        [0m[38;5;130mfor[0m[97m _, [0m[38;5;215m[7m[4mchild[0m[97m := [0m[38;5;130mrange[0m[97m [0m[38;5;198m[4mb[0m[97m.[0m[38;5;120m[4mBlocks[0m[97m [0m[38;5;130m{[0m[97m[0m
- [0m212 [97m            [0m[38;5;130mif[0m[97m [0m[38;5;215m[4mchild[0m[97m.[0m[38;5;215m[4mHasAbortStmt[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;130mtrue[0m[97m[0m[38;5;215m)[0m[97m [0m[38;5;130m{[0m[97m[0m
- [0m213 [97m                [0m[94mreturn[0m[97m [0m[38;5;130mtrue[0m[97m[0m
- [0m214 [97m            [0m[38;5;130m}[0m[97m[0m
- [0m215 [97m        [0m[38;5;130m}[0m[97m[0m
- [0m216 [97m    [0m[94m}[0m[97m[0m
- [0m217 [97m    [0m[94mreturn[0m[97m [0m[38;5;130mfalse[0m[97m[0m
- [0m218 [97m[0m[94m}[0m[97m[0m
- [0m219 [97m[0m
- [0m220 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mReference[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m221 [97m    Location[0m
- [0m222 [97m    [0m[38;5;130m[7mDeclarationID[0m[97m [0m[38;5;130mstring[0m[97m[0m
- [0m223 [97m    [0m[38;5;120m[7mDeclaration[0m[97m   [0m[38;5;120mLocation[0m[97m[0m
- [0m224 [97m    [0m[38;5;130m[7mText[0m[97m          [0m[38;5;130mstring[0m[97m[0m
- [0m225 [97m    [0m[38;5;130m[7mKind[0m[97m          [0m[38;5;130mstring[0m[97m[0m
- [0m226 [97m    [0m[38;5;130m[7mReferenceType[0m[97m [0m[38;5;130mbool[0m[97m[0m
- [0m227 [97m}[0m
- [0m228 [97m[0m
- [0m229 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mPackageReference[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m230 [97m    Location[0m
- [0m231 [97m    [0m[38;5;130m[7mPackageID[0m[97m [0m[38;5;130mstring[0m[97m[0m
- [0m232 [97m    [0m[38;5;130m[7mParentID[0m[97m  [0m[38;5;130mstring[0m[97m[0m
- [0m233 [97m    [0m[38;5;130m[7mText[0m[97m      [0m[38;5;130mstring[0m[97m[0m
- [0m234 [97m}[0m
+ [0m136 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mLocation[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m137 [97m    [0m[38;5;130m[7mFile[0m[97m   [0m[38;5;130mstring[0m[97m[0m
+ [0m138 [97m    [0m[38;5;130m[7mLine[0m[97m   [0m[38;5;130mint[0m[97m[0m
+ [0m139 [97m    [0m[38;5;130m[7mColumn[0m[97m [0m[38;5;130mint[0m[97m[0m
+ [0m140 [97m}[0m
+ [0m141 [97m[0m
+ [0m142 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mIndirectCall[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m143 [97m    Location[0m
+ [0m144 [97m    [0m[38;5;130m[7mText[0m[97m [0m[38;5;130mstring[0m[97m[0m
+ [0m145 [97m}[0m
+ [0m146 [97m[0m
+ [0m147 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mDeclaration[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m148 [97m    Location[0m
+ [0m149 [97m    [0m[38;5;130m[7mID[0m[97m            [0m[38;5;130mstring[0m[97m[0m
+ [0m150 [97m    [0m[38;5;130m[7mName[0m[97m          [0m[38;5;130mstring[0m[97m[0m
+ [0m151 [97m    [0m[38;5;130m[7mKind[0m[97m          [0m[38;5;130mstring[0m[97m[0m
+ [0m152 [97m    [0m[38;5;130m[7mReferenceType[0m[97m [0m[38;5;130mbool[0m[97m[0m
+ [0m153 [97m    [0m[38;5;120m[7m[4mReferences[0m[97m    [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mReference[0m[97m[0m
+ [0m154 [97m    [0m[38;5;120m[7m[4mDeclarations[0m[97m  [0m[38;5;130m[4m[][0m[97m[0m[38;5;120m[4mDeclaration[0m[97m[0m
+ [0m155 [97m    [0m[38;5;120m[7m[4mControlFlow[0m[97m   [0m[38;5;130m[4m[][0m[97m[0m[38;5;120m[4mControlFlowBlock[0m[97m[0m
+ [0m156 [97m}[0m
+ [0m157 [97m[0m
+ [0m158 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mControlFlowStatement[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m159 [97m    Location[0m
+ [0m160 [97m    [0m[38;5;130m[7mKind[0m[97m         [0m[38;5;130mstring[0m[97m[0m
+ [0m161 [97m    [0m[38;5;130m[7mReturnsError[0m[97m [0m[38;5;130mbool[0m[97m[0m
+ [0m162 [97m    [0m[38;5;130m[7mIsAbort[0m[97m      [0m[38;5;130mbool[0m[97m[0m
+ [0m163 [97m}[0m
+ [0m164 [97m[0m
+ [0m165 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mControlFlowBlock[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m166 [97m    Location[0m
+ [0m167 [97m    [0m[38;5;130m[7mKind[0m[97m             [0m[38;5;130mstring[0m[97m[0m
+ [0m168 [97m    [0m[38;5;130m[7mOpenBraceLine[0m[97m    [0m[38;5;130mint[0m[97m[0m
+ [0m169 [97m    [0m[38;5;130m[7mOpenBraceColumn[0m[97m  [0m[38;5;130mint[0m[97m[0m
+ [0m170 [97m    [0m[38;5;130m[7mCloseBraceLine[0m[97m   [0m[38;5;130mint[0m[97m[0m
+ [0m171 [97m    [0m[38;5;130m[7mCloseBraceColumn[0m[97m [0m[38;5;130mint[0m[97m[0m
+ [0m172 [97m    [0m[38;5;130m[7mHasAbort[0m[97m         [0m[38;5;130mbool[0m[97m[0m
+ [0m173 [97m    [0m[38;5;120m[7m[4mStatements[0m[97m       [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mControlFlowStatement[0m[97m[0m
+ [0m174 [97m    [0m[38;5;120m[7m[4mBlocks[0m[97m           [0m[38;5;130m[4m[][0m[97m[0m[38;5;120m[4mControlFlowBlock[0m[97m[0m
+ [0m175 [97m    [0m[38;5;130m[7mHasDefault[0m[97m       [0m[38;5;130mbool[0m[97m[0m
+ [0m176 [97m    [0m[38;5;130m[7mMayBreak[0m[97m         [0m[38;5;130mbool[0m[97m[0m
+ [0m177 [97m    [0m[38;5;130m[7mMayReturn[0m[97m        [0m[38;5;130mbool[0m[97m[0m
+ [0m178 [97m}[0m
+ [0m179 [97m[0m
+ [0m180 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mReference[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m181 [97m    Location[0m
+ [0m182 [97m    [0m[38;5;130m[7mDeclarationID[0m[97m [0m[38;5;130mstring[0m[97m[0m
+ [0m183 [97m    [0m[38;5;120m[7mDeclaration[0m[97m   [0m[38;5;120mLocation[0m[97m[0m
+ [0m184 [97m    [0m[38;5;130m[7mText[0m[97m          [0m[38;5;130mstring[0m[97m[0m
+ [0m185 [97m    [0m[38;5;130m[7mKind[0m[97m          [0m[38;5;130mstring[0m[97m[0m
+ [0m186 [97m    [0m[38;5;130m[7mReferenceType[0m[97m [0m[38;5;130mbool[0m[97m[0m
+ [0m187 [97m}[0m
+ [0m188 [97m[0m
+ [0m189 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mPackageReference[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m190 [97m    Location[0m
+ [0m191 [97m    [0m[38;5;130m[7mPackageID[0m[97m [0m[38;5;130mstring[0m[97m[0m
+ [0m192 [97m    [0m[38;5;130m[7mParentID[0m[97m  [0m[38;5;130mstring[0m[97m[0m
+ [0m193 [97m    [0m[38;5;130m[7mText[0m[97m      [0m[38;5;130mstring[0m[97m[0m
+ [0m194 [97m}[0m
+ [0m195 [97m[0m
+ [0m196 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mPackage[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m197 [97m    Location[0m
+ [0m198 [97m    [0m[38;5;130m[7mID[0m[97m    [0m[38;5;130mstring[0m[97m[0m
+ [0m199 [97m    [0m[38;5;130m[7mName[0m[97m  [0m[38;5;130mstring[0m[97m[0m
+ [0m200 [97m    [0m[38;5;120m[7m[4mFiles[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;120m[4mPackageFile[0m[97m[0m
+ [0m201 [97m}[0m
+ [0m202 [97m[0m
+ [0m203 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mPackageFile[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m204 [97m    Location[0m
+ [0m205 [97m    [0m[38;5;120m[7m[4mDeclarations[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mDeclarationSummary[0m[97m[0m
+ [0m206 [97m}[0m
+ [0m207 [97m[0m
+ [0m208 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mDeclarationSummary[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m209 [97m    Location[0m
+ [0m210 [97m    [0m[38;5;130m[7mName[0m[97m [0m[38;5;130mstring[0m[97m[0m
+ [0m211 [97m    [0m[38;5;130m[7mKind[0m[97m [0m[38;5;130mstring[0m[97m[0m
+ [0m212 [97m}[0m
+ [0m213 [97m[0m
+ [0m214 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mNamedField[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m215 [97m    Location[0m
+ [0m216 [97m    [0m[38;5;130m[7mText[0m[97m             [0m[38;5;130mstring[0m[97m[0m
+ [0m217 [97m    [0m[38;5;130m[7mInline[0m[97m           [0m[38;5;130mbool[0m[97m[0m
+ [0m218 [97m    [0m[38;5;130m[7mReferenceType[0m[97m    [0m[38;5;130mbool[0m[97m[0m
+ [0m219 [97m    [0m[38;5;120m[7mStructDecl[0m[97m       [0m[38;5;120mLocation[0m[97m[0m
+ [0m220 [97m    [0m[38;5;120m[7mDeclaration[0m[97m      [0m[38;5;120mNamedFieldTypeDeclaration[0m[97m[0m
+ [0m221 [97m    [0m[38;5;120m[7m[4mTypeDeclarations[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mNamedFieldTypeDeclaration[0m[97m[0m
+ [0m222 [97m}[0m
+ [0m223 [97m[0m
+ [0m224 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mNamedFieldTypeDeclaration[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
+ [0m225 [97m    Location[0m
+ [0m226 [97m}[0m
+ [0m227 [97m[0m
+ [0m228 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mHasLocation[0m[97m([0m[38;5;198m[7mloc[0m[97m [0m[38;5;120mLocation[0m[97m) [0m[38;5;130mbool[0m[97m [0m[94m{[0m[97m[0m
+ [0m229 [97m    [0m[94mreturn[0m[97m [0m[38;5;198mloc[0m[97m.[0m[38;5;120mFile[0m[97m != [0m[38;5;218m""[0m[97m && [0m[38;5;198mloc[0m[97m.[0m[38;5;120mLine[0m[97m > [0m[38;5;218m0[0m[97m && [0m[38;5;198mloc[0m[97m.[0m[38;5;120mColumn[0m[97m > [0m[38;5;218m0[0m[97m[0m
+ [0m230 [97m[0m[94m}[0m[97m[0m
+ [0m231 [97m[0m
+ [0m232 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mBuiltinLocation[0m[97m([0m[38;5;198m[7mlanguage[0m[97m [0m[38;5;130mstring[0m[97m) [0m[38;5;120mLocation[0m[97m [0m[94m{[0m[97m[0m
+ [0m233 [97m    [0m[94mreturn[0m[97m [0m[38;5;120mLocation[0m[97m[0m[32m{[0m[97m[0m[38;5;130mFile[0m[97m: [0m[38;5;120mBuiltinFile[0m[97m + [0m[38;5;218m"/"[0m[97m + [0m[38;5;198mlanguage[0m[97m, [0m[38;5;130mLine[0m[97m: [0m[38;5;218m1[0m[97m, [0m[38;5;130mColumn[0m[97m: [0m[38;5;218m1[0m[97m[0m[32m}[0m[97m[0m
+ [0m234 [97m[0m[94m}[0m[97m[0m
  [0m235 [97m[0m
- [0m236 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mPackage[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m237 [97m    Location[0m
- [0m238 [97m    [0m[38;5;130m[7mID[0m[97m    [0m[38;5;130mstring[0m[97m[0m
- [0m239 [97m    [0m[38;5;130m[7mName[0m[97m  [0m[38;5;130mstring[0m[97m[0m
- [0m240 [97m    [0m[38;5;120m[7m[4mFiles[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;120m[4mPackageFile[0m[97m[0m
- [0m241 [97m}[0m
- [0m242 [97m[0m
- [0m243 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mPackageFile[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m244 [97m    Location[0m
- [0m245 [97m    [0m[38;5;120m[7m[4mDeclarations[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mDeclarationSummary[0m[97m[0m
- [0m246 [97m}[0m
- [0m247 [97m[0m
- [0m248 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mDeclarationSummary[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m249 [97m    Location[0m
- [0m250 [97m    [0m[38;5;130m[7mName[0m[97m [0m[38;5;130mstring[0m[97m[0m
- [0m251 [97m    [0m[38;5;130m[7mKind[0m[97m [0m[38;5;130mstring[0m[97m[0m
- [0m252 [97m}[0m
- [0m253 [97m[0m
- [0m254 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7m[4mNamedField[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m255 [97m    Location[0m
- [0m256 [97m    [0m[38;5;130m[7mText[0m[97m             [0m[38;5;130mstring[0m[97m[0m
- [0m257 [97m    [0m[38;5;130m[7mInline[0m[97m           [0m[38;5;130mbool[0m[97m[0m
- [0m258 [97m    [0m[38;5;130m[7mReferenceType[0m[97m    [0m[38;5;130mbool[0m[97m[0m
- [0m259 [97m    [0m[38;5;120m[7mStructDecl[0m[97m       [0m[38;5;120mLocation[0m[97m[0m
- [0m260 [97m    [0m[38;5;120m[7mDeclaration[0m[97m      [0m[38;5;120mNamedFieldTypeDeclaration[0m[97m[0m
- [0m261 [97m    [0m[38;5;120m[7m[4mTypeDeclarations[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;120mNamedFieldTypeDeclaration[0m[97m[0m
- [0m262 [97m}[0m
- [0m263 [97m[0m
- [0m264 [97m[0m[38;5;130mtype[0m[97m [0m[38;5;120m[7mNamedFieldTypeDeclaration[0m[97m [0m[38;5;130mstruct[0m[97m {[0m
- [0m265 [97m    Location[0m
- [0m266 [97m}[0m
- [0m267 [97m[0m
- [0m268 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mHasLocation[0m[97m([0m[38;5;198m[7mloc[0m[97m [0m[38;5;120mLocation[0m[97m) [0m[38;5;130mbool[0m[97m [0m[94m{[0m[97m[0m
- [0m269 [97m    [0m[94mreturn[0m[97m [0m[38;5;198mloc[0m[97m.[0m[38;5;120mFile[0m[97m != [0m[38;5;218m""[0m[97m && [0m[38;5;198mloc[0m[97m.[0m[38;5;120mLine[0m[97m > [0m[38;5;218m0[0m[97m && [0m[38;5;198mloc[0m[97m.[0m[38;5;120mColumn[0m[97m > [0m[38;5;218m0[0m[97m[0m
- [0m270 [97m[0m[94m}[0m[97m[0m
- [0m271 [97m[0m
- [0m272 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mBuiltinLocation[0m[97m([0m[38;5;198m[7mlanguage[0m[97m [0m[38;5;130mstring[0m[97m) [0m[38;5;120mLocation[0m[97m [0m[94m{[0m[97m[0m
- [0m273 [97m    [0m[94mreturn[0m[97m [0m[38;5;120mLocation[0m[97m[0m[32m{[0m[97m[0m[38;5;130mFile[0m[97m: [0m[38;5;120mBuiltinFile[0m[97m + [0m[38;5;218m"/"[0m[97m + [0m[38;5;198mlanguage[0m[97m, [0m[38;5;130mLine[0m[97m: [0m[38;5;218m1[0m[97m, [0m[38;5;130mColumn[0m[97m: [0m[38;5;218m1[0m[97m[0m[32m}[0m[97m[0m
- [0m274 [97m[0m[94m}[0m[97m[0m
- [0m275 [97m[0m
- [0m276 [97m[0m[94mconst[0m[97m ([0m
- [0m277 [97m    [0m[38;5;120m[7mKindPackage[0m[97m   = [0m[38;5;218m"package"[0m[97m[0m
- [0m278 [97m    [0m[38;5;120m[7mKindType[0m[97m      = [0m[38;5;218m"type"[0m[97m[0m
- [0m279 [97m    [0m[38;5;120m[7mKindVariable[0m[97m  = [0m[38;5;218m"variable"[0m[97m[0m
- [0m280 [97m    [0m[38;5;120m[7mKindParameter[0m[97m = [0m[38;5;218m"parameter"[0m[97m[0m
- [0m281 [97m    [0m[38;5;120m[7mKindFunction[0m[97m  = [0m[38;5;218m"function"[0m[97m[0m
- [0m282 [97m    [0m[38;5;120m[7mKindFile[0m[97m      = [0m[38;5;218m"file"[0m[97m[0m
- [0m283 [97m)[0m
- [0m284 [97m[0m
- [0m285 [97m[0m[94mconst[0m[97m ([0m
- [0m286 [97m    [0m[38;5;120m[7mBlockKindBase[0m[97m    = [0m[38;5;218m"block"[0m[97m[0m
- [0m287 [97m    [0m[38;5;120m[7mBlockKindIf[0m[97m      = [0m[38;5;218m"if"[0m[97m[0m
- [0m288 [97m    [0m[38;5;120m[7mBlockKindElseIf[0m[97m  = [0m[38;5;218m"elseif"[0m[97m[0m
- [0m289 [97m    [0m[38;5;120m[7mBlockKindElse[0m[97m    = [0m[38;5;218m"else"[0m[97m[0m
- [0m290 [97m    [0m[38;5;120m[7mBlockKindFor[0m[97m     = [0m[38;5;218m"for"[0m[97m[0m
- [0m291 [97m    [0m[38;5;120m[7mBlockKindWhile[0m[97m   = [0m[38;5;218m"while"[0m[97m[0m
- [0m292 [97m    [0m[38;5;120m[7mBlockKindDo[0m[97m      = [0m[38;5;218m"do"[0m[97m[0m
- [0m293 [97m    [0m[38;5;120m[7mBlockKindSwitch[0m[97m  = [0m[38;5;218m"switch"[0m[97m[0m
- [0m294 [97m    [0m[38;5;120m[7mBlockKindSelect[0m[97m  = [0m[38;5;218m"select"[0m[97m[0m
- [0m295 [97m    [0m[38;5;120m[7mBlockKindCase[0m[97m    = [0m[38;5;218m"case"[0m[97m[0m
- [0m296 [97m    [0m[38;5;120m[7mBlockKindTry[0m[97m     = [0m[38;5;218m"try"[0m[97m[0m
- [0m297 [97m    [0m[38;5;120m[7mBlockKindCatch[0m[97m   = [0m[38;5;218m"catch"[0m[97m[0m
- [0m298 [97m    [0m[38;5;120m[7mBlockKindFinally[0m[97m = [0m[38;5;218m"finally"[0m[97m[0m
- [0m299 [97m)[0m
- [0m300 [97m[0m
- [0m301 [97m[0m[94mconst[0m[97m ([0m
- [0m302 [97m    [0m[38;5;120m[7mConstructKindBase[0m[97m              = [0m[38;5;218m"base"[0m[97m[0m
- [0m303 [97m    [0m[38;5;120m[7mConstructKindBranch[0m[97m            = [0m[38;5;218m"branch"[0m[97m[0m
- [0m304 [97m    [0m[38;5;120m[7mConstructKindBranchAlternative[0m[97m = [0m[38;5;218m"branch-alternative"[0m[97m[0m
- [0m305 [97m    [0m[38;5;120m[7mConstructKindLoop[0m[97m              = [0m[38;5;218m"loop"[0m[97m[0m
- [0m306 [97m    [0m[38;5;120m[7mConstructKindExhaustiveMatch[0m[97m   = [0m[38;5;218m"exhaustive-match"[0m[97m[0m
- [0m307 [97m    [0m[38;5;120m[7mConstructKindCase[0m[97m              = [0m[38;5;218m"case"[0m[97m[0m
- [0m308 [97m)[0m
- [0m309 [97m[0m
- [0m310 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mBlockConstructKind[0m[97m([0m[38;5;198m[7mkind[0m[97m [0m[38;5;130mstring[0m[97m) [0m[38;5;130mstring[0m[97m [0m[94m{[0m[97m[0m
- [0m311 [97m    [0m[32mswitch[0m[97m [0m[38;5;198mkind[0m[97m [0m[32m{[0m[97m[0m
- [0m312 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindIf[0m[97m, [0m[38;5;120mBlockKindTry[0m[97m:[0m
- [0m313 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindBranch[0m[97m[0m
- [0m314 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindElseIf[0m[97m, [0m[38;5;120mBlockKindElse[0m[97m, [0m[38;5;120mBlockKindCatch[0m[97m, [0m[38;5;120mBlockKindFinally[0m[97m:[0m
- [0m315 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindBranchAlternative[0m[97m[0m
- [0m316 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindFor[0m[97m, [0m[38;5;120mBlockKindWhile[0m[97m, [0m[38;5;120mBlockKindDo[0m[97m:[0m
- [0m317 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindLoop[0m[97m[0m
- [0m318 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindSwitch[0m[97m, [0m[38;5;120mBlockKindSelect[0m[97m:[0m
- [0m319 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindExhaustiveMatch[0m[97m[0m
- [0m320 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindCase[0m[97m:[0m
- [0m321 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindCase[0m[97m[0m
- [0m322 [97m    [0m[38;5;130mdefault[0m[97m:[0m
- [0m323 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindBase[0m[97m[0m
- [0m324 [97m    [0m[32m}[0m[97m[0m
- [0m325 [97m[0m[94m}[0m[97m[0m
- [0m326 [97m[0m
- [0m327 [97m[0m[94mconst[0m[97m ([0m
- [0m328 [97m    [0m[38;5;120m[7mStatementKindPanic[0m[97m = [0m[38;5;218m"panic"[0m[97m[0m
- [0m329 [97m    [0m[38;5;120m[7mBuiltinFile[0m[97m        = [0m[38;5;218m"/src/builtin"[0m[97m[0m
- [0m330 [97m)[0m
- [0m331 [97m[0m
- [0m332 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mIsBuiltinFile[0m[97m([0m[38;5;198m[7mfile[0m[97m [0m[38;5;130mstring[0m[97m) [0m[38;5;130mbool[0m[97m [0m[94m{[0m[97m[0m
- [0m333 [97m    [0m[38;5;130mif[0m[97m [0m[38;5;198mfile[0m[97m == [0m[38;5;218m""[0m[97m [0m[38;5;130m{[0m[97m[0m
- [0m334 [97m        [0m[94mreturn[0m[97m [0m[38;5;130mtrue[0m[97m[0m
- [0m335 [97m    [0m[38;5;130m}[0m[97m[0m
- [0m336 [97m    [0m[38;5;215m[7mp[0m[97m := [0m[35mfilepath[0m[97m.[0m[35m[4mClean[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mfile[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m337 [97m    [0m[94mreturn[0m[97m [0m[35mstrings[0m[97m.[0m[35m[4mContains[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mp[0m[97m, [0m[38;5;120mBuiltinFile[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m338 [97m[0m[94m}[0m[97m[0m
- [0m339 [97m[0m
+ [0m236 [97m[0m[94mconst[0m[97m ([0m
+ [0m237 [97m    [0m[38;5;120m[7mKindPackage[0m[97m   = [0m[38;5;218m"package"[0m[97m[0m
+ [0m238 [97m    [0m[38;5;120m[7mKindType[0m[97m      = [0m[38;5;218m"type"[0m[97m[0m
+ [0m239 [97m    [0m[38;5;120m[7mKindVariable[0m[97m  = [0m[38;5;218m"variable"[0m[97m[0m
+ [0m240 [97m    [0m[38;5;120m[7mKindParameter[0m[97m = [0m[38;5;218m"parameter"[0m[97m[0m
+ [0m241 [97m    [0m[38;5;120m[7mKindFunction[0m[97m  = [0m[38;5;218m"function"[0m[97m[0m
+ [0m242 [97m    [0m[38;5;120m[7mKindFile[0m[97m      = [0m[38;5;218m"file"[0m[97m[0m
+ [0m243 [97m)[0m
+ [0m244 [97m[0m
+ [0m245 [97m[0m[94mconst[0m[97m ([0m
+ [0m246 [97m    [0m[38;5;120m[7mBlockKindBase[0m[97m    = [0m[38;5;218m"block"[0m[97m[0m
+ [0m247 [97m    [0m[38;5;120m[7mBlockKindIf[0m[97m      = [0m[38;5;218m"if"[0m[97m[0m
+ [0m248 [97m    [0m[38;5;120m[7mBlockKindElseIf[0m[97m  = [0m[38;5;218m"elseif"[0m[97m[0m
+ [0m249 [97m    [0m[38;5;120m[7mBlockKindElse[0m[97m    = [0m[38;5;218m"else"[0m[97m[0m
+ [0m250 [97m    [0m[38;5;120m[7mBlockKindFor[0m[97m     = [0m[38;5;218m"for"[0m[97m[0m
+ [0m251 [97m    [0m[38;5;120m[7mBlockKindWhile[0m[97m   = [0m[38;5;218m"while"[0m[97m[0m
+ [0m252 [97m    [0m[38;5;120m[7mBlockKindDo[0m[97m      = [0m[38;5;218m"do"[0m[97m[0m
+ [0m253 [97m    [0m[38;5;120m[7mBlockKindSwitch[0m[97m  = [0m[38;5;218m"switch"[0m[97m[0m
+ [0m254 [97m    [0m[38;5;120m[7mBlockKindSelect[0m[97m  = [0m[38;5;218m"select"[0m[97m[0m
+ [0m255 [97m    [0m[38;5;120m[7mBlockKindCase[0m[97m    = [0m[38;5;218m"case"[0m[97m[0m
+ [0m256 [97m    [0m[38;5;120m[7mBlockKindTry[0m[97m     = [0m[38;5;218m"try"[0m[97m[0m
+ [0m257 [97m    [0m[38;5;120m[7mBlockKindCatch[0m[97m   = [0m[38;5;218m"catch"[0m[97m[0m
+ [0m258 [97m    [0m[38;5;120m[7mBlockKindFinally[0m[97m = [0m[38;5;218m"finally"[0m[97m[0m
+ [0m259 [97m)[0m
+ [0m260 [97m[0m
+ [0m261 [97m[0m[94mconst[0m[97m ([0m
+ [0m262 [97m    [0m[38;5;120m[7mConstructKindBase[0m[97m              = [0m[38;5;218m"base"[0m[97m[0m
+ [0m263 [97m    [0m[38;5;120m[7mConstructKindBranch[0m[97m            = [0m[38;5;218m"branch"[0m[97m[0m
+ [0m264 [97m    [0m[38;5;120m[7mConstructKindBranchAlternative[0m[97m = [0m[38;5;218m"branch-alternative"[0m[97m[0m
+ [0m265 [97m    [0m[38;5;120m[7mConstructKindLoop[0m[97m              = [0m[38;5;218m"loop"[0m[97m[0m
+ [0m266 [97m    [0m[38;5;120m[7mConstructKindExhaustiveMatch[0m[97m   = [0m[38;5;218m"exhaustive-match"[0m[97m[0m
+ [0m267 [97m    [0m[38;5;120m[7mConstructKindCase[0m[97m              = [0m[38;5;218m"case"[0m[97m[0m
+ [0m268 [97m)[0m
+ [0m269 [97m[0m
+ [0m270 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mblockConstructKind[0m[97m([0m[38;5;198m[7mkind[0m[97m [0m[38;5;130mstring[0m[97m) [0m[38;5;130mstring[0m[97m [0m[94m{[0m[97m[0m
+ [0m271 [97m    [0m[32mswitch[0m[97m [0m[38;5;198mkind[0m[97m [0m[32m{[0m[97m[0m
+ [0m272 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindIf[0m[97m, [0m[38;5;120mBlockKindTry[0m[97m:[0m
+ [0m273 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindBranch[0m[97m[0m
+ [0m274 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindElseIf[0m[97m, [0m[38;5;120mBlockKindElse[0m[97m, [0m[38;5;120mBlockKindCatch[0m[97m, [0m[38;5;120mBlockKindFinally[0m[97m:[0m
+ [0m275 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindBranchAlternative[0m[97m[0m
+ [0m276 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindFor[0m[97m, [0m[38;5;120mBlockKindWhile[0m[97m, [0m[38;5;120mBlockKindDo[0m[97m:[0m
+ [0m277 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindLoop[0m[97m[0m
+ [0m278 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindSwitch[0m[97m, [0m[38;5;120mBlockKindSelect[0m[97m:[0m
+ [0m279 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindExhaustiveMatch[0m[97m[0m
+ [0m280 [97m    [0m[38;5;130mcase[0m[97m [0m[38;5;120mBlockKindCase[0m[97m:[0m
+ [0m281 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindCase[0m[97m[0m
+ [0m282 [97m    [0m[38;5;130mdefault[0m[97m:[0m
+ [0m283 [97m        [0m[94mreturn[0m[97m [0m[38;5;120mConstructKindBase[0m[97m[0m
+ [0m284 [97m    [0m[32m}[0m[97m[0m
+ [0m285 [97m[0m[94m}[0m[97m[0m
+ [0m286 [97m[0m
+ [0m287 [97m[0m[94mconst[0m[97m ([0m
+ [0m288 [97m    [0m[38;5;120m[7mStatementKindPanic[0m[97m = [0m[38;5;218m"panic"[0m[97m[0m
+ [0m289 [97m    [0m[38;5;120m[7mBuiltinFile[0m[97m        = [0m[38;5;218m"/src/builtin"[0m[97m[0m
+ [0m290 [97m)[0m
+ [0m291 [97m[0m
+ [0m292 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mIsBuiltinFile[0m[97m([0m[38;5;198m[7mfile[0m[97m [0m[38;5;130mstring[0m[97m) [0m[38;5;130mbool[0m[97m [0m[94m{[0m[97m[0m
+ [0m293 [97m    [0m[38;5;130mif[0m[97m [0m[38;5;198mfile[0m[97m == [0m[38;5;218m""[0m[97m [0m[38;5;130m{[0m[97m[0m
+ [0m294 [97m        [0m[94mreturn[0m[97m [0m[38;5;130mtrue[0m[97m[0m
+ [0m295 [97m    [0m[38;5;130m}[0m[97m[0m
+ [0m296 [97m    [0m[38;5;215m[7mp[0m[97m := [0m[35mfilepath[0m[97m.[0m[35m[4mClean[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mfile[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m297 [97m    [0m[94mreturn[0m[97m [0m[35mstrings[0m[97m.[0m[35m[4mContains[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;215mp[0m[97m, [0m[38;5;120mBuiltinFile[0m[97m[0m[38;5;215m)[0m[97m[0m
+ [0m298 [97m[0m[94m}[0m[97m[0m
+ [0m299 [97m[0m

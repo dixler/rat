@@ -73,7 +73,6 @@ type File interface {
 	Name() string
 	Source() string
 	SourceLines() []string
-	ProjectRoot() string
 	Tree() Declaration
 	Nodes() []scan.Node
 	PackageReferences() []PackageReference
@@ -152,9 +151,8 @@ func (f *file) Source() string { return f.source }
 func (f *file) SourceLines() []string {
 	return clone(f.sourceLines)
 }
-func (f *file) ProjectRoot() string { return projectRoot(f.name) }
-func (f *file) Tree() Declaration   { return f.root }
-func (f *file) Nodes() []scan.Node  { return clone(f.nodes) }
+func (f *file) Tree() Declaration  { return f.root }
+func (f *file) Nodes() []scan.Node { return clone(f.nodes) }
 func (f *file) PackageReferences() []PackageReference {
 	return clone(f.packageRefs)
 }
@@ -236,28 +234,4 @@ func optionalLocation(loc scan.Location) (location, bool) {
 		return location{}, false
 	}
 	return location{loc}, true
-}
-
-func projectRoot(path string) string {
-	path = filepath.Clean(path)
-	abs, err := filepath.Abs(path)
-	if err == nil {
-		path = abs
-	}
-	dir := path
-	if filepath.Ext(dir) != "" {
-		dir = filepath.Dir(dir)
-	}
-	for {
-		for _, marker := range []string{".git", "go.mod", "package.json"} {
-			if _, err := os.Stat(filepath.Join(dir, marker)); err == nil {
-				return dir
-			}
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			return ""
-		}
-		dir = parent
-	}
 }

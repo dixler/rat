@@ -31,7 +31,7 @@ func (b *build) syntax() {
 			break
 		}
 		p := b.location(pos)
-		spans := scan.NodeSpans(scan.SpansForText(p.Line, p.Column, text))
+		spans := scan.NodeSpans(spansForText(p.Line, p.Column, text))
 		switch tok {
 		case token.PACKAGE, token.IMPORT, token.TYPE, token.VAR, token.STRUCT, token.INTERFACE:
 			add(scan.DeclarationSyntaxNode{NodeSpans: b.word(pos, tok.String())})
@@ -105,7 +105,7 @@ func (b *build) syntax() {
 	for _, group := range b.ast.Comments {
 		for _, comment := range group.List {
 			p := b.location(comment.Pos())
-			add(scan.CommentNode{NodeSpans: scan.SpansForText(p.Line, p.Column, comment.Text)})
+			add(scan.CommentNode{NodeSpans: spansForText(p.Line, p.Column, comment.Text)})
 		}
 	}
 	ast.Inspect(b.ast, func(node ast.Node) bool {
@@ -118,4 +118,23 @@ func (b *build) syntax() {
 
 func (b *build) word(pos token.Pos, text string) scan.NodeSpans {
 	return scan.NodeSpans{b.span(pos, len(text))}
+}
+
+func spansForText(line, column int, text string) []scan.Span {
+	if line < 1 || column < 1 || text == "" {
+		return nil
+	}
+	parts := strings.Split(text, "\n")
+	spans := make([]scan.Span, 0, len(parts))
+	for i, part := range parts {
+		if part == "" {
+			continue
+		}
+		col := 1
+		if i == 0 {
+			col = column
+		}
+		spans = append(spans, scan.Span{Line: line + i, Column: col, Length: len(part)})
+	}
+	return spans
 }

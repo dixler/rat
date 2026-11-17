@@ -47,6 +47,7 @@ Core behavior is semantic highlighting, not plain syntax highlighting. Preserve 
 - `cmd/rat/`: CLI, local server, and pipeline golden tests.
 - `internal/`: shared highlighting, file loading, rendering, generic LSP, `gopls`, and API logic.
 - File-tree adapters retain scanner records and resolve parent/reference links; highlighting collects spans with shared source/project context.
+- Highlighting owns project-root detection for relationship colors; Go-specific text spans and control-flow inspection stay in the Go scanner rather than the shared scanner records.
 - The Go scanner shares one AST/type context: `build.go` orchestrates parsing and workspace lookups, `symbols.go` indexes declarations and collects relationships, `syntax.go` emits lexical/AST nodes, and `flow.go` emits control-flow records. `scan.Build` alone derives control-flow nodes.
 - Same-path overlays are serialized through bounded document locks. Workspace ASTs and symbol locations are cached per build; standard-library package summaries are cached per process and copied into results.
 - `testdata/`: golden outputs used by tests.

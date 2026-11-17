@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-func BuildNodes(result *Result, source []byte) []Node {
+func buildNodes(result *Result, source []byte) []Node {
 	if result == nil {
 		return nil
 	}
@@ -27,7 +27,7 @@ func appendDeclarationNodes(nodes *[]Node, decl Declaration, sourceLines []strin
 
 func appendControlFlowNodes(nodes *[]Node, block ControlFlowBlock, sourceLines []string) {
 	spans := blockSpans(block, sourceLines)
-	switch BlockConstructKind(block.Kind) {
+	switch blockConstructKind(block.Kind) {
 	case ConstructKindBranch, ConstructKindBranchAlternative, ConstructKindCase:
 		*nodes = append(*nodes, CondNode{NodeSpans: spans, IsGuard: !block.HasAbort})
 	case ConstructKindLoop:

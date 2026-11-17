@@ -31,7 +31,7 @@ func Build(file string, source []byte) (*Result, error) {
 	}
 	result, err := scanner.Build(file, source)
 	if result != nil {
-		result.Nodes = append(result.Nodes, BuildNodes(result, source)...)
+		result.Nodes = append(result.Nodes, buildNodes(result, source)...)
 	}
 	return result, err
 }
@@ -133,25 +133,6 @@ func oneSpan(span Span) []Span {
 	return []Span{span}
 }
 
-func SpansForText(line, column int, text string) []Span {
-	if line < 1 || column < 1 || text == "" {
-		return nil
-	}
-	parts := strings.Split(text, "\n")
-	spans := make([]Span, 0, len(parts))
-	for i, part := range parts {
-		if part == "" {
-			continue
-		}
-		col := 1
-		if i == 0 {
-			col = column
-		}
-		spans = append(spans, Span{Line: line + i, Column: col, Length: len(part)})
-	}
-	return spans
-}
-
 type Location struct {
 	File   string
 	Line   int
@@ -194,27 +175,6 @@ type ControlFlowBlock struct {
 	HasDefault       bool
 	MayBreak         bool
 	MayReturn        bool
-}
-
-func (b ControlFlowBlock) HasAbortStmt(recursive bool) bool {
-	for _, stmt := range b.Statements {
-		switch stmt.Kind {
-		case "return", "throw", "continue", "goto", StatementKindPanic:
-			return true
-		case "break":
-			if !stmt.IsAbort {
-				return true
-			}
-		}
-	}
-	if recursive {
-		for _, child := range b.Blocks {
-			if child.HasAbortStmt(true) {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 type Reference struct {
@@ -307,7 +267,7 @@ const (
 	ConstructKindCase              = "case"
 )
 
-func BlockConstructKind(kind string) string {
+func blockConstructKind(kind string) string {
 	switch kind {
 	case BlockKindIf, BlockKindTry:
 		return ConstructKindBranch

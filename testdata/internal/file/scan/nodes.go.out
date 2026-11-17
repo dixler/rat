@@ -4,7 +4,7 @@
  [0m  4 [97m    [0m[90m"[0m[97m[0m[35m[7mstrings[0m[97m[0m[90m"[0m[97m[0m
  [0m  5 [97m)[0m
  [0m  6 [97m[0m
- [0m  7 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mBuildNodes[0m[97m([0m[38;5;198m[7mresult[0m[97m *[0m[32mResult[0m[97m, [0m[38;5;198m[7m[4msource[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;130mbyte[0m[97m) [0m[38;5;130m[4m[][0m[97m[0m[32mNode[0m[97m [0m[94m{[0m[97m[0m
+ [0m  7 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mbuildNodes[0m[97m([0m[38;5;198m[7mresult[0m[97m *[0m[32mResult[0m[97m, [0m[38;5;198m[7m[4msource[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;130mbyte[0m[97m) [0m[38;5;130m[4m[][0m[97m[0m[32mNode[0m[97m [0m[94m{[0m[97m[0m
  [0m  8 [97m    [0m[38;5;130mif[0m[97m [0m[38;5;198mresult[0m[97m == [0m[38;5;130mnil[0m[97m [0m[38;5;130m{[0m[97m[0m
  [0m  9 [97m        [0m[94mreturn[0m[97m [0m[38;5;130mnil[0m[97m[0m
  [0m 10 [97m    [0m[38;5;130m}[0m[97m[0m
@@ -27,7 +27,7 @@
  [0m 27 [97m[0m
  [0m 28 [97m[0m[94mfunc[0m[97m [0m[38;5;120m[7m[4mappendControlFlowNodes[0m[97m([0m[38;5;198m[7m[4mnodes[0m[97m *[0m[38;5;130m[4m[][0m[97m[0m[32mNode[0m[97m, [0m[38;5;198m[7mblock[0m[97m [0m[32mControlFlowBlock[0m[97m, [0m[38;5;198m[7m[4msourceLines[0m[97m [0m[38;5;130m[4m[][0m[97m[0m[38;5;130mstring[0m[97m) [0m[94m{[0m[97m[0m
  [0m 29 [97m    [0m[38;5;215m[7m[4mspans[0m[97m := [0m[38;5;120m[4mblockSpans[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mblock[0m[97m, [0m[38;5;198m[4msourceLines[0m[97m[0m[38;5;215m)[0m[97m[0m
- [0m 30 [97m    [0m[38;5;130mswitch[0m[97m [0m[32mBlockConstructKind[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mblock[0m[97m.[0m[32mKind[0m[97m[0m[38;5;215m)[0m[97m [0m[38;5;130m{[0m[97m[0m
+ [0m 30 [97m    [0m[38;5;130mswitch[0m[97m [0m[32mblockConstructKind[0m[97m[0m[38;5;215m([0m[97m[0m[38;5;198mblock[0m[97m.[0m[32mKind[0m[97m[0m[38;5;215m)[0m[97m [0m[38;5;130m{[0m[97m[0m
  [0m 31 [97m    [0m[94mcase[0m[97m [0m[32mConstructKindBranch[0m[97m, [0m[32mConstructKindBranchAlternative[0m[97m, [0m[32mConstructKindCase[0m[97m:[0m
  [0m 32 [97m        *[0m[38;5;198m[4mnodes[0m[97m = [0m[38;5;130mappend[0m[97m[0m[38;5;215m([0m[97m*[0m[38;5;198m[4mnodes[0m[97m, [0m[32mCondNode[0m[97m{[0m[32mNodeSpans[0m[97m: [0m[38;5;215m[4mspans[0m[97m, [0m[32mIsGuard[0m[97m: ![0m[38;5;198mblock[0m[97m.[0m[32mHasAbort[0m[97m}[0m[38;5;215m)[0m[97m[0m
  [0m 33 [97m    [0m[94mcase[0m[97m [0m[32mConstructKindLoop[0m[97m:[0m

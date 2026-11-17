@@ -72,13 +72,13 @@ func (b *build) flow(stmt ast.Stmt, fn *ast.FuncType, ctx flowContext) scan.Cont
 		}
 	case *ast.BlockStmt:
 		block.Blocks = b.flowList(n.List, fn, ctx)
-		block.HasAbort = block.HasAbortStmt(true)
+		block.HasAbort = hasAbortStmt(block, true)
 	case *ast.ForStmt:
 		body(scan.BlockKindFor, n.Body, ctx)
-		block.HasAbort = block.HasAbortStmt(true)
+		block.HasAbort = hasAbortStmt(block, true)
 	case *ast.RangeStmt:
 		body(scan.BlockKindFor, n.Body, ctx)
-		block.HasAbort = block.HasAbortStmt(true)
+		block.HasAbort = hasAbortStmt(block, true)
 	case *ast.SwitchStmt:
 		body(scan.BlockKindSwitch, n.Body, ctx)
 	case *ast.TypeSwitchStmt:
@@ -92,7 +92,7 @@ func (b *build) flow(stmt ast.Stmt, fn *ast.FuncType, ctx flowContext) scan.Cont
 		for _, child := range block.Blocks {
 			block.Statements = append(block.Statements, child.Statements...)
 		}
-		block.HasAbort = block.HasAbortStmt(false)
+		block.HasAbort = hasAbortStmt(block, false)
 	case *ast.CommClause:
 		block.Kind = scan.BlockKindCase
 		block.HasDefault = n.Comm == nil
@@ -100,7 +100,7 @@ func (b *build) flow(stmt ast.Stmt, fn *ast.FuncType, ctx flowContext) scan.Cont
 		for _, child := range block.Blocks {
 			block.Statements = append(block.Statements, child.Statements...)
 		}
-		block.HasAbort = block.HasAbortStmt(false)
+		block.HasAbort = hasAbortStmt(block, false)
 	case *ast.ReturnStmt:
 		block.Statements = []scan.ControlFlowStatement{{Location: block.Location, Kind: "return", ReturnsError: b.errorReturn(n, fn)}}
 		block.HasAbort = true
@@ -117,7 +117,7 @@ func (b *build) flow(stmt ast.Stmt, fn *ast.FuncType, ctx flowContext) scan.Cont
 			target.MayBreak = true
 		}
 		block.Statements = []scan.ControlFlowStatement{{Location: block.Location, Kind: n.Tok.String(), IsAbort: isAbort}}
-		block.HasAbort = block.HasAbortStmt(false)
+		block.HasAbort = hasAbortStmt(block, false)
 	case *ast.ExprStmt:
 		if call, ok := n.X.(*ast.CallExpr); ok {
 			if id, ok := call.Fun.(*ast.Ident); ok && id.Name == "panic" {
@@ -130,15 +130,36 @@ func (b *build) flow(stmt ast.Stmt, fn *ast.FuncType, ctx flowContext) scan.Cont
 		for _, child := range block.Blocks {
 			block.HasDefault = block.HasDefault || child.HasDefault
 		}
-		block.HasAbort = block.HasAbortStmt(true)
+		block.HasAbort = hasAbortStmt(block, true)
 	}
 	return block
 }
 
 func directAbort(blocks []scan.ControlFlowBlock) bool {
 	for _, block := range blocks {
-		if block.HasAbortStmt(false) {
+		if hasAbortStmt(block, false) {
 			return true
+		}
+	}
+	return false
+}
+
+func hasAbortStmt(block scan.ControlFlowBlock, recursive bool) bool {
+	for _, stmt := range block.Statements {
+		switch stmt.Kind {
+		case "return", "throw", "continue", "goto", scan.StatementKindPanic:
+			return true
+		case "break":
+			if !stmt.IsAbort {
+				return true
+			}
+		}
+	}
+	if recursive {
+		for _, child := range block.Blocks {
+			if hasAbortStmt(child, true) {
+				return true
+			}
 		}
 	}
 	return false

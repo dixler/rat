@@ -2,6 +2,7 @@ package highlight
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -279,7 +280,7 @@ func flattenSpans(line string, spans []Span) []Span {
 }
 
 func ParseFormats(f file.File) ParseResult {
-	c := spanCollector{root: f.ProjectRoot(), lines: f.SourceLines(), spans: map[int][]Span{}}
+	c := spanCollector{root: projectRoot(f.Name()), lines: f.SourceLines(), spans: map[int][]Span{}}
 	controlFlowMarks := collectNodeControlFlowMarks(f.Nodes())
 	c.lexicalNodes(f.Nodes(), loopStyleByLocation(controlFlowMarks))
 	for _, named := range f.TopLevelNamedFields() {
@@ -536,4 +537,28 @@ func inProject(root string, loc file.Location) bool {
 	file := filepath.Clean(loc.File())
 	root = filepath.Clean(root)
 	return file != "" && strings.HasPrefix(file, root+string(filepath.Separator))
+}
+
+func projectRoot(path string) string {
+	path = filepath.Clean(path)
+	abs, err := filepath.Abs(path)
+	if err == nil {
+		path = abs
+	}
+	dir := path
+	if filepath.Ext(dir) != "" {
+		dir = filepath.Dir(dir)
+	}
+	for {
+		for _, marker := range []string{".git", "go.mod", "package.json"} {
+			if _, err := os.Stat(filepath.Join(dir, marker)); err == nil {
+				return dir
+			}
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+		dir = parent
+	}
 }
